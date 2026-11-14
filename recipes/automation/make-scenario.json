@@ -1,0 +1,23 @@
+{
+  "name": "PA Cafe · send a notice (link-only)",
+  "flow": [
+    {
+      "id": 1,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true },
+      "mapper": {
+        "url": "PASTE_YOUR_PRIVATE_LINK",
+        "method": "post",
+        "headers": [],
+        "qs": [],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "parseResponse": false,
+        "data": "{\"title\":\"New event from Make\",\"body\":\"Map fields from your scenario here\"}"
+      },
+      "metadata": { "designer": { "x": 0, "y": 0 } }
+    }
+  ],
+  "metadata": { "version": 1, "scenario": { "roundtrips": 1, "maxErrors": 3, "autoCommit": true, "sequential": false, "confidential": true, "dataloss": false, "dlq": false } }
+}

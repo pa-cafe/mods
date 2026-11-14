@@ -1,0 +1,27 @@
+{
+  "name": "PA Cafe · send a notice (signed)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "6f1c0b52-6a43-4c1e-9d3f-2f6c3b7a0001",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Paste your source's Inbound URL and Signing secret. Replace the trigger above with any trigger; items with title/body fields are sent as they are.\nconst INBOUND_URL = 'https://YOUR-CAFE/api/inbound/HOUSE/SOURCE';\nconst SIGNING_SECRET = 'whsec_PASTE_YOUR_SIGNING_SECRET';\n\nconst crypto = require('crypto');\nconst key = Buffer.from(SIGNING_SECRET.replace(/^whsec_/, ''), 'base64');\nconst results = [];\nfor (const item of $input.all()) {\n  const id = `n8n-${crypto.randomUUID()}`;\n  const timestamp = String(Math.floor(Date.now() / 1000));\n  const payload = JSON.stringify({ title: item.json.title || 'New event from n8n', body: item.json.body || JSON.stringify(item.json) });\n  const signature = crypto.createHmac('sha256', key).update(`${id}.${timestamp}.${payload}`).digest('base64');\n  const reply = await this.helpers.httpRequest({ method: 'POST', url: INBOUND_URL, body: payload, json: false, headers: { 'content-type': 'application/json', 'webhook-id': id, 'webhook-timestamp': timestamp, 'webhook-signature': `v1,${signature}` } });\n  results.push({ json: { sent: id, reply } });\n}\nreturn results;"
+      },
+      "id": "6f1c0b52-6a43-4c1e-9d3f-2f6c3b7a0002",
+      "name": "Send to PA Cafe",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 0]
+    }
+  ],
+  "connections": {
+    "When clicking ‘Test workflow’": { "main": [[{ "node": "Send to PA Cafe", "type": "main", "index": 0 }]] }
+  },
+  "settings": {}
+}

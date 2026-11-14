@@ -1,0 +1,20 @@
+PA Cafe · IFTTT applet (link-only)
+PA Cafe · IFTTT Applet（只靠網址送通知）
+
+Before you start: in the cafe, open your Generic webhook source → Advanced → Link-only delivery, turn it on and copy the private link.
+開始前：在小屋打開通用 Webhook 來源 →「進階」→「只靠網址送通知」，開啟後複製私人網址。
+
+1. Create → If This: pick any trigger (weather, RSS, a smart home device…).
+   建立 → If This：選任何觸發（天氣、RSS、智慧家電…）。
+2. Then That: Webhooks → Make a web request.
+   Then That：Webhooks → Make a web request。
+   - URL: paste the private link. / 貼上私人網址。
+   - Method: POST
+   - Content Type: application/json
+   - Body: {"title":"IFTTT","body":"{{ add ingredients here }}"}
+     Replace the text in braces with ingredients from your trigger. / 把大括號裡換成觸發提供的欄位。
+3. Save. The cafe gets a notice each time the applet runs.
+   儲存。Applet 每次執行，小屋就會收到一則通知。
+
+Keep the link private. If it leaks, tap "Make a new link" in the cafe and paste the new one here.
+網址請勿外流。外流時在小屋按「換一個新網址」，再把新網址貼回這裡。

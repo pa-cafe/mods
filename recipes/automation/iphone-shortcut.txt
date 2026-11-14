@@ -1,0 +1,22 @@
+PA Cafe · iPhone Shortcut (link-only)
+PA Cafe · iPhone 捷徑（只靠網址送通知）
+
+Before you start: in the cafe, open your Generic webhook source → Advanced → Link-only delivery, turn it on and copy the private link.
+開始前：在小屋打開通用 Webhook 來源 →「進階」→「只靠網址送通知」，開啟後複製私人網址。
+
+1. Shortcuts → + (new shortcut).
+   捷徑 → ＋（新增捷徑）。
+2. Add "Text" and type the message, or choose Ask Each Time.
+   加入「文字」動作，輸入要送的內容，或選「每次詢問」。
+3. Add "Get Contents of URL".
+   加入「取得 URL 內容」。
+   - URL: paste the private link. / 貼上私人網址。
+   - Method / 方法: POST
+   - Request Body / 要求本文: JSON
+     title (Text) = 捷徑通知 or any title / 任意標題
+     body (Text) = the Text from step 2 / 第 2 步的文字
+4. Name it (for example "Tell the cafe") and run it. Add it to the Home Screen or a Personal Automation if you like.
+   幫它取名（例如「告訴小屋」）並執行。也可以放到主畫面或個人自動化。
+
+Keep the link private: anyone who has it can post notices into your cafe. If it leaks, tap "Make a new link" and the old one stops working.
+網址請勿外流：拿到的人都能送通知進小屋。外流時按「換一個新網址」，舊的會立刻失效。
