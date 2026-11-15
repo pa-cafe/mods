@@ -629,18 +629,18 @@ describe('BARISTA BLAST!! in the air and on the ground', () => {
     expect(blastMeters(run)).toBeLessThan(60);
   });
 
-  it('ends at a hundred and eighty seconds however fast it is still going', () => {
+  it('ends at three hundred seconds however fast it is still going', () => {
     const run = flying({ step: T.maxSteps - 2 });
     stepBlast(run, false);
     expect(run.end).toBeNull();
     stepBlast(run, false);
     expect(run.end).toBe('timeout');
-    expect(T.maxSteps / BLAST_HZ).toBe(180);
+    expect(T.maxSteps / BLAST_HZ).toBe(300);
   });
 });
 
 describe('BARISTA BLAST!! over many runs', () => {
-  it('always ends inside a hundred and eighty seconds and the furthest distance the speed limit allows', () => {
+  it('always ends inside three hundred seconds and the furthest distance the speed limit allows', () => {
     let state = 99;
     const roll = () => { state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0; return state / 4_294_967_296; };
     const meters: number[] = [];
@@ -648,7 +648,7 @@ describe('BARISTA BLAST!! over many runs', () => {
       const taps = Array.from({ length: 60 }, () => Math.floor(roll() * 3000)).sort((a, b) => a - b);
       const run = replayBlast(seed, blastLooks, { aim: Math.floor(roll() * T.aimSteps), hold: Math.floor(roll() * T.gaugeSteps), taps });
       expect(run.step).toBeLessThanOrEqual(T.maxSteps);
-      expect(run.x).toBeLessThanOrEqual(T.maxSpeed * 180);
+      expect(run.x).toBeLessThanOrEqual(T.maxSpeed * 300);
       expect(Number.isFinite(run.x) && run.x >= 0 && run.y >= 0).toBe(true);
       meters.push(blastMeters(run));
     }
@@ -660,7 +660,54 @@ describe('BARISTA BLAST!! over many runs', () => {
     expect(meters[399]).toBeGreaterThan(2000);
   });
 
+  it('a resident picked to fly is not on the street, and the cafe’s own barista meets all eight', () => {
+    const kindsOn = (pilot: Parameters<typeof startBlast>[4]) => { const run = startBlast(3, blastLooks, 0, 0, pilot); run.x = 3000; stepBlast(run, false); return new Set(run.cells.flatMap(each => each && each.kind !== 'window' ? [each.kind] : [])); };
+    expect([...kindsOn(null)].sort()).toEqual([...blastLooks].sort());
+    for (const pilot of blastLooks) {
+      const met = kindsOn(pilot);
+      expect(met.has(pilot)).toBe(false);
+      expect(met.size).toBe(blastLooks.length - 1);
+    }
+  });
+
+  it('whoever is flying is never met on her own run, not even as a made-up answer or a copy', () => {
+    // The player the review named: boost whenever it is offered, refill when falling low.
+    for (const pilot of blastLooks) for (let seed = 1; seed <= 12; seed++) {
+      const run = startBlast(seed, blastLooks, 36, 54, pilot);
+      while (!run.end && run.step < 9000) stepBlast(run, run.boost ? true : run.vy < 0 && run.y < 1 && run.refills > 0);
+      expect(run.hits.filter(hit => hit.as === pilot || hit.kind === pilot || hit.copied?.as === pilot)).toEqual([]);
+      expect(run.cells.some(each => each?.kind === pilot)).toBe(false);
+    }
+  });
+
+  it('each pilot brings one small trait, and the cafe’s own barista none', () => {
+    const start = (pilot: Parameters<typeof startBlast>[4]) => startBlast(1, blastLooks, 36, 54, pilot), plain = start(null);
+    const speed = (run: BlastRun) => Math.sqrt(run.vx * run.vx + run.vy * run.vy);
+    expect([plain.shield, plain.caffeine, plain.sight]).toEqual([0, 0, 0]);
+    expect(start('dots').shield).toBe(T.shield);
+    expect(start('qwen').caffeine).toBe(T.caffeine);
+    expect(start('deepseek').sight).toBe(T.maxSteps);
+    expect(speed(start('grok')) / speed(plain)).toBeCloseTo(1.12, 6);
+    // Claude tops out slower: a shot that would reach the limit stops short of it.
+    const fast = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { y: 30, vx: 200, vy: 0 }); stepBlast(run, false); return speed(run); };
+    expect(fast(null)).toBeCloseTo(T.maxSpeed, 0);
+    expect(fast('claude')).toBeCloseTo(T.maxSpeed * 0.8, 0);
+    // Gemini's refill lifts higher, Doubao dives again in half the time, Muse's boost fills a cup.
+    const refill = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { y: 6, vy: -3 }); stepBlast(run, true); return run.vy; };
+    expect(refill('gemini')).toBeGreaterThan(refill(null) * 1.2);
+    const dive = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { y: 8, vy: 5 }); const at = run.step; stepBlast(run, true); return run.diveAt - at; };
+    expect(dive('doubao')).toBe(dive(null) / 2);
+    // The cafe's own barista is handed a cup every 250 m, up to a full set; a resident who flies is not.
+    const fed = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { x: T.topUp - 0.5, y: 30, vx: 40, vy: 0, refills: 1 }); steps(run, 6); return run.refills; };
+    expect([fed(null), fed('grok')]).toEqual([2, 1]);
+    const full = start(null); Object.assign(full, { x: T.topUp - 0.5, y: 30, vx: 40, vy: 0 }); steps(full, 6);
+    expect(full.refills).toBe(T.refills);
+    // A replay flies the pilot the inputs name.
+    expect(replayBlast(5, blastLooks, { aim: 36, hold: 54, taps: [], pilot: 'grok' }).pilot).toBe('grok');
+    expect(replayBlast(5, blastLooks, { aim: 36, hold: 54, taps: [] }).pilot).toBeNull();
+  });
+
   it('carries a version for run tickets', () => {
-    expect(BLAST_VERSION).toBe(5);
+    expect(BLAST_VERSION).toBe(6);
   });
 });
