@@ -73,6 +73,10 @@ export const blastTuning = {
   windowEvery: 500,
   /** Nobody is banned and nothing is at capacity before this many metres. */
   safeUntil: 100,
+  /** Of the times Claude comes up in the state that bans, one in this many is a ban; the rest she lets go. */
+  banEvery: 2,
+  /** How tall a ban and a wall at capacity stand, in metres: a barista flying higher than this passes over them. */
+  gate: 5,
   reach: 1.2,
   tokenBase: 1000,
   tokenScale: 50,
@@ -133,7 +137,7 @@ type Trick = {
   ban?: true; drain?: true; decaf?: true; take?: true; halve?: true; stray?: true; scramble?: true;
 };
 const tricks: Record<BlastLook, Record<BlastMood | 'boost', Trick>> = {
-  // GPT. A disclaimer for everything; happy to do more than was asked; some days not all there; and at capacity, which floats overhead and takes what the barista carries.
+  // GPT. A disclaimer for everything; happy to do more than was asked; some days not all there; and at capacity, a wall that takes what the barista carries.
   dots: {
     one: { shot: { toward: UP22, times: 1.2 }, shield: T.shield }, two: { shot: { toward: UP22, times: 1.5 } },
     meh: { shot: { toward: UP12, times: 1 }, limp: true }, bad: { drain: true },
@@ -189,11 +193,11 @@ const RESIDENT_CHANCE = 0.5;
 /** `cast` is which of the cafe's residents plays this one; without it the kind's own character does. A `copy` was planted by a resident and plants nothing itself. A resident has a `mood`. */
 export type BlastNode = { kind: BlastKind; x: number; mood?: BlastMood; cast?: number; copy?: true; done?: true };
 /**
- * How high off the ground a thing is hit: from, to, in metres. A ban is a gate too tall to hop, and "at capacity"
- * floats overhead, where only a barista flying high meets it.
+ * How high off the ground a thing is hit: from, to, in metres. A ban and a wall at capacity both stand too tall to hop:
+ * only a barista flying high passes over them.
  */
 export const blastHitSpan = (node: Pick<BlastNode, 'kind' | 'mood'>): readonly [number, number] =>
-  node.kind === 'window' ? [0, 2.6] : node.mood === 'bad' && node.kind === 'claude' ? [0, 5] : node.mood === 'bad' && node.kind === 'dots' ? [3, 7] : [0, 2.4];
+  node.kind === 'window' ? [0, 2.6] : node.mood === 'bad' && (node.kind === 'claude' || node.kind === 'dots') ? [0, blastTuning.gate] : [0, 2.4];
 
 /**
  * `as` and `mood` are who the hit acted as and in which state: another resident after a made-up answer, otherwise
@@ -238,6 +242,8 @@ export type BlastRun = {
   placed: number;
   /** How many times each kind has been placed, to give the cafe's residents of that kind their turns. */
   turns: number[];
+  /** How many times Claude has come up in the state that bans, past the safe stretch. */
+  bans: number;
   /** The states each kind has still to stand in before all four are drawn again. */
   moods: BlastMood[][];
   /** Empty cells in a row up to the last one drawn. */
@@ -264,7 +270,7 @@ export function startBlast(seed: number, cast: readonly BlastLook[], aim: number
   return {
     step: 0, x: 0, y: 0, vx: toward[0] * speed, vy: toward[1] * speed, sliding: false, refills: T.refills, caffeine: 0, diveAt: 0, frozen: 0, boost: null,
     glide: 0, straight: 0, shield: 0, sight: 0, scramble: false, last: null, hits: [], end: null, cast: cast.slice(0, 12), cells: [], order: [], placed: 0,
-    turns: blastLooks.map(() => 0), moods: blastLooks.map(() => []), gaps: 0, next: 0, street, luck: dice(seed ^ 0x9e3779b9),
+    turns: blastLooks.map(() => 0), bans: 0, moods: blastLooks.map(() => []), gaps: 0, next: 0, street, luck: dice(seed ^ 0x9e3779b9),
   };
 }
 
@@ -285,8 +291,10 @@ function resident(run: BlastRun, x: number): BlastNode {
   const at = run.order[run.placed++ % blastLooks.length], kind = blastLooks[at], turn = run.turns[at]++;
   if (!run.moods[at].length) run.moods[at] = drawn(run, blastMoods);
   const mood = run.moods[at].pop()!, early = mood === 'bad' && x < T.safeUntil && (kind === 'claude' || kind === 'dots');
+  // A ban ends the run, so it stands less often than the other states that hurt: only every `banEvery`th time.
+  const spared = !early && mood === 'bad' && kind === 'claude' && ++run.bans % T.banEvery !== 0;
   const own = run.cast.flatMap((look, index) => look === kind ? [index] : []);
-  return { kind, x, mood: early ? 'meh' : mood, ...(own.length ? { cast: own[turn % own.length] } : {}) };
+  return { kind, x, mood: early || spared ? 'meh' : mood, ...(own.length ? { cast: own[turn % own.length] } : {}) };
 }
 
 /** The street is drawn cell by cell as the run reaches it, always in order, so the seed alone decides it. */

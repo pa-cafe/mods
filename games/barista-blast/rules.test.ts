@@ -136,7 +136,19 @@ describe('BARISTA BLAST!! the street', () => {
       // Past the stretch near the machine, where the two that can cost a run are swapped for a harmless state.
       const moods = residentsOf(run).filter(each => each.kind === look && each.x >= 400).map(each => each.mood), tally = Object.fromEntries(blastMoods.map(mood => [mood, moods.filter(each => each === mood).length]));
       expect(moods.length).toBeGreaterThan(20);
-      for (const mood of blastMoods) expect(Math.abs(tally[mood] - moods.length / 4)).toBeLessThanOrEqual(1.5);
+      // Claude lets every other ban go: half of her turns to hurt are spent doing nothing much instead.
+      const share = (mood: string) => look !== 'claude' ? 1 / 4 : mood === 'bad' ? 1 / 8 : mood === 'meh' ? 3 / 8 : 1 / 4;
+      for (const mood of blastMoods) expect(Math.abs(tally[mood] - moods.length * share(mood))).toBeLessThanOrEqual(1.5);
+    }
+  });
+
+  it('claude bans only every other time her turn to hurt comes up', () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      const hers = residentsOf(far(seed)).filter(each => each.kind === 'claude' && each.x >= T.safeUntil);
+      const bans = hers.flatMap((each, index) => each.mood === 'bad' ? [index] : []);
+      expect(bans.length).toBeGreaterThan(0);
+      // Her states come four to a round with one turn to hurt in each, so two bans are never in neighbouring rounds.
+      for (let index = 1; index < bans.length; index++) expect(bans[index] - bans[index - 1]).toBeGreaterThanOrEqual(5);
     }
   });
 
@@ -168,18 +180,20 @@ describe('BARISTA BLAST!! the street', () => {
     } finally { T.gap = 0; }
   });
 
-  it('is hit from the ground to head height, except a ban, which is a gate too tall to hop, and “at capacity”, which floats overhead', () => {
+  it('is hit from the ground to head height, except a ban and a wall at capacity, which stand too tall to hop', () => {
     expect(blastHitSpan({ kind: 'grok', mood: 'bad' })).toEqual([0, 2.4]);
     expect(blastHitSpan({ kind: 'claude', mood: 'one' })).toEqual([0, 2.4]);
     expect(blastHitSpan({ kind: 'claude', mood: 'bad' })).toEqual([0, 5]);
-    expect(blastHitSpan({ kind: 'dots', mood: 'bad' })).toEqual([3, 7]);
+    expect(blastHitSpan({ kind: 'dots', mood: 'bad' })).toEqual([0, 5]);
     expect(blastHitSpan({ kind: 'window' })).toEqual([0, 2.6]);
-    const under = approaching(['dots:bad'], { y: 1 });
-    steps(under, 60);
-    expect(under.hits).toHaveLength(0);
-    const over = approaching(['claude:bad'], { y: 6 });
-    steps(over, 20);
-    expect(over.hits).toHaveLength(0);
+    for (const tall of ['dots:bad', 'claude:bad'] as const) {
+      const over = approaching([tall], { y: 6 });
+      steps(over, 20);
+      expect(over.hits).toHaveLength(0);
+      const into = approaching([tall], { y: 4 });
+      steps(into, 20);
+      expect(into.hits).toHaveLength(1);
+    }
   });
 });
 
@@ -639,9 +653,10 @@ describe('BARISTA BLAST!! over many runs', () => {
       meters.push(blastMeters(run));
     }
     meters.sort((a, b) => a - b);
-    // Guards the tuning, loosely: with somebody on every cell a typical careless run is a few hundred metres, and long runs do happen.
+    // Guards the tuning, loosely: with somebody on every cell and a ban standing half as often, a typical careless run is
+    // several hundred metres to a little over a thousand, and long runs do happen.
     expect(meters[200]).toBeGreaterThan(100);
-    expect(meters[200]).toBeLessThan(1200);
+    expect(meters[200]).toBeLessThan(2000);
     expect(meters[399]).toBeGreaterThan(2000);
   });
 
