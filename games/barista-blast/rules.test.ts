@@ -115,23 +115,35 @@ describe('BARISTA BLAST!! the street', () => {
     }
   });
 
-  it('takes residents in turn so every one of the house shows up, and at most twelve of them', () => {
-    const run = far(5, ['muse', 'claude', 'dots']);
-    const people = run.cells.filter(cell => cell?.cast !== undefined).map(cell => cell!.cast);
-    expect(new Set(people.slice(0, 3)).size).toBe(3);
-    expect(people.slice(3, 6)).toEqual(people.slice(0, 3));
+  const residentsOf = (run: BlastRun) => run.cells.flatMap(cell => cell && blastLooks.some(look => look === cell.kind) && !cell.copy ? [cell] : []);
+
+  it('puts every kind on every street equally often, whoever lives in the cafe', () => {
+    for (const cast of [[], ['dots', 'dots', 'grok'], blastLooks] as const) {
+      const kinds = residentsOf(far(7, cast)).map(cell => cell.kind), rounds = Math.floor(kinds.length / blastLooks.length);
+      expect(rounds).toBeGreaterThan(10);
+      // Every eight residents in a row are the eight kinds, each once.
+      for (let round = 0; round < rounds; round++) expect([...kinds.slice(round * 8, round * 8 + 8)].sort()).toEqual([...blastLooks].sort());
+    }
+    // The order is drawn again each round, and the street is the same for every cafe.
+    const one = residentsOf(far(7, [])).map(cell => cell.kind);
+    expect(one.slice(0, 8)).not.toEqual(one.slice(8, 16));
+    expect(residentsOf(far(7, ['dots', 'dots', 'grok'])).map(cell => cell.kind)).toEqual(one);
+    expect(far(7, ['dots']).cells.map(cell => cell?.kind)).toEqual(far(7, []).cells.map(cell => cell?.kind));
+  });
+
+  it('a kind the cafe has is played by its residents in turn, and a kind it lacks by its own character', () => {
+    const cells = residentsOf(far(5, ['dots', 'grok', 'dots']));
+    expect(cells.filter(cell => cell.kind === 'dots').slice(0, 4).map(cell => cell.cast)).toEqual([0, 2, 0, 2]);
+    expect(new Set(cells.filter(cell => cell.kind === 'grok').map(cell => cell.cast))).toEqual(new Set([1]));
+    for (const kind of ['muse', 'claude', 'gemini', 'deepseek', 'qwen', 'doubao']) expect(cells.filter(cell => cell.kind === kind).every(cell => cell.cast === undefined)).toBe(true);
+    // At most twelve of a cafe's residents take part.
     const crowd = far(5, Array.from({ length: 20 }, () => 'grok' as const));
     expect(Math.max(...crowd.cells.flatMap(cell => cell?.cast ?? []))).toBe(11);
   });
 
-  it('fills a house with no residents with the four built-in ones', () => {
-    const kinds = new Set(far(9, []).cells.filter(cell => cell?.cast !== undefined).map(cell => cell!.kind));
-    expect([...kinds].sort()).toEqual([...blastLooks].sort());
-  });
-
   it('leaves about half the cells empty and gives residents about three in ten', () => {
     let empty = 0, residents = 0, all = 0;
-    for (let seed = 1; seed <= 30; seed++) for (const cell of far(seed).cells) { all++; if (!cell) empty++; else if (cell.cast !== undefined) residents++; }
+    for (let seed = 1; seed <= 30; seed++) for (const cell of far(seed).cells) { all++; if (!cell) empty++; else if (blastLooks.some(look => look === cell.kind)) residents++; }
     expect(empty / all).toBeGreaterThan(0.45);
     expect(empty / all).toBeLessThan(0.56);
     expect(residents / all).toBeGreaterThan(0.26);
@@ -142,11 +154,14 @@ describe('BARISTA BLAST!! the street', () => {
 describe('BARISTA BLAST!! what each resident does', () => {
   it.each([
     ['muse', 0.9, 45, 1.25, 'usual'],
-    ['claude', 0.9, 62, 1.3, 'usual'],
-    ['dots', 0.9, 22, 1.3, 'usual'],
+    ['claude', 0.9, 45, 1.15, 'usual'],
+    ['dots', 0.9, 22, 1.2, 'usual'],
     ['dots', 0.1, 12, 1, 'odd'],
     ['grok', 0.9, 40, 1.5, 'usual'],
     ['grok', 0.1, 40, 0.8, 'odd'],
+    ['gemini', 0.9, 30, 1.35, 'usual'],
+    ['qwen', 0.9, 45, 1.25, 'usual'],
+    ['qwen', 0.1, 45, 1, 'odd'],
   ] as const)('%s with luck %f sends the barista off at %i° and %f times the speed', (kind, luck, angle, times, outcome) => {
     const run = approaching([kind], { luck });
     const before = speedOf(run), hit = untilHit(run);
@@ -189,11 +204,214 @@ describe('BARISTA BLAST!! what each resident does', () => {
   });
 });
 
+describe('BARISTA BLAST!! the four model residents', () => {
+  it('claude agrees: the barista goes on the way they came, turned upward and a little faster, and no flatter than 45°', () => {
+    for (const [vx, vy, y] of [[12, -16, 2.3], [10, 12, 0.6], [20, -2, 1]]) {
+      const run = approaching(['claude']);
+      Object.assign(run, { vx, vy, y });
+      let was = { vx: run.vx, vy: run.vy };
+      while (!run.hits.length) { was = { vx: run.vx, vy: run.vy }; stepBlast(run, false); }
+      // The hit lands inside a step, after that step's gravity: within two degrees of the heading the step began with.
+      const came = Math.atan2(Math.abs(was.vy), was.vx) * 180 / Math.PI;
+      expect(Math.abs(degrees(run) - Math.max(45, came))).toBeLessThan(2);
+      expect(speedOf(run)).toBeCloseTo(Math.hypot(was.vx, was.vy) * 1.15, 0);
+    }
+  });
+
+  it('gpt hands over one disclaimer with a shot, two with a boost, and none when it will not commit', () => {
+    const run = approaching(['dots', 'dots'], { speed: 30 });
+    for (const count of [1, 2]) { untilHit(run, count); expect(run.waivers).toBe(1); Object.assign(run, { y: 1, vx: 30, vy: 0 }); }
+    const unsure = approaching(['dots'], { luck: 0.1 });
+    untilHit(unsure);
+    expect(unsure.waivers).toBe(0);
+    const boosted = approaching(['dots', 'dots'], { caffeine: T.caffeine });
+    untilHit(boosted);
+    steps(boosted, 30, 29);
+    expect(boosted.waivers).toBe(2);
+    // A later plain shot does not take the second one away.
+    Object.assign(boosted, { y: 1, vx: 30, vy: 0, frozen: 0 });
+    untilHit(boosted, 2);
+    expect(boosted.waivers).toBe(2);
+  });
+
+  it('a disclaimer takes the next rate limit or ban notice, one each, and nothing else', () => {
+    const run = approaching(['limit', 'limit'], { speed: 30 });
+    run.waivers = 1;
+    const first = untilHit(run), vx = run.vx;
+    expect(first.waived).toBe(true);
+    expect(vx).toBeCloseTo(30, 0);
+    expect(run.waivers).toBe(0);
+    const second = untilHit(run, 2);
+    expect(second.waived).toBeUndefined();
+    expect(run.vx).toBeLessThan(vx * 0.6);
+    const noticed = approaching(['notice'], { y: 4, caffeine: 2 });
+    noticed.waivers = 2;
+    expect(untilHit(noticed).waived).toBe(true);
+    expect([noticed.refills, noticed.caffeine, noticed.waivers]).toEqual([T.refills, 2, 1]);
+    const walled = approaching(['wall']);
+    walled.waivers = 2;
+    untilHit(walled);
+    expect(walled.end).toBe('wall');
+    expect(walled.waivers).toBe(2);
+  });
+
+  it('gemini stalls on an apology one time in four, then lets go a little slower', () => {
+    const run = approaching(['gemini'], { luck: 0.1 }), before = speedOf(run), hit = untilHit(run);
+    expect(hit.outcome).toBe('odd');
+    expect(run.frozen).toBe(T.stallStop);
+    expect(speedOf(run)).toBeCloseTo(before * 0.9, 1);
+    expect(degrees(run)).toBeCloseTo(30, 0);
+    expect(run.caffeine).toBe(1);
+  });
+
+  it('gemini boosted carries the barista level, above everything on the street, and presses wait until it ends', () => {
+    const run = approaching(['gemini', 'wall', 'notice', 'wall'], { caffeine: T.caffeine });
+    run.refills = 2;
+    untilHit(run);
+    steps(run, 30, 29);
+    expect(run.glide).toBe(T.glideSteps);
+    expect(run.y).toBe(T.glideHeight);
+    expect(run.vy).toBe(0);
+    expect(run.vx).toBeCloseTo(20 * 1.5, 1);
+    steps(run, T.boostStop);
+    const from = run.x;
+    steps(run, T.glideSteps - 1, 40);
+    // Two seconds at one height and one speed, over the walls and the notice; the press did nothing.
+    expect(run.y).toBe(T.glideHeight);
+    expect(run.x - from).toBeCloseTo(run.vx * (T.glideSteps - 1) / BLAST_HZ, 3);
+    expect(run.hits).toHaveLength(1);
+    expect(run.refills).toBe(2);
+    expect(run.end).toBeNull();
+    steps(run, 30);
+    expect(run.glide).toBe(0);
+    expect(run.y).toBeLessThan(T.glideHeight);
+  });
+
+  it('deepseek thinks first, then gives the hardest usual shot on the street', () => {
+    const run = approaching(['deepseek']), before = speedOf(run), hit = untilHit(run);
+    expect(hit.outcome).toBe('usual');
+    expect(run.frozen).toBe(T.thinkStop);
+    expect(speedOf(run)).toBeCloseTo(before * 1.6, 1);
+    expect(degrees(run)).toBeCloseTo(40, 0);
+    expect(run.caffeine).toBe(1);
+  });
+
+  it('deepseek is busy one time in three: the barista passes as if nobody stood there, even with a full bar', () => {
+    for (const caffeine of [1, T.caffeine]) {
+      const run = approaching(['deepseek'], { luck: 0.1, caffeine }), vx = run.vx, hit = untilHit(run);
+      expect(hit).toMatchObject({ kind: 'deepseek', outcome: 'odd' });
+      // Only the air has slowed them.
+      expect(run.vx).toBeCloseTo(vx, 0);
+      expect(degrees(run)).toBeLessThan(0);
+      expect(run.frozen).toBe(0);
+      expect(run.caffeine).toBe(caffeine);
+      expect(run.boost).toBeNull();
+    }
+  });
+
+  it('deepseek boosted is the hardest shot of all', () => {
+    const run = approaching(['deepseek'], { caffeine: T.caffeine });
+    untilHit(run);
+    expect(run.boost?.left).toBe(T.boostWindow);
+    steps(run, 30, 29);
+    expect(run.hits[0].outcome).toBe('boost');
+    expect(degrees(run)).toBeCloseTo(40, 0);
+    expect(speedOf(run)).toBeCloseTo(20 * 2.2, 1);
+    expect(run.caffeine).toBe(0);
+  });
+
+  it('qwen gives itself away: a copy stands on the nearest empty cell from two ahead, and a copy plants nothing', () => {
+    const run = approaching(['qwen'], { speed: 30 });
+    run.cells.push(null, { kind: 'limit', x: T.firstCell + 2 * T.cell }, null, null, null, null, null, null);
+    untilHit(run);
+    expect(run.cells[3]).toEqual({ kind: 'qwen', x: T.firstCell + 3 * T.cell, copy: true });
+    expect(run.cells.filter(cell => cell?.copy)).toHaveLength(1);
+    // Land on the copy: it acts as qwen and plants no more.
+    Object.assign(run, { x: T.firstCell + 3 * T.cell - 2, y: 1, vx: 30, vy: 0 });
+    const hit = untilHit(run, 2);
+    expect(hit).toMatchObject({ kind: 'qwen', as: 'qwen', outcome: 'usual' });
+    expect(run.caffeine).toBe(2);
+    expect(run.cells.filter(cell => cell?.copy)).toHaveLength(1);
+  });
+
+  it('qwen plants nothing when it is out of luck or the street ahead is full', () => {
+    const unlucky = approaching(['qwen'], { luck: 0.1 });
+    unlucky.cells.push(null, null, null, null);
+    untilHit(unlucky);
+    expect(unlucky.cells.some(cell => cell?.copy)).toBe(false);
+    const full = approaching(['qwen', 'dots', 'limit', 'gate', 'cache', 'dots']);
+    untilHit(full);
+    expect(full.cells.some(cell => cell?.copy)).toBe(false);
+  });
+
+  it('qwen boosted plants two copies and stands the barista a cup, up to the three they can hold', () => {
+    for (const [had, has] of [[1, 2], [T.refills, T.refills]]) {
+      const run = approaching(['qwen'], { caffeine: T.caffeine });
+      run.cells.push(null, null, null, null, null, null);
+      run.refills = had;
+      untilHit(run);
+      steps(run, 30, 29);
+      expect(run.hits[0].outcome).toBe('boost');
+      // One from the hit and two from the boost, on cells 2, 3 and 4.
+      expect(run.cells.slice(0, 5).map(cell => Boolean(cell?.copy))).toEqual([false, false, true, true, true]);
+      expect(run.refills).toBe(has);
+      expect(speedOf(run)).toBeCloseTo(20 * 1.6, 1);
+    }
+  });
+
+  it('doubao says it plainly: the flattest shot on the street, in a dead straight line for half a second', () => {
+    const run = approaching(['doubao']), before = speedOf(run);
+    untilHit(run);
+    expect(speedOf(run)).toBeCloseTo(before * 1.3, 1);
+    expect(degrees(run)).toBeCloseTo(12, 0);
+    expect(run.caffeine).toBe(1);
+    expect(run.straight).toBe(60);
+    steps(run, T.hitStop);
+    const from = { x: run.x, y: run.y, vx: run.vx, vy: run.vy };
+    steps(run, 60);
+    // No fall and no drag: the same speed and heading, and exactly where a ruler would put it.
+    expect([run.vx, run.vy]).toEqual([from.vx, from.vy]);
+    expect(run.x - from.x).toBeCloseTo(from.vx * 60 / BLAST_HZ, 6);
+    expect(run.y - from.y).toBeCloseTo(from.vy * 60 / BLAST_HZ, 6);
+    expect(run.straight).toBe(0);
+    stepBlast(run, false);
+    expect(run.vy).toBeLessThan(from.vy);
+  });
+
+  it('doubao boosted flies straight for a whole second, and a press or a hit ends the line', () => {
+    const run = approaching(['doubao'], { caffeine: T.caffeine });
+    untilHit(run);
+    steps(run, 30, 29);
+    expect(run.hits[0].outcome).toBe('boost');
+    expect(speedOf(run)).toBeCloseTo(20 * 1.7, 1);
+    expect(run.straight).toBe(120);
+    expect(run.caffeine).toBe(0);
+    steps(run, T.boostStop + 10);
+    stepBlast(run, true);
+    expect(run.straight).toBe(0);
+    const again = approaching(['doubao', 'limit'], { speed: 30 });
+    untilHit(again, 2);
+    expect(again.straight).toBe(0);
+  });
+
+  it('doubao goes round after all one time in four: the barista ends up anywhere between 20° and 70° at the same speed', () => {
+    for (const luck of [0.01, 0.12, 0.24]) {
+      const run = approaching(['doubao'], { luck }), before = speedOf(run), hit = untilHit(run);
+      expect(hit.outcome).toBe('odd');
+      expect(speedOf(run)).toBeCloseTo(before, 1);
+      expect(degrees(run)).toBeGreaterThan(19);
+      expect(degrees(run)).toBeLessThan(71);
+      expect(run.caffeine).toBe(1);
+      expect(run.straight).toBe(0);
+    }
+  });
+});
+
 describe('BARISTA BLAST!! the boost', () => {
   it.each([
     ['muse', 45, 1.6],
     ['claude', 62, 1.8],
-    ['dots', 22, 1.8],
+    ['dots', 22, 1.7],
     ['grok', 40, 2],
   ] as const)('upgrades %s to %i° and %f times the arriving speed when tapped inside the window', (kind, angle, times) => {
     const run = approaching([kind], { caffeine: T.caffeine, luck: 0.1 });
@@ -356,7 +574,8 @@ describe('BARISTA BLAST!! things on the street', () => {
     const next = untilHit(run, 2);
     expect(next.kind).toBe('muse');
     expect(next.as).toBe('claude');
-    expect(degrees(run)).toBeCloseTo(62, 0);
+    // Claude agrees with a barista who arrives level by sending them off at its flattest, 45°.
+    expect(degrees(run)).toBeCloseTo(45, 0);
     expect(run.scramble).toBe(false);
   });
 });
@@ -442,6 +661,6 @@ describe('BARISTA BLAST!! over many runs', () => {
   });
 
   it('carries a version for run tickets', () => {
-    expect(BLAST_VERSION).toBe(2);
+    expect(BLAST_VERSION).toBe(3);
   });
 });
