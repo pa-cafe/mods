@@ -670,6 +670,16 @@ describe('BARISTA BLAST!! over many runs', () => {
     }
   });
 
+  it('whoever is flying is never met on her own run, not even as a made-up answer or a copy', () => {
+    // The player the review named: boost whenever it is offered, refill when falling low.
+    for (const pilot of blastLooks) for (let seed = 1; seed <= 12; seed++) {
+      const run = startBlast(seed, blastLooks, 36, 54, pilot);
+      while (!run.end && run.step < 9000) stepBlast(run, run.boost ? true : run.vy < 0 && run.y < 1 && run.refills > 0);
+      expect(run.hits.filter(hit => hit.as === pilot || hit.kind === pilot || hit.copied?.as === pilot)).toEqual([]);
+      expect(run.cells.some(each => each?.kind === pilot)).toBe(false);
+    }
+  });
+
   it('each pilot brings one small trait, and the cafe’s own barista none', () => {
     const start = (pilot: Parameters<typeof startBlast>[4]) => startBlast(1, blastLooks, 36, 54, pilot), plain = start(null);
     const speed = (run: BlastRun) => Math.sqrt(run.vx * run.vx + run.vy * run.vy);

@@ -418,8 +418,8 @@ function strike(run: BlastRun, node: BlastNode) {
   }
   let who: BlastLook = node.kind, mood = node.mood ?? 'one';
   if (run.scramble) {
-    // A made-up answer: someone else, in a state that costs nothing.
-    const others = blastLooks.filter(look => look !== node.kind);
+    // A made-up answer: someone else who is on the street this run, in a state that costs nothing. Never the one who is flying.
+    const others = run.kinds.map(index => blastLooks[index]).filter(look => look !== node.kind);
     who = others[Math.floor(run.luck() * others.length)]; mood = blastMoods[Math.floor(run.luck() * 3)]; run.scramble = false;
   }
   hit.as = who; hit.mood = mood;
@@ -457,7 +457,7 @@ function upgrade(run: BlastRun) {
 /** Muse, where nobody stood: a landing on bare street is sometimes met after all. It opens no boost window. */
 function uninvited(run: BlastRun) {
   const index = Math.round((run.x - T.firstCell) / T.cell), x = T.firstCell + T.cell * index, there = index >= 0 ? cellAt(run, index) : null;
-  if (!T.gap || run.x < T.firstCell - T.reach || (there && !there.done && Math.abs(run.x - x) <= T.reach) || run.luck() >= T.uninvited) return;
+  if (!T.gap || run.pilot === 'muse' || run.x < T.firstCell - T.reach || (there && !there.done && Math.abs(run.x - x) <= T.reach) || run.luck() >= T.uninvited) return;
   const hit: BlastHit = { step: run.step, x: run.x, kind: 'muse', as: 'muse', mood: 'one', outcome: 'usual', uninvited: true };
   run.hits.push(hit); run.frozen = T.hitStop; run.last = { as: 'muse', mood: 'one' };
   apply(run, hit, 'muse', tricks.muse.one, Math.sqrt(run.vx * run.vx + run.vy * run.vy), true, false);
