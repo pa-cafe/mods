@@ -3,7 +3,7 @@
 // roots; trigonometry is left out because its last digit differs between engines.
 
 /** Goes on every run ticket. Change it with any number below: a run recorded under other numbers replays differently. */
-export const BLAST_VERSION = 2;
+export const BLAST_VERSION = 3;
 export const BLAST_HZ = 120;
 const DT = 1 / BLAST_HZ;
 
@@ -38,9 +38,19 @@ export const blastTuning = {
   hitStop: 10,
   boostStop: 17,
   thinkStop: 36,
+  /** A resident who stalls holds the barista this long before letting go. */
+  stallStop: 60,
+  /** Steps a glide lasts, and how high it flies: over the wall and the notice. */
+  glideSteps: 240,
+  glideHeight: 8,
+  /** A copy is planted this many cells ahead at the nearest, and no farther than `plantReach` cells. */
+  plantFrom: 2,
+  plantReach: 4,
   maxSpeed: 80,
   /** 90 seconds. */
   maxSteps: 10_800,
+  /** Disclaimers a barista can hold. */
+  waivers: 1,
   /** A resident sends the barista off at least this fast, however slowly they arrived. */
   kick: 14,
   wallBoost: 60,
@@ -57,15 +67,16 @@ export const blastTuning = {
 };
 const T = blastTuning;
 
-export const blastLooks = ['muse', 'claude', 'dots', 'grok'] as const;
+/** Every kind of resident. Each stands on every street equally often, whoever lives in the cafe. */
+export const blastLooks = ['muse', 'claude', 'dots', 'grok', 'gemini', 'deepseek', 'qwen', 'doubao'] as const;
 export type BlastLook = typeof blastLooks[number];
 type BlastProp = 'window' | 'wall' | 'limit' | 'gate' | 'cache' | 'notice' | 'ghost';
 export type BlastKind = BlastLook | BlastProp;
 type Heading = readonly [number, number];
 
 const heading = (x: number, y: number): Heading => { const length = Math.sqrt(x * x + y * y); return [x / length, y / length]; };
-// Written out so no engine has to compute a sine: 12°, 22°, 40°, 45° and 62° above the ground.
-const UP12 = heading(0.9781, 0.2079), UP22 = heading(0.9272, 0.3746), UP40 = heading(0.766, 0.6428), UP45 = heading(1, 1), UP62 = heading(0.4695, 0.8829);
+// Written out so no engine has to compute a sine: 12°, 22°, 30°, 40°, 45° and 62° above the ground.
+const UP12 = heading(0.9781, 0.2079), UP22 = heading(0.9272, 0.3746), UP30 = heading(0.866, 0.5), UP40 = heading(0.766, 0.6428), UP45 = heading(1, 1), UP62 = heading(0.4695, 0.8829);
 /** 0 is 15° above the ground, 1 is 75°, a half is 45°. */
 const between = (u: number) => heading(0.9659 - 0.7071 * u, 0.2588 + 0.7071 * u);
 const swing = (step: number, period: number) => { const at = (step % period) / period; return at < 0.5 ? at * 2 : 2 - at * 2; };
@@ -81,12 +92,34 @@ export function blastTokens(meters: number) {
 }
 
 type Shot = { toward: Heading; times: number };
-/** What each resident does to the barista. `odd` is the chance of the unlucky outcome instead of the usual one. */
-const residents: Record<BlastLook, { usual: Shot; odd?: Shot & { chance: number }; boost: Shot; refill?: true; think?: true }> = {
+/**
+ * What each resident does to the barista. `odd` is the chance of the unlucky outcome instead of the usual one.
+ * `ponder` holds the barista for a moment before the usual shot. An odd `stall` holds them longer; an odd `miss` is
+ * no hit at all: the barista passes through. `stray` sends them off at a random angle. `plant` puts copies of the
+ * resident on the street ahead. `glide` is a boost that carries the barista level instead of throwing them. `straight`
+ * is how many steps the barista then flies in a dead straight line, with no fall and no drag. `agrees` sends the
+ * barista on the way they were already going, turned upward, instead of `usual.toward`. `waiver` is how many
+ * disclaimers the barista holds after a hit, or after a boost: each takes the next rate limit or ban notice for them.
+ */
+type Effect = {
+  usual: Shot; odd?: Shot & { chance: number; stall?: true; miss?: true; stray?: true }; boost: Shot;
+  refill?: true; think?: true; ponder?: true; plant?: { usual: number; boost: number }; glide?: true; cup?: true; straight?: { usual: number; boost: number }; agrees?: true; waiver?: { usual: number; boost: number };
+};
+const residents: Record<BlastLook, Effect> = {
   muse: { usual: { toward: UP45, times: 1.25 }, boost: { toward: UP45, times: 1.6 }, refill: true },
-  claude: { usual: { toward: UP62, times: 1.3 }, boost: { toward: UP62, times: 1.8 }, think: true },
-  dots: { usual: { toward: UP22, times: 1.3 }, odd: { chance: 0.2, toward: UP12, times: 1 }, boost: { toward: UP22, times: 1.8 } },
+  // You're absolutely right: whichever way the barista was going, that way, only faster. Boosted, it thinks it over first.
+  claude: { usual: { toward: UP45, times: 1.15 }, boost: { toward: UP62, times: 1.8 }, think: true, agrees: true },
+  // Nothing here is a guarantee: a cautious shot that comes with a disclaimer, two when boosted. One time in five it will not commit to anything.
+  dots: { usual: { toward: UP22, times: 1.2 }, odd: { chance: 0.2, toward: UP12, times: 1 }, boost: { toward: UP22, times: 1.7 }, waiver: { usual: 1, boost: 2 } },
   grok: { usual: { toward: UP40, times: 1.5 }, odd: { chance: 0.3, toward: UP40, times: 0.8 }, boost: { toward: UP40, times: 2 } },
+  // Sorry, sorry, sorry: one time in four it stalls on an apology. Boosted, it carries everything it remembers, level, for two seconds.
+  gemini: { usual: { toward: UP30, times: 1.35 }, odd: { chance: 0.25, toward: UP30, times: 0.9, stall: true }, boost: { toward: UP30, times: 1.5 }, glide: true },
+  // Thinks first, then the hardest usual shot on the street. One time in three the server is busy and nothing happens.
+  deepseek: { usual: { toward: UP40, times: 1.6 }, odd: { chance: 0.35, toward: UP40, times: 1, miss: true }, boost: { toward: UP40, times: 2.2 }, ponder: true },
+  // Gives itself away: a copy of it stands on the street ahead. Boosted, two copies and a cup on the house.
+  qwen: { usual: { toward: UP45, times: 1.25 }, odd: { chance: 0.2, toward: UP45, times: 1 }, boost: { toward: UP45, times: 1.6 }, plant: { usual: 1, boost: 2 }, cup: true },
+  // Says it plainly, no going round: the flattest shot on the street, and for a moment a dead straight line. One time in four it goes round after all and the barista ends up anywhere.
+  doubao: { usual: { toward: UP12, times: 1.3 }, odd: { chance: 0.25, toward: UP12, times: 1, stray: true }, boost: { toward: UP12, times: 1.7 }, straight: { usual: 60, boost: 120 } },
 };
 const WINDOW: Shot = { toward: UP40, times: 1.3 };
 
@@ -109,8 +142,10 @@ export const blastHitSpan = (kind: BlastKind) => span[kind in residents ? 'resid
 /** What a ghost can turn the next hit into. Nothing that ends the run or takes the refills away. */
 const disguises: readonly BlastKind[] = [...blastLooks, 'limit', 'gate', 'cache'];
 
-export type BlastNode = { kind: BlastKind; x: number; cast?: number; done?: true };
-export type BlastHit = { step: number; x: number; kind: BlastKind; as: BlastKind; cast?: number; outcome: 'usual' | 'odd' | 'boost' };
+/** `cast` is which of the cafe's residents plays this one; without it the kind's own character does. A `copy` was planted by a resident and plants nothing itself. */
+export type BlastNode = { kind: BlastKind; x: number; cast?: number; copy?: true; done?: true };
+/** `waived` is a rate limit or ban notice that a disclaimer took instead of the barista. */
+export type BlastHit = { step: number; x: number; kind: BlastKind; as: BlastKind; cast?: number; outcome: 'usual' | 'odd' | 'boost'; waived?: true };
 export type BlastRun = {
   /** Steps since the launch. Taps are recorded against this. */
   step: number;
@@ -125,14 +160,24 @@ export type BlastRun = {
   boost: { left: number; hit: BlastHit; speed: number } | null;
   /** The next landing keeps all its speed. */
   spring: boolean;
+  /** Steps left of a level glide: no gravity, no hits below it, and presses wait. */
+  glide: number;
+  /** Steps left of a dead straight line: no fall and no drag. A press or a hit ends it. */
+  straight: number;
+  /** Disclaimers in hand: each takes one rate limit or ban notice. */
+  waivers: number;
   /** A ghost was passed: the next hit acts as something else. */
   scramble: boolean;
   hits: BlastHit[];
   end: 'stopped' | 'wall' | 'timeout' | null;
+  /** The cafe's residents by kind. They lend their names to their kind; they do not decide which kinds stand on the street. */
   cast: readonly BlastLook[];
   cells: (BlastNode | null)[];
+  /** The kinds in the order they next stand on the street: every kind once, then drawn again. */
   order: number[];
   placed: number;
+  /** How many times each kind has been placed, to give the cafe's residents of that kind their turns. */
+  turns: number[];
   next: number;
   street: () => number;
   luck: () => number;
@@ -151,14 +196,22 @@ function dice(seed: number) {
 
 /** A run that has just left the machine. `aim` and `hold` are the steps the nozzle and the gauge had swung for. */
 export function startBlast(seed: number, cast: readonly BlastLook[], aim: number, hold: number): BlastRun {
-  const street = dice(seed), people = cast.length ? cast.slice(0, 12) : blastLooks;
-  const order = people.map((_, index) => index);
-  for (let index = order.length - 1; index > 0; index--) { const other = Math.floor(street() * (index + 1)); [order[index], order[other]] = [order[other], order[index]]; }
-  const toward = blastAim(aim), speed = T.launchMin + (T.launchMax - T.launchMin) * blastPower(hold);
+  const street = dice(seed), toward = blastAim(aim), speed = T.launchMin + (T.launchMax - T.launchMin) * blastPower(hold);
   return {
     step: 0, x: 0, y: 0, vx: toward[0] * speed, vy: toward[1] * speed, sliding: false, refills: T.refills, caffeine: 0, diveAt: 0, frozen: 0, boost: null,
-    spring: false, scramble: false, hits: [], end: null, cast: people, cells: [], order, placed: 0, next: 0, street, luck: dice(seed ^ 0x9e3779b9),
+    spring: false, glide: 0, straight: 0, waivers: 0, scramble: false, hits: [], end: null, cast: cast.slice(0, 12), cells: [], order: [], placed: 0, turns: blastLooks.map(() => 0), next: 0, street, luck: dice(seed ^ 0x9e3779b9),
   };
+}
+
+/** The next resident to stand on the street: every kind takes one turn in a drawn order, then the order is drawn again. */
+function resident(run: BlastRun, x: number): BlastNode {
+  if (run.placed % blastLooks.length === 0) {
+    run.order = blastLooks.map((_, index) => index);
+    for (let index = run.order.length - 1; index > 0; index--) { const other = Math.floor(run.street() * (index + 1)); [run.order[index], run.order[other]] = [run.order[other], run.order[index]]; }
+  }
+  const at = run.order[run.placed++ % blastLooks.length], kind = blastLooks[at], turn = run.turns[at]++;
+  const own = run.cast.flatMap((look, index) => look === kind ? [index] : []);
+  return own.length ? { kind, x, cast: own[turn % own.length] } : { kind, x };
 }
 
 /** The street is drawn cell by cell as the run reaches it, always in order, so the seed alone decides it. */
@@ -167,7 +220,7 @@ function cellAt(run: BlastRun, index: number) {
     const x = T.firstCell + T.cell * run.cells.length, roll = run.street();
     let node: BlastNode | null = null;
     if (x % T.windowEvery === 0) node = { kind: 'window', x };
-    else if (roll < RESIDENT_CHANCE) { const cast = run.order[run.placed++ % run.order.length]; node = { kind: run.cast[cast], x, cast }; }
+    else if (roll < RESIDENT_CHANCE) node = resident(run, x);
     else {
       let edge = RESIDENT_CHANCE;
       for (const prop of props) {
@@ -199,6 +252,15 @@ function send(run: BlastRun, shot: Shot, speed: number, floor: number) {
   run.vx = shot.toward[0] * fast; run.vy = shot.toward[1] * fast; run.sliding = false;
 }
 
+/** Copies of a resident on the nearest empty cells ahead of the one at `x`, a dive away. A copy plants nothing. */
+function plant(run: BlastRun, kind: BlastLook, x: number, count: number) {
+  const from = Math.round((x - T.firstCell) / T.cell);
+  for (let ahead = T.plantFrom; ahead <= T.plantReach && count > 0; ahead++) {
+    if (cellAt(run, from + ahead)) continue;
+    run.cells[from + ahead] = { kind, x: T.firstCell + T.cell * (from + ahead), copy: true }; count--;
+  }
+}
+
 function strike(run: BlastRun, node: BlastNode) {
   let as = node.kind;
   if (run.scramble && as !== 'ghost') {
@@ -207,14 +269,24 @@ function strike(run: BlastRun, node: BlastNode) {
   }
   const speed = Math.sqrt(run.vx * run.vx + run.vy * run.vy), charged = run.caffeine >= T.caffeine;
   const hit: BlastHit = { step: run.step, x: node.x, kind: node.kind, as, outcome: 'usual', ...(node.cast === undefined ? {} : { cast: node.cast }) };
-  run.hits.push(hit); run.frozen = T.hitStop;
+  run.hits.push(hit); run.frozen = T.hitStop; run.straight = 0;
   if (isLook(as)) {
     const effect = residents[as], unlucky = effect.odd && run.luck() < effect.odd.chance;
     if (unlucky) hit.outcome = 'odd';
-    send(run, unlucky ? effect.odd! : effect.usual, speed, unlucky ? 0 : T.kick);
+    // The server is busy: the barista goes on as if nobody stood there.
+    if (unlucky && effect.odd!.miss) { run.frozen = 0; return; }
+    // Agreeing: the barista's own heading, turned upward, and no flatter than 45°.
+    const up = Math.abs(run.vy), own: Shot | null = effect.agrees && up * up >= 0.5 * speed * speed ? { toward: heading(run.vx, up), times: effect.usual.times } : null;
+    send(run, unlucky ? { toward: effect.odd!.stray ? between(0.08 + 0.84 * run.luck()) : effect.odd!.toward, times: effect.odd!.times } : own ?? effect.usual, speed, unlucky ? 0 : T.kick);
     run.caffeine = Math.min(T.caffeine, run.caffeine + 1);
+    if (!unlucky && effect.straight) run.straight = effect.straight.usual;
+    if (unlucky && effect.odd!.stall) run.frozen = T.stallStop;
+    else if (!unlucky && effect.ponder) run.frozen = T.thinkStop;
+    if (!unlucky && effect.plant && !node.copy) plant(run, as, node.x, effect.plant.usual);
+    if (!unlucky && effect.waiver) run.waivers = Math.max(run.waivers, effect.waiver.usual);
   } else if (as === 'window') { run.refills = T.refills; send(run, WINDOW, speed, T.kick); }
   else if (as === 'wall') { run.vx = 0; run.vy = 0; if (!charged) run.end = 'wall'; }
+  else if ((as === 'limit' || as === 'notice') && run.waivers) { run.waivers--; hit.waived = true; }
   else if (as === 'limit') { run.vx *= 0.5; run.vy *= 0.5; }
   else if (as === 'gate') send(run, { toward: between(0.08 + 0.84 * run.luck()), times: 1 }, speed, 0);
   else if (as === 'cache') run.spring = true;
@@ -229,15 +301,21 @@ function upgrade(run: BlastRun) {
   if (isLook(as)) {
     const effect = residents[as];
     send(run, effect.boost, speed, T.kick);
+    if (effect.straight) run.straight = effect.straight.boost;
+    if (effect.waiver) run.waivers = effect.waiver.boost;
     if (effect.refill) run.refills = T.refills;
+    if (effect.cup) run.refills = Math.min(T.refills, run.refills + 1);
     if (effect.think) run.frozen = T.thinkStop;
+    if (effect.plant) plant(run, as, hit.x, effect.plant.boost);
+    if (effect.glide) { run.vx = Math.sqrt(run.vx * run.vx + run.vy * run.vy); run.vy = 0; run.y = Math.max(run.y, T.glideHeight); run.glide = T.glideSteps; }
   } else if (as === 'window') run.caffeine = T.caffeine;
   else send(run, { toward: UP45, times: 1 }, T.wallBoost, T.wallBoost);
 }
 
 function tapped(run: BlastRun) {
   if (run.boost) return upgrade(run);
-  if (run.frozen) return;
+  if (run.frozen || run.glide) return;
+  run.straight = 0;
   if (run.vy <= 0) {
     if (!run.refills) return;
     run.refills--; run.vy = T.refillUp; run.vx += T.refillAlong; run.sliding = false;
@@ -259,6 +337,10 @@ export function stepBlast(run: BlastRun, tap: boolean) {
     run.vx -= T.friction * dt;
     if (run.vx < T.stopBelow) { run.vx = 0; run.end = 'stopped'; return; }
     run.x += run.vx * dt;
+  } else if (run.glide) {
+    run.glide--; run.x += run.vx * dt;
+  } else if (run.straight) {
+    run.straight--; run.x += run.vx * dt; run.y += run.vy * dt;
   } else {
     run.vy -= T.gravity * dt; run.vx -= run.vx * T.drag * dt;
     const square = run.vx * run.vx + run.vy * run.vy;
