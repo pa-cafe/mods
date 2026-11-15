@@ -629,18 +629,18 @@ describe('BARISTA BLAST!! in the air and on the ground', () => {
     expect(blastMeters(run)).toBeLessThan(60);
   });
 
-  it('ends at a hundred and eighty seconds however fast it is still going', () => {
+  it('ends at three hundred seconds however fast it is still going', () => {
     const run = flying({ step: T.maxSteps - 2 });
     stepBlast(run, false);
     expect(run.end).toBeNull();
     stepBlast(run, false);
     expect(run.end).toBe('timeout');
-    expect(T.maxSteps / BLAST_HZ).toBe(180);
+    expect(T.maxSteps / BLAST_HZ).toBe(300);
   });
 });
 
 describe('BARISTA BLAST!! over many runs', () => {
-  it('always ends inside a hundred and eighty seconds and the furthest distance the speed limit allows', () => {
+  it('always ends inside three hundred seconds and the furthest distance the speed limit allows', () => {
     let state = 99;
     const roll = () => { state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0; return state / 4_294_967_296; };
     const meters: number[] = [];
@@ -648,7 +648,7 @@ describe('BARISTA BLAST!! over many runs', () => {
       const taps = Array.from({ length: 60 }, () => Math.floor(roll() * 3000)).sort((a, b) => a - b);
       const run = replayBlast(seed, blastLooks, { aim: Math.floor(roll() * T.aimSteps), hold: Math.floor(roll() * T.gaugeSteps), taps });
       expect(run.step).toBeLessThanOrEqual(T.maxSteps);
-      expect(run.x).toBeLessThanOrEqual(T.maxSpeed * 180);
+      expect(run.x).toBeLessThanOrEqual(T.maxSpeed * 300);
       expect(Number.isFinite(run.x) && run.x >= 0 && run.y >= 0).toBe(true);
       meters.push(blastMeters(run));
     }
@@ -687,6 +687,11 @@ describe('BARISTA BLAST!! over many runs', () => {
     expect(refill('gemini')).toBeGreaterThan(refill(null) * 1.2);
     const dive = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { y: 8, vy: 5 }); const at = run.step; stepBlast(run, true); return run.diveAt - at; };
     expect(dive('doubao')).toBe(dive(null) / 2);
+    // The cafe's own barista is handed a cup every 250 m, up to a full set; a resident who flies is not.
+    const fed = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { x: T.topUp - 0.5, y: 30, vx: 40, vy: 0, refills: 1 }); steps(run, 6); return run.refills; };
+    expect([fed(null), fed('grok')]).toEqual([2, 1]);
+    const full = start(null); Object.assign(full, { x: T.topUp - 0.5, y: 30, vx: 40, vy: 0 }); steps(full, 6);
+    expect(full.refills).toBe(T.refills);
     // A replay flies the pilot the inputs name.
     expect(replayBlast(5, blastLooks, { aim: 36, hold: 54, taps: [], pilot: 'grok' }).pilot).toBe('grok');
     expect(replayBlast(5, blastLooks, { aim: 36, hold: 54, taps: [] }).pilot).toBeNull();

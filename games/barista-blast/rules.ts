@@ -62,8 +62,8 @@ export const blastTuning = {
   plantFrom: 2,
   plantReach: 4,
   maxSpeed: 80,
-  /** 180 seconds. */
-  maxSteps: 21_600,
+  /** 300 seconds. At 180 a good run was cut off while it still had cups and speed. */
+  maxSteps: 36_000,
   /** A resident sends the barista off at least this fast, however slowly they arrived. */
   kick: 14,
   /** An appeal that is granted sends the barista off at least this fast. */
@@ -81,7 +81,10 @@ export const blastTuning = {
   tokenBase: 1000,
   tokenScale: 50,
   tokenPower: 4.3,
-  tokenCap: 11e12,
+  /** What the furthest a run can get in its time at the speed limit is worth, rounded up. */
+  tokenCap: 3.5e14,
+  /** The cafe's own barista is handed a cup every this many metres. */
+  topUp: 250,
 };
 const T = blastTuning;
 
@@ -209,8 +212,9 @@ export type BlastHit = {
   waived?: true; copied?: { as: BlastLook; mood: BlastMood }; fixed?: number; uninvited?: true;
 };
 /**
- * Who is launched. The cafe's own barista (`null`) flies the plain rules past all eight residents. A resident picked
- * to fly instead is not on the street that run, and brings one small trait of the model she is named after:
+ * Who is launched. The cafe's own barista (`null`) flies past all eight residents, and the cafe looks after its own:
+ * a cup is handed over every `topUp` metres. A resident picked to fly instead is not on the street that run, and
+ * brings one small trait of the model she is named after:
  * - GPT leaves under her disclaimer: the shield is up for its usual time from the launch.
  * - Claude is careful: nobody bans her, since she is the one who bans, but she tops out slower.
  * - Grok goes all in: a harder launch.
@@ -260,6 +264,8 @@ export type BlastRun = {
   /** Who is flying, and the kinds left to stand on the street (indices into `blastLooks`): everyone but her. */
   pilot: BlastPilot;
   kinds: readonly number[];
+  /** How many cups the cafe has handed its own barista along the way. */
+  fed: number;
   cells: (BlastNode | null)[];
   /** The kinds in the order they next stand on the street: every kind once, then drawn again. */
   order: number[];
@@ -293,7 +299,7 @@ export function startBlast(seed: number, cast: readonly BlastLook[], aim: number
   const trait = blastTrait(pilot), street = dice(seed), toward = blastAim(aim), speed = (T.launchMin + (T.launchMax - T.launchMin) * blastPower(hold)) * (trait.launch ?? 1);
   return {
     step: 0, x: 0, y: 0, vx: toward[0] * speed, vy: toward[1] * speed, sliding: false, refills: T.refills, caffeine: trait.caffeine ?? 0, diveAt: 0, frozen: 0, boost: null,
-    glide: 0, straight: 0, shield: trait.shield ?? 0, sight: trait.sight ? T.maxSteps : 0, scramble: false, last: null, hits: [], end: null, cast: cast.slice(0, 12), pilot, kinds: blastLooks.flatMap((look, index) => look === pilot ? [] : [index]), cells: [], order: [], placed: 0,
+    glide: 0, straight: 0, shield: trait.shield ?? 0, sight: trait.sight ? T.maxSteps : 0, scramble: false, last: null, hits: [], end: null, cast: cast.slice(0, 12), pilot, fed: 0, kinds: blastLooks.flatMap((look, index) => look === pilot ? [] : [index]), cells: [], order: [], placed: 0,
     turns: blastLooks.map(() => 0), bans: 0, moods: blastLooks.map(() => []), gaps: 0, next: 0, street, luck: dice(seed ^ 0x9e3779b9),
   };
 }
@@ -505,6 +511,7 @@ export function stepBlast(run: BlastRun, tap: boolean) {
       if (!run.boost) uninvited(run);
     }
   }
+  if (!run.pilot && run.x >= T.topUp * (run.fed + 1)) { run.fed++; run.refills = Math.min(T.refills, run.refills + 1); }
   for (;;) {
     const x = T.firstCell + T.cell * run.next;
     if (run.x < x - T.reach) break;
