@@ -3,7 +3,7 @@
 // roots; trigonometry is left out because its last digit differs between engines.
 
 /** Goes on every run ticket. Change it with any number below: a run recorded under other numbers replays differently. */
-export const BLAST_VERSION = 4;
+export const BLAST_VERSION = 5;
 export const BLAST_HZ = 120;
 const DT = 1 / BLAST_HZ;
 
@@ -32,7 +32,8 @@ export const blastTuning = {
   diveCooldown: 180,
   /** A dive needs this much air under it, or diving into every bounce would keep a run going for ever. */
   diveFloor: 3,
-  caffeine: 4,
+  /** How many residents who help it takes to fill the bar. */
+  caffeine: 3,
   boostWindow: 72,
   /** How fast the run moves while the boost window is open. */
   boostSlow: 0.3,

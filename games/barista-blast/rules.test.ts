@@ -646,6 +646,6 @@ describe('BARISTA BLAST!! over many runs', () => {
   });
 
   it('carries a version for run tickets', () => {
-    expect(BLAST_VERSION).toBe(4);
+    expect(BLAST_VERSION).toBe(5);
   });
 });
