@@ -660,7 +660,39 @@ describe('BARISTA BLAST!! over many runs', () => {
     expect(meters[399]).toBeGreaterThan(2000);
   });
 
+  it('a resident picked to fly is not on the street, and the cafe’s own barista meets all eight', () => {
+    const kindsOn = (pilot: Parameters<typeof startBlast>[4]) => { const run = startBlast(3, blastLooks, 0, 0, pilot); run.x = 3000; stepBlast(run, false); return new Set(run.cells.flatMap(each => each && each.kind !== 'window' ? [each.kind] : [])); };
+    expect([...kindsOn(null)].sort()).toEqual([...blastLooks].sort());
+    for (const pilot of blastLooks) {
+      const met = kindsOn(pilot);
+      expect(met.has(pilot)).toBe(false);
+      expect(met.size).toBe(blastLooks.length - 1);
+    }
+  });
+
+  it('each pilot brings one small trait, and the cafe’s own barista none', () => {
+    const start = (pilot: Parameters<typeof startBlast>[4]) => startBlast(1, blastLooks, 36, 54, pilot), plain = start(null);
+    const speed = (run: BlastRun) => Math.sqrt(run.vx * run.vx + run.vy * run.vy);
+    expect([plain.shield, plain.caffeine, plain.sight]).toEqual([0, 0, 0]);
+    expect(start('dots').shield).toBe(T.shield);
+    expect(start('qwen').caffeine).toBe(T.caffeine);
+    expect(start('deepseek').sight).toBe(T.maxSteps);
+    expect(speed(start('grok')) / speed(plain)).toBeCloseTo(1.12, 6);
+    // Claude tops out slower: a shot that would reach the limit stops short of it.
+    const fast = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { y: 30, vx: 200, vy: 0 }); stepBlast(run, false); return speed(run); };
+    expect(fast(null)).toBeCloseTo(T.maxSpeed, 0);
+    expect(fast('claude')).toBeCloseTo(T.maxSpeed * 0.8, 0);
+    // Gemini's refill lifts higher, Doubao dives again in half the time, Muse's boost fills a cup.
+    const refill = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { y: 6, vy: -3 }); stepBlast(run, true); return run.vy; };
+    expect(refill('gemini')).toBeGreaterThan(refill(null) * 1.2);
+    const dive = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { y: 8, vy: 5 }); const at = run.step; stepBlast(run, true); return run.diveAt - at; };
+    expect(dive('doubao')).toBe(dive(null) / 2);
+    // A replay flies the pilot the inputs name.
+    expect(replayBlast(5, blastLooks, { aim: 36, hold: 54, taps: [], pilot: 'grok' }).pilot).toBe('grok');
+    expect(replayBlast(5, blastLooks, { aim: 36, hold: 54, taps: [] }).pilot).toBeNull();
+  });
+
   it('carries a version for run tickets', () => {
-    expect(BLAST_VERSION).toBe(5);
+    expect(BLAST_VERSION).toBe(6);
   });
 });

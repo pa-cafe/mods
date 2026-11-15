@@ -3,7 +3,7 @@
 // roots; trigonometry is left out because its last digit differs between engines.
 
 /** Goes on every run ticket. Change it with any number below: a run recorded under other numbers replays differently. */
-export const BLAST_VERSION = 5;
+export const BLAST_VERSION = 6;
 export const BLAST_HZ = 120;
 const DT = 1 / BLAST_HZ;
 
@@ -208,6 +208,27 @@ export type BlastHit = {
   step: number; x: number; kind: BlastKind; as: BlastKind; mood?: BlastMood; cast?: number; outcome: 'usual' | 'boost';
   waived?: true; copied?: { as: BlastLook; mood: BlastMood }; fixed?: number; uninvited?: true;
 };
+/**
+ * Who is launched. The cafe's own barista (`null`) flies the plain rules past all eight residents. A resident picked
+ * to fly instead is not on the street that run, and brings one small trait of the model she is named after:
+ * - GPT leaves under her disclaimer: the shield is up for its usual time from the launch.
+ * - Claude is careful: nobody bans her, since she is the one who bans, but she tops out slower.
+ * - Grok goes all in: a harder launch.
+ * - Gemini is light: every refill lifts her higher.
+ * - DeepSeek has read the fortune: the street further ahead is always in sight.
+ * - Qwen treats: the caffeine bar is full at the launch.
+ * - Doubao goes straight: she can dive again in half the time.
+ * - Muse pays a signing bonus: every boost fills one cup.
+ */
+export type BlastPilot = BlastLook | null;
+type Trait = { shield?: number; cap?: number; launch?: number; lift?: number; sight?: true; caffeine?: number; dive?: number; bonus?: number };
+const traits: Record<BlastLook, Trait> = {
+  dots: { shield: T.shield }, claude: { cap: 0.8 }, grok: { launch: 1.12 }, gemini: { lift: 1.25 },
+  deepseek: { sight: true }, qwen: { caffeine: T.caffeine }, doubao: { dive: 0.5 }, muse: { bonus: 1 },
+};
+/** One line a screen can show for each pilot's trait is the screen's business; this is what the rules do with it. */
+export const blastTrait = (pilot: BlastPilot): Readonly<Trait> => pilot ? traits[pilot] : {};
+
 export type BlastRun = {
   /** Steps since the launch. Taps are recorded against this. */
   step: number;
@@ -236,6 +257,9 @@ export type BlastRun = {
   end: 'stopped' | 'banned' | 'timeout' | null;
   /** The cafe's residents by kind. They lend their names to their kind; they do not decide which kinds stand on the street. */
   cast: readonly BlastLook[];
+  /** Who is flying, and the kinds left to stand on the street (indices into `blastLooks`): everyone but her. */
+  pilot: BlastPilot;
+  kinds: readonly number[];
   cells: (BlastNode | null)[];
   /** The kinds in the order they next stand on the street: every kind once, then drawn again. */
   order: number[];
@@ -265,11 +289,11 @@ function dice(seed: number) {
 }
 
 /** A run that has just left the machine. `aim` and `hold` are the steps the nozzle and the gauge had swung for. */
-export function startBlast(seed: number, cast: readonly BlastLook[], aim: number, hold: number): BlastRun {
-  const street = dice(seed), toward = blastAim(aim), speed = T.launchMin + (T.launchMax - T.launchMin) * blastPower(hold);
+export function startBlast(seed: number, cast: readonly BlastLook[], aim: number, hold: number, pilot: BlastPilot = null): BlastRun {
+  const trait = blastTrait(pilot), street = dice(seed), toward = blastAim(aim), speed = (T.launchMin + (T.launchMax - T.launchMin) * blastPower(hold)) * (trait.launch ?? 1);
   return {
-    step: 0, x: 0, y: 0, vx: toward[0] * speed, vy: toward[1] * speed, sliding: false, refills: T.refills, caffeine: 0, diveAt: 0, frozen: 0, boost: null,
-    glide: 0, straight: 0, shield: 0, sight: 0, scramble: false, last: null, hits: [], end: null, cast: cast.slice(0, 12), cells: [], order: [], placed: 0,
+    step: 0, x: 0, y: 0, vx: toward[0] * speed, vy: toward[1] * speed, sliding: false, refills: T.refills, caffeine: trait.caffeine ?? 0, diveAt: 0, frozen: 0, boost: null,
+    glide: 0, straight: 0, shield: trait.shield ?? 0, sight: trait.sight ? T.maxSteps : 0, scramble: false, last: null, hits: [], end: null, cast: cast.slice(0, 12), pilot, kinds: blastLooks.flatMap((look, index) => look === pilot ? [] : [index]), cells: [], order: [], placed: 0,
     turns: blastLooks.map(() => 0), bans: 0, moods: blastLooks.map(() => []), gaps: 0, next: 0, street, luck: dice(seed ^ 0x9e3779b9),
   };
 }
@@ -286,9 +310,11 @@ function drawn<T>(run: BlastRun, items: readonly T[]) {
  * again, and each kind goes through its four states the same way. Near the machine the two that can cost a run
  * stand in their harmless state instead.
  */
+const topSpeed = (run: BlastRun) => T.maxSpeed * (blastTrait(run.pilot).cap ?? 1);
+
 function resident(run: BlastRun, x: number): BlastNode {
-  if (run.placed % blastLooks.length === 0) run.order = drawn(run, blastLooks.map((_, index) => index));
-  const at = run.order[run.placed++ % blastLooks.length], kind = blastLooks[at], turn = run.turns[at]++;
+  if (run.placed % run.kinds.length === 0) run.order = drawn(run, run.kinds);
+  const at = run.order[run.placed++ % run.kinds.length], kind = blastLooks[at], turn = run.turns[at]++;
   if (!run.moods[at].length) run.moods[at] = drawn(run, blastMoods);
   const mood = run.moods[at].pop()!, early = mood === 'bad' && x < T.safeUntil && (kind === 'claude' || kind === 'dots');
   // A ban ends the run, so it stands less often than the other states that hurt: only every `banEvery`th time.
@@ -323,7 +349,7 @@ export function blastAhead(run: BlastRun, meters: number, behind = 0) {
 
 const isLook = (kind: BlastKind): kind is BlastLook => kind !== 'window';
 function send(run: BlastRun, shot: Shot, speed: number, floor: number) {
-  const fast = Math.min(T.maxSpeed, Math.max(speed * shot.times, floor));
+  const fast = Math.min(topSpeed(run), Math.max(speed * shot.times, floor));
   run.vx = shot.toward[0] * fast; run.vy = shot.toward[1] * fast; run.sliding = false;
 }
 
@@ -414,6 +440,7 @@ function strike(run: BlastRun, node: BlastNode) {
 function upgrade(run: BlastRun) {
   const { hit, speed, held } = run.boost!, as = hit.as;
   run.boost = null; run.caffeine = 0; run.frozen = T.boostStop; hit.outcome = 'boost';
+  run.refills = Math.min(T.refills, run.refills + (blastTrait(run.pilot).bonus ?? 0));
   if (!isLook(as)) { run.caffeine = T.caffeine; return; }
   if (held?.ban) { send(run, { toward: UP45, times: 1 }, speed, T.appeal); return; }
   const frozen = run.frozen;
@@ -436,9 +463,9 @@ function tapped(run: BlastRun) {
   run.straight = 0;
   if (run.vy <= 0) {
     if (!run.refills) return;
-    run.refills--; run.vy = T.refillUp; run.vx = Math.max(run.vx * (1 + T.refillShare), T.kick); run.sliding = false;
+    run.refills--; run.vy = T.refillUp * (blastTrait(run.pilot).lift ?? 1); run.vx = Math.max(run.vx * (1 + T.refillShare), T.kick); run.sliding = false;
   } else if (run.step >= run.diveAt && run.y >= T.diveFloor) {
-    run.diveAt = run.step + T.diveCooldown; run.vy = -T.diveDown; run.vx += T.diveAlong;
+    run.diveAt = run.step + T.diveCooldown * (blastTrait(run.pilot).dive ?? 1); run.vy = -T.diveDown; run.vx += T.diveAlong;
   }
 }
 
@@ -469,7 +496,8 @@ export function stepBlast(run: BlastRun, tap: boolean) {
   } else {
     run.vy -= T.gravity * dt; run.vx -= run.vx * T.drag * dt;
     const square = run.vx * run.vx + run.vy * run.vy;
-    if (square > T.maxSpeed * T.maxSpeed) { const slow = T.maxSpeed / Math.sqrt(square); run.vx *= slow; run.vy *= slow; }
+    const top = topSpeed(run);
+    if (square > top * top) { const slow = top / Math.sqrt(square); run.vx *= slow; run.vy *= slow; }
     run.x += run.vx * dt; run.y += run.vy * dt;
     if (run.y <= 0 && run.vy < 0) {
       run.y = 0; run.vy *= -T.bounceUp; run.vx *= T.bounceAlong;
@@ -491,11 +519,11 @@ export function stepBlast(run: BlastRun, tap: boolean) {
 }
 
 /** What a player did in one run: how long the nozzle and the gauge had swung, then every tap, in steps since the launch. */
-export type BlastInputs = { aim: number; hold: number; taps: readonly number[] };
+export type BlastInputs = { aim: number; hold: number; taps: readonly number[]; pilot?: BlastPilot };
 
 /** Plays a recorded run to its end. Taps must be whole steps in rising order; anything else is ignored. */
 export function replayBlast(seed: number, cast: readonly BlastLook[], inputs: BlastInputs) {
-  const run = startBlast(seed, cast, inputs.aim, inputs.hold);
+  const run = startBlast(seed, cast, inputs.aim, inputs.hold, inputs.pilot ?? null);
   let tap = 0;
   while (!run.end) {
     while (tap < inputs.taps.length && inputs.taps[tap] < run.step) tap++;
