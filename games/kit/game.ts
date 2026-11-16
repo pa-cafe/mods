@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 import type { Locale } from '../../locales.ts';
+import type { PlaySpec } from './play.ts';
 import type { Rng } from './random.ts';
 
 type Localized = Record<Locale, string>;
@@ -19,13 +20,21 @@ interface ScoreSpec {
   share: boolean;
 }
 
-interface GameCard {
+/** What the cafe knows about a game without running it. Every game has one, table game or not. */
+export interface GameCard {
   id: string;
   title: Localized;
+  /**
+   * The rules version a new match or run is played under. Raise it with any change that could make a recorded match
+   * play out differently; a game with recorded runs keeps every older version it has in `play.versions`.
+   */
+  version: number;
   players: { min: number; max: number };
   /** Residents can sit only when the game says how to play it in words: brief is the rules text they are given. */
   residents: false | { brief: string };
   score?: ScoreSpec;
+  /** Present when a resident can play the whole game at once as code: see `PlaySpec` in play.ts. */
+  play?: PlaySpec;
 }
 
 /** Everything a game is given. It has no clock, randomness, storage or network of its own. */

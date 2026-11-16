@@ -124,6 +124,7 @@ export const werewolf: TableGame<State, Move, View> = {
   card: {
     id: 'werewolf',
     title: { 'zh-TW': '狼人殺', 'zh-CN': '狼人杀', ja: '人狼', ko: '마피아', en: 'Werewolf' },
+    version: 1,
     players: { min: 5, max: 6 },
     residents: { brief: 'Night actions (kill, save, inspect) are private and take a target seat id. Speak once when called, then vote once with a target seat id.' },
   },
