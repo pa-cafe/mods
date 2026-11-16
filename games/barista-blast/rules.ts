@@ -262,14 +262,17 @@ const pairOf = (a: BlastLook, b: BlastLook): BlastPair | null => blastPairs.find
 
 /**
  * A boost while a resident flies is a combo of the two: the one hit does her boost, and the pilot adds one small piece
- * of her own on top. GPT puts up her disclaimer; Claude turns the shot steeper, up to 62°, if it was flatter; Gemini
- * glides a short way; Grok adds a tenth to the shot; DeepSeek reads the fortune; Qwen plants one copy ahead, of
+ * of her own on top. GPT puts up her disclaimer for a second; Claude turns the shot up to 45° if it was flatter and
+ * adds a twentieth; Gemini glides a short way; Grok adds a tenth to the shot; DeepSeek checks the facts and sets the
+ * next resident who would hurt to rights; Qwen plants one copy ahead, of
  * the one hit, since whoever flies never stands on her own street; Doubao goes dead straight for half a second;
  * Muse hands over one more cup.
  */
+// A full shield after every boost let a careful player through nearly everything, and 62° fell short, so both are smaller;
+// DeepSeek's fortune is already up all run when she flies, so she fact-checks instead.
 const assists: Record<BlastLook, Trick & { steeper?: true; times?: number }> = {
-  dots: { shield: T.shield }, claude: { steeper: true }, gemini: { glide: T.glideShort }, grok: { times: 1.1 },
-  deepseek: { sight: T.sight }, qwen: { plant: 1 }, doubao: { straight: 60 }, muse: { cups: 1 },
+  dots: { shield: T.shield / 4 }, claude: { steeper: true, times: 1.05 }, gemini: { glide: T.glideShort }, grok: { times: 1.1 },
+  deepseek: { fix: true }, qwen: { plant: 1 }, doubao: { straight: 60 }, muse: { cups: 1 },
 };
 
 /** One line a screen can show for each pilot's trait is the screen's business; this is what the rules do with it. */
@@ -507,7 +510,7 @@ function strike(run: BlastRun, node: BlastNode) {
 function assist(run: BlastRun, hit: BlastHit, pilot: BlastLook, as: BlastLook) {
   const { steeper, times, ...trick } = assists[pilot], fast = Math.sqrt(run.vx * run.vx + run.vy * run.vy);
   hit.assist = pilot;
-  if (steeper && fast > 0 && run.vy < UP62[1] * fast) { run.vx = UP62[0] * fast; run.vy = UP62[1] * fast; run.sliding = false; }
+  if (steeper && fast > 0 && run.vy < UP45[1] * fast) { run.vx = UP45[0] * fast; run.vy = UP45[1] * fast; run.sliding = false; }
   if (times && fast > 0) { const by = Math.min(times, topSpeed(run) / fast); run.vx *= by; run.vy *= by; }
   const frozen = run.frozen;
   apply(run, hit, as, trick, fast, true, true, false);

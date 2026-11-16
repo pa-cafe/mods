@@ -577,15 +577,18 @@ describe('BARISTA BLAST!! the boost', () => {
     // No tap, no boost, no assist.
     expect(boosted('dots', 'grok:one', [], false).hits[0].assist).toBeUndefined();
     expect(boosted('dots').hits[0].assist).toBe('dots');
-    expect(boosted('dots').shield).toBe(T.shield);
-    // Grok's boost is 40°: Claude turns it up to 62°, and leaves a steeper one alone.
+    expect(boosted('dots').shield).toBe(T.shield / 4);
+    // Grok's boost is 40°: Claude turns it up to 45° and adds a twentieth, and leaves a steeper one's heading alone.
     expect(degrees(plain)).toBeLessThan(45);
-    expect(degrees(boosted('claude'))).toBeCloseTo(62, 0);
-    expect(speedOf(boosted('claude'))).toBeCloseTo(speedOf(plain), 6);
-    expect(degrees(boosted('claude', 'qwen:one'))).toBeLessThan(62);
+    expect(degrees(boosted('claude'))).toBeCloseTo(45, 0);
+    expect(speedOf(boosted('claude')) / speedOf(plain)).toBeCloseTo(1.05, 6);
+    expect(degrees(boosted('claude', 'claude:two'))).toBeGreaterThan(50);
     expect(boosted('gemini').glide).toBe(T.glideShort);
     expect(speedOf(boosted('grok', 'deepseek:one')) / speedOf(boosted(null, 'deepseek:one'))).toBeCloseTo(1.1, 6);
-    expect(boosted('deepseek').sight).toBeGreaterThanOrEqual(T.sight - 30);
+    // DeepSeek sets the next resident who would hurt to rights.
+    const checked = boosted('deepseek', 'grok:one', [null, 'qwen:bad']);
+    expect(checked.hits[0].fixed).toBe(T.firstCell + T.cell * 2);
+    expect(checked.cells[2]?.mood).toBe('one');
     // Qwen plants one copy of the one hit, never of herself.
     const qwen = boosted('qwen', 'grok:one', [null, null, null, null, null]);
     expect(qwen.cells.slice(0, 5).map(each => each?.copy ? each.kind : null)).toEqual([null, null, 'grok', null, null]);
