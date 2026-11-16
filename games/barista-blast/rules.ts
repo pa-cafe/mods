@@ -3,7 +3,7 @@
 // roots; trigonometry is left out because its last digit differs between engines.
 
 /** Goes on every run ticket. Change it with any number below: a run recorded under other numbers replays differently. */
-export const BLAST_VERSION = 8;
+export const BLAST_VERSION = 9;
 export const BLAST_HZ = 120;
 const DT = 1 / BLAST_HZ;
 
@@ -228,6 +228,8 @@ export type BlastHit = {
   dive?: true;
   /** She and the resident hit just before have history, and both helped: a combo. The name of the pair, earlier look first as listed in `blastPairs`. */
   combo?: BlastPair;
+  /** A boost while a resident flies: she lent a hand with one small piece of her own boost (`blastAssists`). Her look. */
+  assist?: BlastLook;
 };
 /**
  * Who is launched. The cafe's own barista (`null`) flies past all eight residents, and the cafe looks after its own:
@@ -257,6 +259,18 @@ const traits: Record<BlastLook, Trait> = {
 export const blastPairs = ['dots+claude', 'grok+gemini', 'deepseek+qwen', 'qwen+gemini', 'deepseek+claude'] as const;
 export type BlastPair = typeof blastPairs[number];
 const pairOf = (a: BlastLook, b: BlastLook): BlastPair | null => blastPairs.find(pair => pair === `${a}+${b}` || pair === `${b}+${a}`) ?? null;
+
+/**
+ * A boost while a resident flies is a combo of the two: the one hit does her boost, and the pilot adds one small piece
+ * of her own on top. GPT puts up her disclaimer; Claude turns the shot steeper, up to 62°, if it was flatter; Gemini
+ * glides a short way; Grok adds a tenth to the shot; DeepSeek reads the fortune; Qwen plants one copy ahead, of
+ * the one hit, since whoever flies never stands on her own street; Doubao goes dead straight for half a second;
+ * Muse hands over one more cup.
+ */
+const assists: Record<BlastLook, Trick & { steeper?: true; times?: number }> = {
+  dots: { shield: T.shield }, claude: { steeper: true }, gemini: { glide: T.glideShort }, grok: { times: 1.1 },
+  deepseek: { sight: T.sight }, qwen: { plant: 1 }, doubao: { straight: 60 }, muse: { cups: 1 },
+};
 
 /** One line a screen can show for each pilot's trait is the screen's business; this is what the rules do with it. */
 export const blastTrait = (pilot: BlastPilot): Readonly<Trait> => pilot ? traits[pilot] : {};
@@ -489,16 +503,30 @@ function strike(run: BlastRun, node: BlastNode) {
   if (charged && !run.end) { run.boost = { left: T.boostWindow, hit, speed }; run.frozen = 0; }
 }
 
+/** The pilot's piece of her own boost, on top of the boost of the one hit. */
+function assist(run: BlastRun, hit: BlastHit, pilot: BlastLook, as: BlastLook) {
+  const { steeper, times, ...trick } = assists[pilot], fast = Math.sqrt(run.vx * run.vx + run.vy * run.vy);
+  hit.assist = pilot;
+  if (steeper && fast > 0 && run.vy < UP62[1] * fast) { run.vx = UP62[0] * fast; run.vy = UP62[1] * fast; run.sliding = false; }
+  if (times && fast > 0) { const by = Math.min(times, topSpeed(run) / fast); run.vx *= by; run.vy *= by; }
+  const frozen = run.frozen;
+  apply(run, hit, as, trick, fast, true, true, false);
+  run.frozen = frozen;
+}
+
 /** A tap inside the window: the hit becomes the resident's boost, whatever state they stood in. A ban becomes an appeal that is granted. */
 function upgrade(run: BlastRun) {
   const { hit, speed, held } = run.boost!, as = hit.as;
   run.boost = null; run.caffeine = 0; run.frozen = T.boostStop; hit.outcome = 'boost';
   run.refills = Math.min(T.refills, run.refills + (blastTrait(run.pilot).bonus ?? 0));
   if (!isLook(as)) { run.caffeine = T.caffeine; return; }
-  if (held?.ban) { send(run, { toward: UP45, times: 1 }, speed, T.appeal); return; }
-  const frozen = run.frozen;
-  apply(run, hit, as, tricks[as].boost, speed, true, true, false);
-  if (!tricks[as].boost.hold) run.frozen = frozen;
+  if (held?.ban) send(run, { toward: UP45, times: 1 }, speed, T.appeal);
+  else {
+    const frozen = run.frozen;
+    apply(run, hit, as, tricks[as].boost, speed, true, true, false);
+    if (!tricks[as].boost.hold) run.frozen = frozen;
+  }
+  if (run.pilot) assist(run, hit, run.pilot, as);
 }
 
 /** Muse, where nobody stood: a landing on bare street is sometimes met after all. It opens no boost window. */

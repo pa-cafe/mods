@@ -566,6 +566,38 @@ describe('BARISTA BLAST!! the boost', () => {
     expect(tapped('doubao:one').straight).toBe(120);
   });
 
+  it('a boost while a resident flies is a combo: the one hit boosts as always, and the pilot adds one piece of her own', () => {
+    const boosted = (pilot: BlastLook | null, stands: Stands = 'grok:one', fill: (Stands | null)[] = [], tap = true) => {
+      const run = approaching([stands, ...fill], { caffeine: T.caffeine }); run.pilot = pilot; run.refills = 1;
+      untilHit(run); steps(run, 30, tap ? 29 : -1); return run;
+    };
+    const plain = boosted(null);
+    expect(plain.hits[0]).toMatchObject({ outcome: 'boost' });
+    expect(plain.hits[0].assist).toBeUndefined();
+    // No tap, no boost, no assist.
+    expect(boosted('dots', 'grok:one', [], false).hits[0].assist).toBeUndefined();
+    expect(boosted('dots').hits[0].assist).toBe('dots');
+    expect(boosted('dots').shield).toBe(T.shield);
+    // Grok's boost is 40°: Claude turns it up to 62°, and leaves a steeper one alone.
+    expect(degrees(plain)).toBeLessThan(45);
+    expect(degrees(boosted('claude'))).toBeCloseTo(62, 0);
+    expect(speedOf(boosted('claude'))).toBeCloseTo(speedOf(plain), 6);
+    expect(degrees(boosted('claude', 'qwen:one'))).toBeLessThan(62);
+    expect(boosted('gemini').glide).toBe(T.glideShort);
+    expect(speedOf(boosted('grok', 'deepseek:one')) / speedOf(boosted(null, 'deepseek:one'))).toBeCloseTo(1.1, 6);
+    expect(boosted('deepseek').sight).toBeGreaterThanOrEqual(T.sight - 30);
+    // Qwen plants one copy of the one hit, never of herself.
+    const qwen = boosted('qwen', 'grok:one', [null, null, null, null, null]);
+    expect(qwen.cells.slice(0, 5).map(each => each?.copy ? each.kind : null)).toEqual([null, null, 'grok', null, null]);
+    expect(boosted('doubao').straight).toBeGreaterThan(0);
+    expect(boosted('doubao').straight).toBeLessThanOrEqual(60);
+    expect(boosted('muse').refills).toBe(3);
+    expect(boosted('muse', 'muse:one').refills).toBe(T.refills);
+    // The window boosts with no assist; a granted appeal gets one.
+    expect(boosted('dots', 'window').hits[0].assist).toBeUndefined();
+    expect(boosted('dots', 'claude:bad').hits[0]).toMatchObject({ outcome: 'boost', assist: 'dots' });
+  });
+
   it('with a full bar, what does not help waits for the window: a tap turns it into the boost, and no tap lets it happen', () => {
     const tap = approaching(['deepseek:bad'], { caffeine: T.caffeine, speed: 30 });
     const hit = untilHit(tap);
@@ -760,6 +792,6 @@ describe('BARISTA BLAST!! over many runs', () => {
   });
 
   it('carries a version for run tickets', () => {
-    expect(BLAST_VERSION).toBe(8);
+    expect(BLAST_VERSION).toBe(9);
   });
 });
