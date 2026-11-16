@@ -16,4 +16,6 @@ for (const hit of run.hits) {
   const as = hit.as === hit.kind ? hit.kind : `${hit.kind} as ${hit.as}`;
   process.stdout.write(`${(hit.step / rules.BLAST_HZ).toFixed(2).padStart(7)} s  ${hit.x.toFixed(0).padStart(6)} m  ${as} ${hit.mood ?? ''} ${hit.outcome}${hit.waived ? ' (shield)' : ''}\n`);
 }
-process.stdout.write(`ended ${run.end} at ${rules.blastMeters(run)} m after ${(run.step / rules.BLAST_HZ).toFixed(2)} s: ${rules.blastTokens(run.x)} tokens\n`);
+// Every version measures a run alike; their run types differ in fields this does not read.
+const meters = rules.blastMeters as (run: { x: number }) => number;
+process.stdout.write(`ended ${run.end} at ${meters(run)} m after ${(run.step / rules.BLAST_HZ).toFixed(2)} s: ${rules.blastTokens(run.x)} tokens\n`);

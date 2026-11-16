@@ -20,7 +20,7 @@ const recorded: [version: number, seed: number, cast: readonly string[], answer:
 
 describe('BARISTA BLAST!! rules versions', () => {
   it('keeps the live version and every frozen one', () => {
-    expect(Object.keys(blastVersions).map(Number)).toEqual([7, 8]);
+    expect(Object.keys(blastVersions).map(Number)).toEqual([7, 8, 9]);
     expect(blastCard.version).toBe(BLAST_VERSION);
     expect(blastVersions[BLAST_VERSION]).toBeDefined();
     expect(gameCards['barista-blast']).toBe(blastCard);
