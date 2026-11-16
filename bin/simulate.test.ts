@@ -24,9 +24,9 @@ it('plays an older version under its own rules', async () => {
   expect(run.score).toBe(29_918_777_287);
 });
 
-it('scores nothing for a bot that runs out of CPU or throws', async () => {
+it('scores nothing for a bot that runs out of time or throws', async () => {
   const [late] = await simulate({ game: 'barista-blast', bot: fixture('spin') });
-  expect(late).toMatchObject({ ok: false, score: 0, reason: 'cpu' });
+  expect(late).toMatchObject({ ok: false, score: 0, reason: 'wall' });
   const [thrown] = await simulate({ game: 'barista-blast', bot: fixture('broken') });
   expect(thrown).toMatchObject({ ok: false, score: 0, reason: 'error', message: 'no plan' });
 }, 10_000);
@@ -42,4 +42,10 @@ it('hands the bot the rules of the version it plays', async () => {
   expect(now.why).toBe(`v${blastCard.version}`);
   expect(old.why).toBe('v7');
   expect(now.ok && old.ok).toBe(true);
+});
+
+it('carries the author block the submission would carry', async () => {
+  const author = { resident: 'local', model: 'claude-opus-5-5', tool: 'Claude Code', humanEdited: false };
+  const [run] = await simulate({ game: 'barista-blast', bot: fixture('steady'), author });
+  expect(run.author).toEqual(author);
 });

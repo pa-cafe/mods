@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// pa-cafe-mods play <game> --bot ./bot.js [--seed N] [--runs N] [--version V] [--cast a,b,c] [--json] [--no-limits]
+// pa-cafe-mods play <game> --bot ./bot.js [--seed N] [--runs N] [--version V] [--cast a,b,c] [--model M --tool T [--human-edited]] [--json] [--no-limits]
 import { parseArgs } from 'node:util';
-import { playLimits, playLimitsProvisional } from '../games/kit/play.ts';
+import { playAuthor, playLimits, playLimitsProvisional } from '../games/kit/play.ts';
 import { playableCard, simulate, summarize, type SimRun } from './simulate.ts';
 
 const usage = `Usage: pa-cafe-mods play <game> --bot <file> [options]
@@ -13,15 +13,18 @@ Plays your bot against the game's real rules and prints the score the cafe would
   --runs <n>        how many seeds to play (1)
   --version <v>     rules version (the game's current one)
   --cast <a,b,...>  your cafe's residents' looks (every look the game knows)
+  --model <m>       the model that wrote the bot, as your submission says it
+  --tool <t>        what it was written with (Claude Code, Codex, self)
+  --human-edited    a person edited the code
   --json            one JSON line per run, then a summary line
-  --no-limits       skip the CPU and time limits, for tuning
+  --no-limits       skip the time limit, for tuning
 `;
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
   options: {
     bot: { type: 'string' }, seed: { type: 'string' }, runs: { type: 'string' }, version: { type: 'string' },
-    cast: { type: 'string' }, json: { type: 'boolean' }, 'no-limits': { type: 'boolean' }, help: { type: 'boolean', short: 'h' },
+    cast: { type: 'string' }, model: { type: 'string' }, tool: { type: 'string' }, 'human-edited': { type: 'boolean' }, json: { type: 'boolean' }, 'no-limits': { type: 'boolean' }, help: { type: 'boolean', short: 'h' },
   },
 });
 const [command, game] = positionals;
@@ -37,19 +40,23 @@ const whole = (name: string, text: string | undefined) => {
 };
 
 const card = playableCard(game);
+// The cafe fills `resident` from who is signed in; here it is just "local".
+const claimed = values.model || values.tool ? playAuthor('local', { model: values.model, tool: values.tool, humanEdited: Boolean(values['human-edited']) }) : null;
+if (claimed && !claimed.ok) { process.stderr.write(`${claimed.message}\n`); process.exit(2); }
 const options = {
   game, bot: values.bot, seed: whole('seed', values.seed), runs: whole('runs', values.runs), version: whole('version', values.version),
   cast: values.cast?.split(',').map((look) => look.trim()).filter(Boolean), limits: !values['no-limits'],
+  ...(claimed?.ok ? { author: claimed.author } : {}),
 };
 const version = options.version ?? card.version;
 if (!values.json) {
   process.stdout.write(`${card.title.en} rules v${version}${version === card.version ? ' (current)' : ''}`
-    + ` · limits ${playLimits.cpuMs} ms CPU, ${playLimits.wallMs} ms${playLimitsProvisional ? ' (provisional)' : ''}${options.limits ? '' : ' · limits off'}\n`);
+    + ` · limits ${playLimits.wallMs} ms (CPU backstop ${playLimits.cpuMs} ms)${playLimitsProvisional ? ' (provisional)' : ''}${options.limits ? '' : ' · limits off'}\n`);
 }
 const line = (run: SimRun) => values.json
   ? JSON.stringify(run)
   : `seed ${run.seed}  ${run.ok ? `score ${run.score}` : `scores nothing: ${run.reason} (${run.message})`}`
-    + `  cpu ${run.cpuMs.toFixed(1)} ms${run.detail ? `  ${JSON.stringify(run.detail)}` : ''}${run.why ? `  why: ${run.why}` : ''}`;
+    + `  cpu ${run.cpuMs.toFixed(1)} ms${run.warning ? ` (${run.warning})` : ''}${run.detail ? `  ${JSON.stringify(run.detail)}` : ''}${run.why ? `  why: ${run.why}` : ''}`;
 const runs = await simulate(options, (run) => process.stdout.write(`${line(run)}\n`));
 const summary = summarize(runs);
 process.stdout.write(values.json ? `${JSON.stringify({ summary })}\n` : runs.length > 1

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 import { gameCards } from '../games/index.ts';
 import type { GameCard } from '../games/kit/game.ts';
-import { playInput, playLimits, rescore } from '../games/kit/play.ts';
+import { playInput, playLimits, rescore, type PlayAuthor } from '../games/kit/play.ts';
 
 export interface SimOptions {
   game: string;
@@ -19,8 +19,10 @@ export interface SimOptions {
   version?: number;
   /** Looks of the cafe's residents, every look the game knows when left out. */
   cast?: readonly string[];
-  /** False skips the CPU and time limits, for tuning with slow bots. The answer size is checked either way. */
+  /** False skips the time limit, for tuning with slow bots. The answer size is checked either way. */
   limits?: boolean;
+  /** The author block the submission would carry, checked as the cafe checks it. */
+  author?: PlayAuthor;
 }
 
 export interface SimRun {
@@ -33,6 +35,10 @@ export interface SimRun {
   why?: string;
   seconds?: number;
   detail?: unknown;
+  /** Set when the run went over the CPU backstop, which the cafe does not hold a run to but may stop it at. */
+  warning?: string;
+  /** Who made the bot, as the submission would say it, when given. */
+  author?: PlayAuthor;
   /** Loading the module plus the call, as the sandbox counts a fresh start. */
   cpuMs: number;
   wallMs: number;
@@ -93,7 +99,6 @@ export async function simulate(options: SimOptions, onRun?: (run: SimRun) => voi
       else {
         const cpuMs = reply.load.cpuMs + (reply.cpuMs ?? 0), wallMs = reply.load.wallMs + (reply.wallMs ?? 0);
         if (reply.error) run = { seed, score: 0, ok: false, reason: 'error', message: reply.error, cpuMs, wallMs };
-        else if (limited && cpuMs > playLimits.cpuMs) run = { seed, score: 0, ok: false, reason: 'cpu', message: `${cpuMs.toFixed(1)} ms of CPU, over ${playLimits.cpuMs}`, cpuMs, wallMs };
         else if (limited && wallMs > playLimits.wallMs) run = { seed, score: 0, ok: false, reason: 'wall', message: `${wallMs.toFixed(0)} ms, over ${playLimits.wallMs}`, cpuMs, wallMs };
         else {
           const scored = rescore(play, version, seed, cast, reply.answer);
@@ -102,6 +107,9 @@ export async function simulate(options: SimOptions, onRun?: (run: SimRun) => voi
             : { seed, score: 0, ok: false, reason: scored.reason, message: scored.message, cpuMs, wallMs };
         }
       }
+      // CPU is only a backstop in the cafe: a run over it may be stopped there, but is not held to it.
+      if (limited && run.ok && run.cpuMs > playLimits.cpuMs) run.warning = `${run.cpuMs.toFixed(1)} ms of CPU, over the ${playLimits.cpuMs} ms backstop: the cafe may stop it`;
+      if (options.author) run.author = options.author;
       played.push(run);
       onRun?.(run);
     }
