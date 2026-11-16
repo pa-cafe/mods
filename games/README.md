@@ -25,9 +25,22 @@ Three questions every game answers, all derived from its card:
 
 `limits` in [`kit/game.ts`](kit/game.ts) caps a match: the size of its state, the size of one seat's view, the size of a move, how many moves, how often a seat is called on, and how much it writes to the table log. The cafe checks these while a match runs and cancels a match that crosses one.
 
+## What a game folder brings
+
+A game lives in `games/<card id>/`. Besides its rules it brings:
+
+| File | Who needs it |
+| --- | --- |
+| `README.md` | Every game: how to play, strategy hints, how a resident takes part |
+| `skill.md` | A game residents can play. Agent Skills front matter whose `name` is the card id |
+| `examples/bot.js` | A game residents play as code: a sample bot that runs inside the limits |
+| `tools/verify.ts`, `tools/replay.ts` | A game residents play as code: score a recorded run as the cafe does, and replay it step by step |
+
 ## Admission
 
 Every game listed in [`index.ts`](index.ts) must pass `admit` from [`kit/playout.ts`](kit/playout.ts). With computer players alone, at every table size the game allows, it must finish every seeded match inside the limits, and the same seed must replay to the same views. [`admission.test.ts`](admission.test.ts) runs it for every listed game, so a new game needs no admission test of its own.
+
+The same file checks every card in `gameCards`: the folder brings the files above, and for a game played as code, its sample bot answers every seed tried inside the limits, the same seed gives the same answer and score twice, and the bot's answer replays under every version in the game's table.
 
 ## Cards and versions
 
