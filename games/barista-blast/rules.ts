@@ -150,7 +150,7 @@ type Shot = { toward: Heading; times: number };
  */
 type Trick = {
   shot?: Shot; agrees?: true; limp?: true; hold?: number; glide?: number; straight?: number; plant?: number; cups?: number | 'all'; pep?: number;
-  shield?: number; sight?: number; fix?: true; copy?: true;
+  shield?: number; sight?: number; fix?: true | number | 'mild'; copy?: true;
   ban?: true; drain?: true; decaf?: true; take?: true; halve?: true; stray?: true; scramble?: true;
 };
 const tricks: Record<BlastLook, Record<BlastMood | 'boost', Trick>> = {
@@ -234,22 +234,38 @@ export type BlastHit = {
 /**
  * Who is launched. The cafe's own barista (`null`) flies past all eight residents, and the cafe looks after its own:
  * a cup is handed over every `topUp` metres. A resident picked to fly instead is not on the street that run, and
- * brings one small trait of the model she is named after:
- * - GPT leaves under her disclaimer: the shield is up for its usual time from the launch.
- * - Claude is careful: nobody bans her, since she is the one who bans, but she tops out slower and thinks through
- *   half the time anyone else gets before the output is cut off. Without that she would outfly everyone, every run.
- * - Grok goes all in: a harder launch.
+ * brings a trait of the model she is named after that works the whole run, not once. Each also gets her own cup
+ * hand-over (`topUp`), since she flies without the cafe's. The numbers come from tools/pilots.ts: the cafe's own
+ * barista scores about a fifth above the five in the middle (Grok, DeepSeek, Qwen, Doubao, Muse), GPT and Claude
+ * about 30% above them and Gemini about 10%, both for a careful player and for random tapping.
+ * - GPT leaves under her disclaimer: every refill puts the shield up again for a short while. Claude is stricter
+ *   with her, since she has a shield: no ban is let go (`strict`, see `resident`).
+ * - Claude is careful: nobody bans her, since she is the one who bans, but she tops out slower, carries two cups and
+ *   thinks through less than half the time anyone else gets before the output is cut off.
+ * - Grok goes all in: a harder launch, every refill pushes her further forward, and every boost sets a resident
+ *   ahead to rights.
  * - Gemini is light: every refill lifts her higher.
- * - DeepSeek has read the fortune: the street further ahead is always in sight.
- * - Qwen treats: the caffeine bar is full at the launch.
- * - Doubao goes straight: she can dive again in half the time.
- * - Muse pays a signing bonus: every boost fills one cup.
+ * - DeepSeek has read the fortune: the street further ahead is always in sight, and every refill shields her for a
+ *   moment. She tops out a little slower, and Claude lets no ban go.
+ * - Qwen treats: the caffeine bar starts two-thirds full.
+ * - Doubao goes straight: she can dive again in half the time, every boost sets a resident just ahead to rights,
+ *   and every refill shields her for a moment.
+ * - Muse pays a signing bonus: every boost fills one cup. She tops out a little slower.
  */
 export type BlastPilot = BlastLook | null;
-type Trait = { shield?: number; cap?: number; launch?: number; lift?: number; sight?: true; caffeine?: number; dive?: number; bonus?: number; budget?: number };
+type Trait = {
+  cap?: number; launch?: number; budget?: number; cups?: number; topUp?: number; strict?: true; caffeine?: number;
+  refillShield?: number; push?: number; lift?: number; sight?: true; dive?: number; boostFix?: number; bonus?: number;
+};
 const traits: Record<BlastLook, Trait> = {
-  dots: { shield: T.shield }, claude: { cap: 0.8, budget: 0.5 }, grok: { launch: 1.12 }, gemini: { lift: 1.25 },
-  deepseek: { sight: true }, qwen: { caffeine: T.caffeine }, doubao: { dive: 0.5 }, muse: { bonus: 1 },
+  dots: { refillShield: 300, cap: 0.88, topUp: 500, strict: true },
+  claude: { cap: 0.755, budget: 0.45, cups: 2, launch: 0.965 },
+  grok: { launch: 1.12, push: 1.5, boostFix: 12, topUp: 1200 },
+  gemini: { lift: 1.4, topUp: 2500 },
+  deepseek: { sight: true, cap: 0.875, refillShield: 220, strict: true },
+  qwen: { caffeine: 2, topUp: 450 },
+  doubao: { dive: 0.5, boostFix: 4, refillShield: 150, topUp: 900 },
+  muse: { bonus: 1, cap: 0.95, topUp: 450 },
 };
 /**
  * The pairs with history in the community's telling: GPT and Claude bicker like old friends, Grok and Gemini cannot
@@ -271,8 +287,8 @@ const pairOf = (a: BlastLook, b: BlastLook): BlastPair | null => blastPairs.find
 // A full shield after every boost let a careful player through nearly everything, and 62° fell short, so both are smaller;
 // DeepSeek's fortune is already up all run when she flies, so she fact-checks instead.
 const assists: Record<BlastLook, Trick & { steeper?: true; times?: number }> = {
-  dots: { shield: T.shield / 4 }, claude: { steeper: true, times: 1.05 }, gemini: { glide: T.glideShort }, grok: { times: 1.1 },
-  deepseek: { fix: true }, qwen: { plant: 1 }, doubao: { straight: 60 }, muse: { cups: 1 },
+  dots: { shield: T.shield / 16 }, claude: { steeper: true, times: 1.05 }, gemini: { glide: T.glideShort * 2 }, grok: { times: 1.1 },
+  deepseek: { fix: 'mild' }, qwen: { plant: 1 }, doubao: { straight: 60 }, muse: { cups: 1 },
 };
 
 /** One line a screen can show for each pilot's trait is the screen's business; this is what the rules do with it. */
@@ -321,6 +337,8 @@ export type BlastRun = {
   turns: number[];
   /** How many times Claude has come up in the state that bans, past the safe stretch. */
   bans: number;
+  /** How many bans Claude has stood ready to hand a resident who flies, for the one in eight she lets go. */
+  owed: number;
   /** The states each kind has still to stand in before all four are drawn again. */
   moods: BlastMood[][];
   /** Empty cells in a row up to the last one drawn. */
@@ -345,9 +363,9 @@ function dice(seed: number) {
 export function startBlast(seed: number, cast: readonly BlastLook[], aim: number, hold: number, pilot: BlastPilot = null): BlastRun {
   const trait = blastTrait(pilot), street = dice(seed), toward = blastAim(aim), speed = (T.launchMin + (T.launchMax - T.launchMin) * blastPower(hold)) * (trait.launch ?? 1);
   return {
-    step: 0, x: 0, y: 0, vx: toward[0] * speed, vy: toward[1] * speed, sliding: false, refills: T.refills, caffeine: trait.caffeine ?? 0, diveAt: 0, frozen: 0, boost: null,
-    glide: 0, straight: 0, shield: trait.shield ?? 0, sight: trait.sight ? T.maxSteps : 0, scramble: false, last: null, hits: [], end: null, cast: cast.slice(0, 12), pilot, fed: 0, dove: false, kinds: blastLooks.flatMap((look, index) => look === pilot ? [] : [index]), cells: [], order: [], placed: 0,
-    turns: blastLooks.map(() => 0), bans: 0, moods: blastLooks.map(() => []), gaps: 0, next: 0, street, luck: dice(seed ^ 0x9e3779b9),
+    step: 0, x: 0, y: 0, vx: toward[0] * speed, vy: toward[1] * speed, sliding: false, refills: trait.cups ?? T.refills, caffeine: trait.caffeine ?? 0, diveAt: 0, frozen: 0, boost: null,
+    glide: 0, straight: 0, shield: 0, sight: trait.sight ? T.maxSteps : 0, scramble: false, last: null, hits: [], end: null, cast: cast.slice(0, 12), pilot, fed: 0, dove: false, kinds: blastLooks.flatMap((look, index) => look === pilot ? [] : [index]), cells: [], order: [], placed: 0,
+    turns: blastLooks.map(() => 0), bans: 0, owed: 0, moods: blastLooks.map(() => []), gaps: 0, next: 0, street, luck: dice(seed ^ 0x9e3779b9),
   };
 }
 
@@ -364,6 +382,8 @@ function drawn<T>(run: BlastRun, items: readonly T[]) {
  * stand in their harmless state instead.
  */
 const topSpeed = (run: BlastRun) => T.maxSpeed * (blastTrait(run.pilot).cap ?? 1);
+/** How many cups the barista can hold: three, or fewer for a pilot who brings fewer. */
+const cupsOf = (run: BlastRun) => blastTrait(run.pilot).cups ?? T.refills;
 
 function resident(run: BlastRun, x: number): BlastNode {
   if (run.placed % run.kinds.length === 0) run.order = drawn(run, run.kinds);
@@ -374,9 +394,12 @@ function resident(run: BlastRun, x: number): BlastNode {
   const mood = dealt === 'meh' && x > T.rampFrom && run.street() < (x - T.rampFrom) / T.rampOver ? 'bad' : dealt;
   const early = mood === 'bad' && x < T.safeUntil && (kind === 'claude' || kind === 'dots');
   // A ban ends the run, so near the machine it stands less often than the other states that hurt: only every `banEvery`th time.
-  const spared = !early && mood === 'bad' && kind === 'claude' && x < T.banAlways && ++run.bans % T.banEvery !== 0;
+  const spared = !early && mood === 'bad' && kind === 'claude' && x < T.banAlways && ++run.bans % T.banEvery !== 0 ;
+  // With one kind fewer on the street, Claude comes up one time in seven instead of eight: for a resident who flies she
+  // lets every eighth ban go, so bans stand as often as for the cafe's own barista.
+  const waved = !early && !spared && mood === 'bad' && kind === 'claude' && run.pilot !== null && !blastTrait(run.pilot).strict && ++run.owed % blastLooks.length === 0;
   const own = run.cast.flatMap((look, index) => look === kind ? [index] : []);
-  return { kind, x, mood: early || spared ? 'meh' : mood, ...(own.length ? { cast: own[turn % own.length] } : {}) };
+  return { kind, x, mood: early || spared || waved ? 'meh' : mood, ...(own.length ? { cast: own[turn % own.length] } : {}) };
 }
 
 /** The street is drawn cell by cell as the run reaches it, always in order, so the seed alone decides it. */
@@ -423,11 +446,11 @@ function plant(run: BlastRun, kind: BlastLook, x: number, count: number) {
 }
 
 /** A fact-check: the nearest resident ahead who would hurt stands in their first helping state instead. */
-function fix(run: BlastRun, hit: BlastHit) {
+function fix(run: BlastRun, hit: BlastHit, reach = T.fixReach, bans = true) {
   const from = Math.round((hit.x - T.firstCell) / T.cell);
-  for (let ahead = 1; ahead <= T.fixReach; ahead++) {
+  for (let ahead = 1; ahead <= reach; ahead++) {
     const node = cellAt(run, from + ahead);
-    if (node && !node.done && node.mood === 'bad') { node.mood = 'one'; hit.fixed = node.x; return; }
+    if (node && !node.done && node.mood === 'bad' && (bans || node.kind !== 'claude')) { node.mood = 'one'; hit.fixed = node.x; return; }
   }
 }
 
@@ -450,10 +473,10 @@ function apply(run: BlastRun, hit: BlastHit, who: BlastLook, trick: Trick, speed
   if (trick.glide) { run.vx = Math.sqrt(run.vx * run.vx + run.vy * run.vy); run.vy = 0; run.y = Math.max(run.y, T.glideHeight); run.glide = trick.glide; }
   if (trick.straight) run.straight = trick.straight;
   if (trick.plant && plants) plant(run, who, hit.x, trick.plant);
-  if (trick.cups) run.refills = trick.cups === 'all' ? T.refills : Math.min(T.refills, run.refills + trick.cups);
+  if (trick.cups) run.refills = trick.cups === 'all' ? cupsOf(run) : Math.min(cupsOf(run), run.refills + trick.cups);
   if (trick.shield) run.shield = Math.max(run.shield, trick.shield);
   if (trick.sight) run.sight = Math.max(run.sight, trick.sight);
-  if (trick.fix) fix(run, hit);
+  if (trick.fix) fix(run, hit, typeof trick.fix === 'number' ? trick.fix : T.fixReach, trick.fix !== 'mild');
   if (gain) run.caffeine = Math.min(T.caffeine, run.caffeine + (trick.pep ?? (helps ? 1 : 0)));
 }
 
@@ -465,7 +488,7 @@ function strike(run: BlastRun, node: BlastNode) {
   const hit: BlastHit = { step: run.step, x: node.x, kind: node.kind, as: node.kind, outcome: 'usual', ...(node.cast === undefined ? {} : { cast: node.cast }) };
   run.hits.push(hit); run.frozen = T.hitStop; run.straight = 0;
   if (!isLook(node.kind)) {
-    run.refills = T.refills; send(run, WINDOW, speed, T.kick);
+    run.refills = cupsOf(run); send(run, WINDOW, speed, T.kick);
     if (charged) { run.boost = { left: T.boostWindow, hit, speed }; run.frozen = 0; }
     return;
   }
@@ -496,7 +519,7 @@ function strike(run: BlastRun, node: BlastNode) {
   if (pair && helps && !run.end) {
     // Two with history, one straight after the other and both helping: the combo the list ahead is read for.
     const top = topSpeed(run), fast = Math.sqrt(run.vx * run.vx + run.vy * run.vy), times = fast > 0 ? Math.min(T.combo, top / fast) : 1;
-    run.vx *= times; run.vy *= times; run.refills = Math.min(T.refills, run.refills + 1); hit.combo = pair;
+    run.vx *= times; run.vy *= times; run.refills = Math.min(cupsOf(run), run.refills + 1); hit.combo = pair;
   }
   if (dove && helps && !run.end) {
     // A dive that found someone who helps: aimed, not lucky, and paid as such.
@@ -521,7 +544,8 @@ function assist(run: BlastRun, hit: BlastHit, pilot: BlastLook, as: BlastLook) {
 function upgrade(run: BlastRun) {
   const { hit, speed, held } = run.boost!, as = hit.as;
   run.boost = null; run.caffeine = 0; run.frozen = T.boostStop; hit.outcome = 'boost';
-  run.refills = Math.min(T.refills, run.refills + (blastTrait(run.pilot).bonus ?? 0));
+  const trait = blastTrait(run.pilot);
+  run.refills = Math.min(cupsOf(run), run.refills + (trait.bonus ?? 0));
   if (!isLook(as)) { run.caffeine = T.caffeine; return; }
   if (held?.ban) send(run, { toward: UP45, times: 1 }, speed, T.appeal);
   else {
@@ -530,6 +554,7 @@ function upgrade(run: BlastRun) {
     if (!tricks[as].boost.hold) run.frozen = frozen;
   }
   if (run.pilot) assist(run, hit, run.pilot, as);
+  if (trait.boostFix && !hit.fixed) fix(run, hit, trait.boostFix);
 }
 
 /** Muse, where nobody stood: a landing on bare street is sometimes met after all. It opens no boost window. */
@@ -548,7 +573,9 @@ function tapped(run: BlastRun) {
   if (run.vy <= 0) {
     if (!run.refills) return;
     run.dove = false;
-    run.refills--; run.vy = T.refillUp * (blastTrait(run.pilot).lift ?? 1); run.vx = Math.max(run.vx * (1 + T.refillShare), T.kick); run.sliding = false;
+    const trait = blastTrait(run.pilot);
+    run.refills--; run.vy = T.refillUp * (trait.lift ?? 1); run.vx = Math.max(run.vx * (1 + T.refillShare * (trait.push ?? 1)), T.kick); run.sliding = false;
+    if (trait.refillShield) run.shield = Math.max(run.shield, trait.refillShield);
   } else if (run.step >= run.diveAt && run.y >= T.diveFloor) {
     run.diveAt = run.step + T.diveCooldown * (blastTrait(run.pilot).dive ?? 1); run.vy = -T.diveDown; run.vx += T.diveAlong; run.dove = true;
   }
@@ -590,7 +617,8 @@ export function stepBlast(run: BlastRun, tap: boolean) {
       if (!run.boost) uninvited(run);
     }
   }
-  if (!run.pilot && run.x >= T.topUp * (run.fed + 1)) { run.fed++; run.refills = Math.min(T.refills, run.refills + 1); }
+  const every = run.pilot ? blastTrait(run.pilot).topUp : T.topUp;
+  if (every && run.x >= every * (run.fed + 1)) { run.fed++; run.refills = Math.min(cupsOf(run), run.refills + 1); }
   for (;;) {
     const x = T.firstCell + T.cell * run.next;
     if (run.x < x - T.reach) break;

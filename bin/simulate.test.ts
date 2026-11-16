@@ -15,7 +15,7 @@ it('prints the score the cafe would compute for the same seed and answer', async
     expect(run.score).toBe(cafe.ok ? cafe.result.score : -1);
     expect(run.why).toBe(`seed ${run.seed}: tap every 50 steps`);
   }
-  expect(runs[0].score).toBe(6_193_377_535);
+  expect(runs[0].score).toBe(3_702_816_874);
   expect(summarize(runs).best).toBe(Math.max(...runs.map((run) => run.score)));
 });
 
