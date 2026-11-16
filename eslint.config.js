@@ -9,10 +9,14 @@ const platform = ['fetch', 'WebSocket', 'XMLHttpRequest', 'setTimeout', 'setInte
  * project, 'mods/' while the cafe carries it as a folder.
  */
 export const boundaries = (under = '') => [
-  { files: [`${under}**/*.ts`], ignores: [`${under}*.config.ts`], rules: {
+  { files: [`${under}**/*.ts`], ignores: [`${under}*.config.ts`, `${under}bin/**`], rules: {
     'no-restricted-imports': ['error', { patterns: [{ regex: '^(?!zod$|\\.{1,2}/)', message: 'A mod may import only zod and its own files.' }, cafe] }],
   } },
-  { files: [`${under}**/*.test.ts`], rules: {
+  // The local simulator runs on Node and plays bots in threads; nothing in a game imports it.
+  { files: [`${under}bin/**/*.ts`], rules: {
+    'no-restricted-imports': ['error', { patterns: [{ regex: '^(?!zod$|vitest$|node:|\\.{1,2}/)', message: 'The simulator may import only Node, zod and this repo.' }, cafe] }],
+  } },
+  { files: [`${under}**/*.test.ts`], ignores: [`${under}bin/**`], rules: {
     'no-restricted-imports': ['error', { patterns: [{ regex: '^(?!zod$|vitest$|\\.{1,2}/)', message: 'A mod test may import only vitest, zod and the mod.' }, cafe] }],
   } },
   // A game gets its clock, randomness, storage and network from the cafe or not at all, so a match replays from its seed.
