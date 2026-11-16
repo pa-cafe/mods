@@ -2,6 +2,7 @@
 // and scores each run with the same `rescore` the cafe uses. The score it prints is the score the cafe would record.
 // Time and CPU are measured on this machine, so they are a guide to the cafe's limits, not a promise.
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 import { gameCards } from '../games/index.ts';
 import type { GameCard } from '../games/kit/game.ts';
@@ -58,14 +59,14 @@ function botThread(bot: string) {
     });
   };
   return {
-    async call(input: unknown, wallMs: number): Promise<Reply | 'timeout'> {
+    async call(input: unknown, rules: string, wallMs: number): Promise<Reply | 'timeout'> {
       if (!worker) start();
       const { load } = await ready!;
       let timer: ReturnType<typeof setTimeout> | undefined;
       const reply = await new Promise<Reply | 'timeout'>((done) => {
         waiting = done;
         timer = setTimeout(() => done('timeout'), Math.max(1, wallMs - load.wallMs));
-        worker!.postMessage(input);
+        worker!.postMessage({ input, rules });
       });
       clearTimeout(timer);
       waiting = null;
@@ -85,7 +86,8 @@ export async function simulate(options: SimOptions, onRun?: (run: SimRun) => voi
   try {
     for (let index = 0; index < runs; index++) {
       const seed = firstSeed + index, input = playInput(card.id, version, seed, cast);
-      const reply = await thread.call(input, limited ? playLimits.wallMs : 60_000);
+      const rules = fileURLToPath(new URL(`../games/${play.rules[version]}`, import.meta.url));
+      const reply = await thread.call(input, rules, limited ? playLimits.wallMs : 60_000);
       let run: SimRun;
       if (reply === 'timeout') run = { seed, score: 0, ok: false, reason: 'wall', message: `no answer within ${limited ? playLimits.wallMs : 60_000} ms`, cpuMs: NaN, wallMs: NaN };
       else {

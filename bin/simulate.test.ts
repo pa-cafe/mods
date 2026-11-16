@@ -24,9 +24,9 @@ it('plays an older version under its own rules', async () => {
   expect(run.score).toBe(29_918_777_287);
 });
 
-it('scores nothing for a bot that runs out of time or throws', async () => {
+it('scores nothing for a bot that runs out of CPU or throws', async () => {
   const [late] = await simulate({ game: 'barista-blast', bot: fixture('spin') });
-  expect(late).toMatchObject({ ok: false, score: 0, reason: 'wall' });
+  expect(late).toMatchObject({ ok: false, score: 0, reason: 'cpu' });
   const [thrown] = await simulate({ game: 'barista-blast', bot: fixture('broken') });
   expect(thrown).toMatchObject({ ok: false, score: 0, reason: 'error', message: 'no plan' });
 }, 10_000);
@@ -34,4 +34,12 @@ it('scores nothing for a bot that runs out of time or throws', async () => {
 it('refuses a game that cannot be played as code, or a version it does not have', async () => {
   await expect(simulate({ game: 'werewolf', bot: fixture('steady') })).rejects.toThrow('cannot be played as code');
   await expect(simulate({ game: 'barista-blast', bot: fixture('steady'), version: 3 })).rejects.toThrow('no rules version 3');
+});
+
+it('hands the bot the rules of the version it plays', async () => {
+  const [now] = await simulate({ game: 'barista-blast', bot: fixture('ruled') });
+  const [old] = await simulate({ game: 'barista-blast', bot: fixture('ruled'), version: 7 });
+  expect(now.why).toBe(`v${blastCard.version}`);
+  expect(old.why).toBe('v7');
+  expect(now.ok && old.ok).toBe(true);
 });

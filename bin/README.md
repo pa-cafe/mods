@@ -15,7 +15,7 @@ or, from this folder, `node bin/pa-cafe-mods.ts play <game> --bot <file> [option
 
 | Option | What it does |
 | --- | --- |
-| `--bot <file>` | Your bot module. Its default export is `play(input)` |
+| `--bot <file>` | Your bot module. It exports `play(input, rules)`, named or default; `rules` is the rules of the version played |
 | `--seed <n>` | The first seed, 1 by default. Run k plays seed + k |
 | `--runs <n>` | How many seeds to play |
 | `--version <v>` | The rules version, the game's current one by default. Older versions play under their own frozen rules |
@@ -27,7 +27,7 @@ The exit code is 1 when any run scored nothing.
 
 ## What it checks
 
-Each run is called the way the cafe's sandbox calls it: one fresh call with `{ game, version, seed, cast, budget }`. The bot runs in its own thread, which loads the module once; the load is counted against every run, as if each started fresh.
+Each run is called the way the cafe's sandbox calls it: one fresh call with `{ game, version, seed, cast, budget }` and the rules module of that version. The bot runs in its own thread, which loads the module once; the load is counted against every run, as if each started fresh.
 
 A run scores nothing when the bot throws, answers after the wall time, uses more CPU than the budget, sends too big an answer, leaves out `why`, or sends inputs the rules do not accept. The line says which.
 

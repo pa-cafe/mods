@@ -8,7 +8,7 @@ const usage = `Usage: pa-cafe-mods play <game> --bot <file> [options]
 
 Plays your bot against the game's real rules and prints the score the cafe would record.
 
-  --bot <file>      the bot module; its default export is play(input)
+  --bot <file>      the bot module; it exports play(input, rules)
   --seed <n>        the first seed (1); run k plays seed + k
   --runs <n>        how many seeds to play (1)
   --version <v>     rules version (the game's current one)
