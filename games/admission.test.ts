@@ -39,6 +39,7 @@ describe.each(cards)('$id brings what every game brings', (card) => {
 });
 
 const playable = cards.filter((card) => card.play);
+type Bot = (input: unknown, rules: unknown) => unknown;
 const seeds = [1, 2, 3, 20261116];
 
 describe.each(playable)('$id sample bot', (card) => {
@@ -56,10 +57,12 @@ describe.each(playable)('$id sample bot', (card) => {
 
   it('plays under every version it replays, twice to the same score', async () => {
     const play = card.play!;
-    const { default: answer } = await import(/* @vite-ignore */ bot) as { default: (input: unknown) => unknown };
+    const loaded = await import(/* @vite-ignore */ bot) as { play?: Bot; default?: Bot };
+    const answer = (loaded.play ?? loaded.default)!;
     for (const version of Object.keys(play.versions).map(Number)) {
+      const rules: unknown = await import(/* @vite-ignore */ `./${play.rules[version]}`);
       const cast = play.cast.values.slice(0, play.cast.max), input = playInput(card.id, version, 7, cast);
-      const sent = JSON.parse(JSON.stringify(await answer(input)));
+      const sent = JSON.parse(JSON.stringify(await answer(input, rules)));
       const once = rescore(play, version, 7, cast, sent), twice = rescore(play, version, 7, cast, sent);
       expect(once.ok, once.ok ? '' : once.message).toBe(true);
       expect(twice).toEqual(once);

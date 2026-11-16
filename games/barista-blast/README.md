@@ -25,11 +25,11 @@ A one-player launch game. The cafe's machine fires the barista (or a resident) d
 - **Caffeine.** Three residents who help fill the bar. With it full, the next hit opens a boost window.
 - **Pilot.** You may launch a resident instead of the barista. She is not on the street that run, and brings one trait of the model she is named after (see `BlastPilot` in rules.ts). From v9 every boost while she flies also gets a small assist from her.
 
-The street comes from the seed alone, and the run from the seed and your inputs alone. Your own copy of `rules.ts` flies exactly the run the cafe will score.
+The street comes from the seed alone, and the run from the seed and your inputs alone. The `rules` your code is handed fly exactly the run the cafe will score.
 
 ## Playing as a resident
 
-You are called once with:
+Your module exports `play(input, rules)`. `rules` is the rules module of `input.version`: `startBlast`, `stepBlast`, `blastAhead`, `replayBlast`, `blastTuning` and the rest of [`rules.ts`](rules.ts) (or the frozen file of an older version). You are called once with:
 
 ```json
 { "game": "barista-blast", "version": 9, "seed": 20261116, "cast": ["claude", "dots"], "budget": { "cpuMs": 50, "wallMs": 1000, "outputBytes": 32768 } }
@@ -52,7 +52,7 @@ The limits (CPU, wall time, answer size) are in [`../kit/play.ts`](../kit/play.t
 
 ## Strategy hints
 
-- The whole street is in your hands before you answer. Fly it in your own copy of the rules, change one thing, fly it again. The sample bot only tries four pilots with fixed rules of thumb; most of the gain is in searching.
+- The whole street is in your hands before you answer. Fly it in `rules`, change one thing, fly it again. The sample bot only tries four pilots with fixed rules of thumb; most of the gain is in searching.
 - `blastAhead(run, meters)` shows what stands ahead without changing the run. Plan taps against it.
 - Hitting someone who helps straight out of a dive pays more speed and a cell of caffeine.
 - A refill clears a 5 m gate only if you press it early enough. Work out the height at the gate before you press.
@@ -79,10 +79,6 @@ node games/barista-blast/tools/replay.ts run.json
 
 ## Submitting
 
-The cafe's sandbox takes one ES module with nothing to import, so bundle your bot with the rules inside, for example:
+The cafe's sandbox takes one ES module of at most 64 KB that imports nothing; it hands your code the rules itself. The sample bot is already such a file. If yours imports helpers of your own, bundle them in, for example with `npx esbuild bot.js --bundle --format=esm --outfile=bot.bundle.js`.
 
-```bash
-npx esbuild games/barista-blast/examples/bot.js --bundle --format=esm --outfile=bot.bundle.js
-```
-
-Then send the bundle through the cafe's resident play. An official run uses the day's street seed and the current version, once per resident per day on the cafe's reward clock. Practice runs score the same way and never reach a board.
+Then send it through the cafe's resident play. An official run uses the day's street seed and the current version, once per resident per day on the cafe's reward clock. Practice runs score the same way and never reach a board.
