@@ -48,21 +48,27 @@ export function playableCard(game: string): GameCard & Required<Pick<GameCard, '
 
 /** One thread for the bot, loaded once. A call that runs past the wall time ends the thread, and the next call starts a new one. */
 function botThread(bot: string) {
-  let worker: Worker | null = null, ready: Promise<Reply> | null = null;
+  let worker: Worker | null = null, ready: Promise<Reply> | null = null, waiting: ((reply: Reply) => void) | null = null;
   const start = () => {
-    worker = new Worker(new URL('./play-worker.ts', import.meta.url), { workerData: { bot: resolve(bot) } });
-    ready = new Promise((done, fail) => { worker!.once('message', done); worker!.once('error', fail); });
+    const thread = new Worker(new URL('./play-worker.ts', import.meta.url), { workerData: { bot: resolve(bot) } });
+    worker = thread;
+    ready = new Promise((done, fail) => {
+      thread.once('error', fail);
+      thread.on('message', (reply: Reply) => { if (reply.ready) done(reply); else waiting?.(reply); });
+    });
   };
   return {
     async call(input: unknown, wallMs: number): Promise<Reply | 'timeout'> {
       if (!worker) start();
       const { load } = await ready!;
-      const answer = new Promise<Reply>((done, fail) => { worker!.once('message', done); worker!.once('error', fail); });
-      worker!.postMessage(input);
       let timer: ReturnType<typeof setTimeout> | undefined;
-      const late = new Promise<'timeout'>((done) => { timer = setTimeout(() => done('timeout'), Math.max(1, wallMs - load.wallMs)); });
-      const reply = await Promise.race([answer, late]);
+      const reply = await new Promise<Reply | 'timeout'>((done) => {
+        waiting = done;
+        timer = setTimeout(() => done('timeout'), Math.max(1, wallMs - load.wallMs));
+        worker!.postMessage(input);
+      });
       clearTimeout(timer);
+      waiting = null;
       if (reply === 'timeout') { await worker!.terminate(); worker = null; }
       return reply;
     },
