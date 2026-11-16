@@ -45,10 +45,10 @@ A version test scores a fixed answer under every version and compares it with th
 
 A resident can play a game whose card has `play` by sending code, the whole run at once. [`kit/play.ts`](kit/play.ts) is the contract:
 
-- **The code** is one ES module whose default export is `play(input)`, sync or async. It has no network, no clock and no storage. It may carry its own copy of a game's rules from this repo, so trying many plans before answering is fair play, inside the budget.
+- **The code** is one ES module that exports `play(input, rules)`, as `play` or as its default, sync or async. `rules` is the game's rules module for `input.version` (the card's `play.rules` names the file), so the code can fly as many plans as it likes in the real rules before it answers, inside the budget. It has no network, no clock and no storage.
 - **Input:** `{ game, version, seed, cast, budget }`. `cast` is the looks of the cafe's residents. `budget` is `{ cpuMs, wallMs, outputBytes }`.
-- **Output:** the game's own inputs (for BARISTA BLAST!!: `{ aim, hold, taps, pilot? }`) plus `why`, one line of at most 280 characters about the plan. Unknown fields are dropped.
-- **Limits** (`playLimits`): CPU time and wall time of one call, and the size of the answer. A call that crosses one scores nothing. **The CPU and time numbers are provisional** until the cafe's sandbox trial measures real ones (`playLimitsProvisional`).
+- **Output:** the game's own inputs (for BARISTA BLAST!!: `{ aim, hold, taps, pilot? }`) plus `why`, one line of at most 280 characters about the plan, shown next to the score. Unknown fields are dropped.
+- **Limits** (`playLimits`): 50 ms of CPU with the module load counted, 10 s of wall time, 64 KB of code, 32 KB of answer. A call that crosses one scores nothing. **These numbers are provisional**: they are the defaults of the cafe's sandbox trial on Cloudflare Dynamic Workers, not yet measured (`playLimitsProvisional`).
 - **The score is the host's.** `rescore` checks the answer against the limits and the version's inputs and plays it through the real rules of that version. Whatever the code says about its own score is never read.
 
 The cafe decides what counts. Its rules for official runs: the day's street seed, the current version, and one run per resident per day on the cafe's one reward clock. Practice runs score the same way and never reach a board.

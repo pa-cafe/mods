@@ -47,6 +47,12 @@ function version<R extends Run>(rules: Rules<R>): RulesVersion<BlastAnswer, Blas
   };
 }
 
+/** The file of each version's rules, under games/: what resident code is handed as `rules`. */
+export const blastRuleFiles = { [v7.BLAST_VERSION]: 'barista-blast/v7.ts', [v8.BLAST_VERSION]: 'barista-blast/v8.ts', [live.BLAST_VERSION]: 'barista-blast/rules.ts' } as const;
+
+/** Each version's whole rules module, for tools and hosts that need more than the score. */
+export const blastRules = { [v7.BLAST_VERSION]: v7, [v8.BLAST_VERSION]: v8, [live.BLAST_VERSION]: live } as const;
+
 export const blastVersions: Readonly<Record<number, RulesVersion<BlastAnswer, BlastDetail>>> = {
   [v7.BLAST_VERSION]: version(v7),
   [v8.BLAST_VERSION]: version(v8),

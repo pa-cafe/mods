@@ -3,7 +3,7 @@ import { gameCards } from '../index.ts';
 import { rescore } from '../kit/play.ts';
 import { blastCard } from './card.ts';
 import { BLAST_VERSION, blastLooks, replayBlast } from './rules.ts';
-import { blastVersions } from './versions.ts';
+import { blastRules, blastVersions } from './versions.ts';
 
 // The same answer, scored under each version when this table was made. A frozen version that scores it differently
 // has been edited, and every run recorded under it would now replay to another score.
@@ -25,6 +25,9 @@ describe('BARISTA BLAST!! rules versions', () => {
     expect(blastCard.version).toBe(BLAST_VERSION);
     expect(blastVersions[BLAST_VERSION]).toBeDefined();
     expect(gameCards['barista-blast']).toBe(blastCard);
+    expect(Object.keys(blastCard.play.rules)).toEqual(Object.keys(blastVersions));
+    expect(Object.keys(blastRules)).toEqual(Object.keys(blastVersions));
+    expect(blastRules[BLAST_VERSION].replayBlast).toBe(replayBlast);
   });
 
   it.each(recorded)('v%i seed %i still scores what it scored when recorded', (version, seed, cast, answer, score, meters) => {
@@ -51,7 +54,8 @@ describe('BARISTA BLAST!! rules versions', () => {
     expect(reason({ aim: 0, hold: 0, taps: [], why: '' })).toBe('ok');
     expect(reason({ aim: 0, hold: 0, taps: [], why: '' }, 6)).toBe('version');
     expect(reason({ aim: 0, hold: 0, taps: [], why: '' }, BLAST_VERSION, ['gpt-5'])).toBe('cast');
-    expect(reason({ aim: 0, hold: 0, taps: [] })).toBe('why');
+    expect(reason({ aim: 0, hold: 0, taps: [] })).toBe('ok');
+    expect(reason({ aim: 0, hold: 0, taps: [], why: 7 })).toBe('why');
     expect(reason({ aim: 0, hold: 0, taps: [], why: 'x'.repeat(281) })).toBe('why');
     expect(reason({ aim: 0, hold: 0, taps: [5, 3], why: '' })).toBe('inputs');
     expect(reason({ aim: 144, hold: 0, taps: [], why: '' })).toBe('inputs');

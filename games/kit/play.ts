@@ -5,20 +5,23 @@ import type { z } from 'zod';
  * simulator) calls the code once with a `PlayInput`, takes what it returns, and plays that through the real rules of
  * the version it names. The score is always the host's own: whatever the code says about its score is never read.
  *
- * The code is one ES module whose default export is `play(input)`, sync or async. It has no network, no clock and no
- * storage; it may carry its own copy of the rules from this repo, so trying many plans before answering is fair play,
- * inside the budget.
+ * The code is one ES module that exports `play(input, rules)`, as `play` or as its default, sync or async. `rules` is
+ * the game's rules module for `input.version` (the file `PlaySpec.rules` names), so the code can fly as many plans as
+ * it likes in the real rules before it answers, inside the budget. It has no network, no clock and no storage.
  */
 
 /**
- * What one call may cost. PROVISIONAL: these are placeholders until the cafe's sandbox trial measures real numbers,
- * and they may change before the first official day. A run that crosses one scores nothing.
+ * What one call may cost. PROVISIONAL: these are the defaults of the cafe's sandbox trial (Cloudflare Dynamic Workers,
+ * staging), not yet measured numbers, and they may change before the first official day. A run that crosses one
+ * scores nothing.
  */
 export const playLimits = {
-  /** CPU time of one call, in milliseconds. */
+  /** CPU time of one call, in milliseconds, loading the module included. */
   cpuMs: 50,
   /** Wall time of one call, start to answer, in milliseconds. */
-  wallMs: 1_000,
+  wallMs: 10_000,
+  /** The code, in UTF-8 bytes. */
+  codeBytes: 64_000,
   /** The answer as JSON, in UTF-8 bytes. */
   outputBytes: 32_768,
   /** `why`, in characters. */
@@ -41,8 +44,8 @@ export interface PlayInput {
   budget: PlayBudget;
 }
 
-/** What the code returns: the game's own inputs, plus `why`, a short line in the resident's words about the plan. */
-export type PlayOutput<I> = I & { why: string };
+/** What the code returns: the game's own inputs, plus `why`, a short line in the resident's words about the plan (empty when left out). */
+export type PlayOutput<I> = I & { why?: string };
 
 /** A run as the host scored it. `seconds` is how long it takes to play out at the game's own pace. */
 export interface Rescored<D = unknown> {
@@ -65,6 +68,8 @@ export interface RulesVersion<I = unknown, D = unknown> {
  */
 export interface PlaySpec<I = unknown, D = unknown> {
   versions: Readonly<Record<number, RulesVersion<I, D>>>;
+  /** For each version, the rules module handed to the code as `rules`, as a path under games/. */
+  rules: Readonly<Record<number, string>>;
   /** At most `max` looks, each one of `values`. */
   cast: { max: number; values: readonly string[] };
 }
@@ -91,7 +96,7 @@ export function rescore<I, D>(spec: PlaySpec<I, D>, version: number, seed: numbe
   const size = bytes(answer);
   if (size > playLimits.outputBytes) return { ok: false, reason: 'too_big', message: `the answer is ${size} bytes, over ${playLimits.outputBytes}` };
   if (typeof answer !== 'object' || answer === null || Array.isArray(answer)) return { ok: false, reason: 'inputs', message: 'the answer is not an object' };
-  const { why, ...rest } = answer as { why?: unknown };
+  const { why = '', ...rest } = answer as { why?: unknown };
   if (typeof why !== 'string' || why.length > playLimits.whyChars) return { ok: false, reason: 'why', message: `why must be a string of at most ${playLimits.whyChars} characters` };
   const inputs = rules.inputs.safeParse(rest);
   if (!inputs.success) return { ok: false, reason: 'inputs', message: inputs.error.issues.map((issue) => `${issue.path.join('.') || 'answer'}: ${issue.message}`).join('; ') };
