@@ -3,7 +3,7 @@
 // roots; trigonometry is left out because its last digit differs between engines.
 
 /** Goes on every run ticket. Change it with any number below: a run recorded under other numbers replays differently. */
-export const BLAST_VERSION = 6;
+export const BLAST_VERSION = 7;
 export const BLAST_HZ = 120;
 const DT = 1 / BLAST_HZ;
 
@@ -83,6 +83,16 @@ export const blastTuning = {
   tokenPower: 4.3,
   /** What the furthest a run can get in its time at the speed limit is worth, rounded up. */
   tokenCap: 3.5e14,
+  /**
+   * The street gets harder the further it goes. Past `rampFrom` metres a resident who would have done nothing much may
+   * hurt instead, more often with every metre, until `rampOver` metres on every one of them does. Past `banAlways`
+   * Claude no longer lets any ban go.
+   */
+  rampFrom: 2000,
+  rampOver: 4000,
+  banAlways: 3000,
+  /** Running into a resident who helps straight out of a dive pays: this much more speed, and one more cell of caffeine. */
+  diveBonus: 1.1,
   /** The cafe's own barista is handed a cup every this many metres. */
   topUp: 250,
 };
@@ -210,13 +220,16 @@ export const blastHitSpan = (node: Pick<BlastNode, 'kind' | 'mood'>): readonly [
 export type BlastHit = {
   step: number; x: number; kind: BlastKind; as: BlastKind; mood?: BlastMood; cast?: number; outcome: 'usual' | 'boost';
   waived?: true; copied?: { as: BlastLook; mood: BlastMood }; fixed?: number; uninvited?: true;
+  /** The barista came straight out of a dive into someone who helps, and was paid for it. */
+  dive?: true;
 };
 /**
  * Who is launched. The cafe's own barista (`null`) flies past all eight residents, and the cafe looks after its own:
  * a cup is handed over every `topUp` metres. A resident picked to fly instead is not on the street that run, and
  * brings one small trait of the model she is named after:
  * - GPT leaves under her disclaimer: the shield is up for its usual time from the launch.
- * - Claude is careful: nobody bans her, since she is the one who bans, but she tops out slower.
+ * - Claude is careful: nobody bans her, since she is the one who bans, but she tops out slower and thinks through
+ *   half the time anyone else gets before the output is cut off. Without that she would outfly everyone, every run.
  * - Grok goes all in: a harder launch.
  * - Gemini is light: every refill lifts her higher.
  * - DeepSeek has read the fortune: the street further ahead is always in sight.
@@ -225,9 +238,9 @@ export type BlastHit = {
  * - Muse pays a signing bonus: every boost fills one cup.
  */
 export type BlastPilot = BlastLook | null;
-type Trait = { shield?: number; cap?: number; launch?: number; lift?: number; sight?: true; caffeine?: number; dive?: number; bonus?: number };
+type Trait = { shield?: number; cap?: number; launch?: number; lift?: number; sight?: true; caffeine?: number; dive?: number; bonus?: number; budget?: number };
 const traits: Record<BlastLook, Trait> = {
-  dots: { shield: T.shield }, claude: { cap: 0.8 }, grok: { launch: 1.12 }, gemini: { lift: 1.25 },
+  dots: { shield: T.shield }, claude: { cap: 0.8, budget: 0.5 }, grok: { launch: 1.12 }, gemini: { lift: 1.25 },
   deepseek: { sight: true }, qwen: { caffeine: T.caffeine }, doubao: { dive: 0.5 }, muse: { bonus: 1 },
 };
 /** One line a screen can show for each pilot's trait is the screen's business; this is what the rules do with it. */
@@ -266,6 +279,8 @@ export type BlastRun = {
   kinds: readonly number[];
   /** How many cups the cafe has handed its own barista along the way. */
   fed: number;
+  /** A dive is under way: it ends at the next hit, landing or refill. */
+  dove: boolean;
   cells: (BlastNode | null)[];
   /** The kinds in the order they next stand on the street: every kind once, then drawn again. */
   order: number[];
@@ -299,7 +314,7 @@ export function startBlast(seed: number, cast: readonly BlastLook[], aim: number
   const trait = blastTrait(pilot), street = dice(seed), toward = blastAim(aim), speed = (T.launchMin + (T.launchMax - T.launchMin) * blastPower(hold)) * (trait.launch ?? 1);
   return {
     step: 0, x: 0, y: 0, vx: toward[0] * speed, vy: toward[1] * speed, sliding: false, refills: T.refills, caffeine: trait.caffeine ?? 0, diveAt: 0, frozen: 0, boost: null,
-    glide: 0, straight: 0, shield: trait.shield ?? 0, sight: trait.sight ? T.maxSteps : 0, scramble: false, last: null, hits: [], end: null, cast: cast.slice(0, 12), pilot, fed: 0, kinds: blastLooks.flatMap((look, index) => look === pilot ? [] : [index]), cells: [], order: [], placed: 0,
+    glide: 0, straight: 0, shield: trait.shield ?? 0, sight: trait.sight ? T.maxSteps : 0, scramble: false, last: null, hits: [], end: null, cast: cast.slice(0, 12), pilot, fed: 0, dove: false, kinds: blastLooks.flatMap((look, index) => look === pilot ? [] : [index]), cells: [], order: [], placed: 0,
     turns: blastLooks.map(() => 0), bans: 0, moods: blastLooks.map(() => []), gaps: 0, next: 0, street, luck: dice(seed ^ 0x9e3779b9),
   };
 }
@@ -322,9 +337,12 @@ function resident(run: BlastRun, x: number): BlastNode {
   if (run.placed % run.kinds.length === 0) run.order = drawn(run, run.kinds);
   const at = run.order[run.placed++ % run.kinds.length], kind = blastLooks[at], turn = run.turns[at]++;
   if (!run.moods[at].length) run.moods[at] = drawn(run, blastMoods);
-  const mood = run.moods[at].pop()!, early = mood === 'bad' && x < T.safeUntil && (kind === 'claude' || kind === 'dots');
-  // A ban ends the run, so it stands less often than the other states that hurt: only every `banEvery`th time.
-  const spared = !early && mood === 'bad' && kind === 'claude' && ++run.bans % T.banEvery !== 0;
+  const dealt = run.moods[at].pop()!;
+  // Far down the street, more and more of those who would have done nothing much hurt instead.
+  const mood = dealt === 'meh' && x > T.rampFrom && run.street() < (x - T.rampFrom) / T.rampOver ? 'bad' : dealt;
+  const early = mood === 'bad' && x < T.safeUntil && (kind === 'claude' || kind === 'dots');
+  // A ban ends the run, so near the machine it stands less often than the other states that hurt: only every `banEvery`th time.
+  const spared = !early && mood === 'bad' && kind === 'claude' && x < T.banAlways && ++run.bans % T.banEvery !== 0;
   const own = run.cast.flatMap((look, index) => look === kind ? [index] : []);
   return { kind, x, mood: early || spared ? 'meh' : mood, ...(own.length ? { cast: own[turn % own.length] } : {}) };
 }
@@ -408,6 +426,9 @@ function apply(run: BlastRun, hit: BlastHit, who: BlastLook, trick: Trick, speed
 }
 
 function strike(run: BlastRun, node: BlastNode) {
+  // A dive ends at whatever it hits first, a window, a shield or a hit that waits on a tap included: only that hit can be paid for it.
+  const dove = run.dove;
+  run.dove = false;
   const speed = Math.sqrt(run.vx * run.vx + run.vy * run.vy), charged = run.caffeine >= T.caffeine;
   const hit: BlastHit = { step: run.step, x: node.x, kind: node.kind, as: node.kind, outcome: 'usual', ...(node.cast === undefined ? {} : { cast: node.cast }) };
   run.hits.push(hit); run.frozen = T.hitStop; run.straight = 0;
@@ -439,6 +460,11 @@ function strike(run: BlastRun, node: BlastNode) {
   }
   if (charged && !helps) { run.boost = { left: T.boostWindow, hit, speed, held: trick }; run.frozen = T.boostWindow; return; }
   apply(run, hit, who, trick, speed, helps, !node.copy);
+  if (dove && helps && !run.end) {
+    // A dive that found someone who helps: aimed, not lucky, and paid as such.
+    const top = topSpeed(run), fast = Math.sqrt(run.vx * run.vx + run.vy * run.vy), times = fast > 0 ? Math.min(T.diveBonus, top / fast) : 1;
+    run.vx *= times; run.vy *= times; run.caffeine = Math.min(T.caffeine, run.caffeine + 1); hit.dive = true;
+  }
   if (charged && !run.end) { run.boost = { left: T.boostWindow, hit, speed }; run.frozen = 0; }
 }
 
@@ -469,9 +495,10 @@ function tapped(run: BlastRun) {
   run.straight = 0;
   if (run.vy <= 0) {
     if (!run.refills) return;
+    run.dove = false;
     run.refills--; run.vy = T.refillUp * (blastTrait(run.pilot).lift ?? 1); run.vx = Math.max(run.vx * (1 + T.refillShare), T.kick); run.sliding = false;
   } else if (run.step >= run.diveAt && run.y >= T.diveFloor) {
-    run.diveAt = run.step + T.diveCooldown * (blastTrait(run.pilot).dive ?? 1); run.vy = -T.diveDown; run.vx += T.diveAlong;
+    run.diveAt = run.step + T.diveCooldown * (blastTrait(run.pilot).dive ?? 1); run.vy = -T.diveDown; run.vx += T.diveAlong; run.dove = true;
   }
 }
 
@@ -485,7 +512,7 @@ export function stepBlast(run: BlastRun, tap: boolean) {
     run.boost = null;
     if (held && isLook(hit.as)) apply(run, hit, hit.copied?.as ?? hit.as, held, speed, false, true);
   }
-  if (++run.step >= T.maxSteps) run.end ??= 'timeout';
+  if (++run.step >= T.maxSteps * (blastTrait(run.pilot).budget ?? 1)) run.end ??= 'timeout';
   if (run.end) return;
   if (run.frozen) { run.frozen--; return; }
   if (run.shield) run.shield--;
@@ -506,7 +533,7 @@ export function stepBlast(run: BlastRun, tap: boolean) {
     if (square > top * top) { const slow = top / Math.sqrt(square); run.vx *= slow; run.vy *= slow; }
     run.x += run.vx * dt; run.y += run.vy * dt;
     if (run.y <= 0 && run.vy < 0) {
-      run.y = 0; run.vy *= -T.bounceUp; run.vx *= T.bounceAlong;
+      run.y = 0; run.vy *= -T.bounceUp; run.vx *= T.bounceAlong; run.dove = false;
       if (run.vy < T.slideBelow) { run.vy = 0; run.sliding = true; }
       if (!run.boost) uninvited(run);
     }

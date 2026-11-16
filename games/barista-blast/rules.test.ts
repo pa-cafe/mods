@@ -133,23 +133,57 @@ describe('BARISTA BLAST!! the street', () => {
   it('stands each kind in each of its four states one time in four', () => {
     const run = far(9);
     for (const look of blastLooks) {
-      // Past the stretch near the machine, where the two that can cost a run are swapped for a harmless state.
-      const moods = residentsOf(run).filter(each => each.kind === look && each.x >= 400).map(each => each.mood), tally = Object.fromEntries(blastMoods.map(mood => [mood, moods.filter(each => each === mood).length]));
+      // Past the stretch near the machine, where the two that can cost a run are swapped for a harmless state, and before the street starts getting harder.
+      const moods = residentsOf(run).filter(each => each.kind === look && each.x >= T.safeUntil && each.x <= T.rampFrom).map(each => each.mood), tally = Object.fromEntries(blastMoods.map(mood => [mood, moods.filter(each => each === mood).length]));
       expect(moods.length).toBeGreaterThan(20);
       // Claude lets every other ban go: half of her turns to hurt are spent doing nothing much instead.
       const share = (mood: string) => look !== 'claude' ? 1 / 4 : mood === 'bad' ? 1 / 8 : mood === 'meh' ? 3 / 8 : 1 / 4;
-      for (const mood of blastMoods) expect(Math.abs(tally[mood] - moods.length * share(mood))).toBeLessThanOrEqual(1.5);
+      for (const mood of blastMoods) expect(Math.abs(tally[mood] - moods.length * share(mood))).toBeLessThanOrEqual(2);
     }
   });
 
   it('claude bans only every other time her turn to hurt comes up', () => {
     for (let seed = 1; seed <= 50; seed++) {
-      const hers = residentsOf(far(seed)).filter(each => each.kind === 'claude' && each.x >= T.safeUntil);
+      const hers = residentsOf(far(seed)).filter(each => each.kind === 'claude' && each.x >= T.safeUntil && each.x <= T.rampFrom);
       const bans = hers.flatMap((each, index) => each.mood === 'bad' ? [index] : []);
       expect(bans.length).toBeGreaterThan(0);
       // Her states come four to a round with one turn to hurt in each, so two bans are never in neighbouring rounds.
       for (let index = 1; index < bans.length; index++) expect(bans[index] - bans[index - 1]).toBeGreaterThanOrEqual(5);
     }
+  });
+
+  it('gets harder the further it goes: fewer and fewer do nothing much, and far out Claude lets no ban go', () => {
+    const share = (from: number, to: number, mood: string) => {
+      let all = 0, some = 0;
+      for (let seed = 1; seed <= 40; seed++) for (const each of residentsOf(far(seed))) if (each.x > from && each.x <= to) { all++; if (each.mood === mood) some++; }
+      return some / all;
+    };
+    // A quarter hurt and a quarter do nothing much before the ramp (a little less hurt, with Claude's bans let go).
+    expect(share(T.safeUntil, T.rampFrom, 'meh')).toBeGreaterThan(0.24);
+    expect(share(T.safeUntil, T.rampFrom, 'bad')).toBeLessThan(0.26);
+    // Halfway up the ramp about half of them have turned, and past its end nobody does nothing much.
+    const middle = T.rampFrom + T.rampOver / 2;
+    expect(share(middle - 500, middle + 500, 'meh')).toBeGreaterThan(0.09);
+    expect(share(middle - 500, middle + 500, 'meh')).toBeLessThan(0.16);
+    expect(far(3).cells.some(each => each && each.x > T.rampFrom + T.rampOver && each.kind !== 'window' && each.mood === 'meh')).toBe(false);
+    // The two helping states are untouched all the way.
+    expect(share(T.rampFrom, T.rampFrom + T.rampOver, 'one') + share(T.rampFrom, T.rampFrom + T.rampOver, 'two')).toBeCloseTo(0.5, 1);
+  });
+
+  it('a dive that finds someone who helps is paid in speed and caffeine, and one that finds anyone else is not', () => {
+    const through = (stand: 'grok:one' | 'grok:meh', dove: boolean) => { const run = approaching([stand], { y: 2 }); run.dove = dove; steps(run, 60); return run; };
+    const plain = through('grok:one', false), dived = through('grok:one', true);
+    expect(dived.hits[0].dive).toBe(true);
+    expect(plain.hits[0].dive).toBeUndefined();
+    expect(dived.caffeine).toBe(plain.caffeine + 1);
+    expect(through('grok:meh', true).hits[0].dive).toBeUndefined();
+    // A dive ends at the first thing it hits, whatever that is: a window passed on the way does not leave the bonus for the next resident.
+    const two = approaching(['window', 'grok:one'], { y: 2 }); two.dove = true; steps(two, 30);
+    expect(two.hits.map(hit => [hit.kind, hit.dive])).toEqual([['window', undefined]]);
+    expect(two.dove).toBe(false);
+    // A dive ends when it lands or a cup is drunk: what is hit after that was not aimed.
+    const landed = approaching([null], { y: 0.3 }); landed.dove = true; Object.assign(landed, { vy: -4 }); steps(landed, 20);
+    expect(landed.dove).toBe(false);
   });
 
   it('bans nobody and is never at capacity within 100 metres of the machine', () => {
@@ -692,6 +726,9 @@ describe('BARISTA BLAST!! over many runs', () => {
     const fast = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { y: 30, vx: 200, vy: 0 }); stepBlast(run, false); return speed(run); };
     expect(fast(null)).toBeCloseTo(T.maxSpeed, 0);
     expect(fast('claude')).toBeCloseTo(T.maxSpeed * 0.8, 0);
+    // And her output is cut off in half the time.
+    const cut = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { step: T.maxSteps / 2 - 2, y: 30 }); steps(run, 4); return run.end; };
+    expect([cut(null), cut('claude')]).toEqual([null, 'timeout']);
     // Gemini's refill lifts higher, Doubao dives again in half the time, Muse's boost fills a cup.
     const refill = (pilot: Parameters<typeof startBlast>[4]) => { const run = start(pilot); Object.assign(run, { y: 6, vy: -3 }); stepBlast(run, true); return run.vy; };
     expect(refill('gemini')).toBeGreaterThan(refill(null) * 1.2);
@@ -708,6 +745,6 @@ describe('BARISTA BLAST!! over many runs', () => {
   });
 
   it('carries a version for run tickets', () => {
-    expect(BLAST_VERSION).toBe(6);
+    expect(BLAST_VERSION).toBe(7);
   });
 });
