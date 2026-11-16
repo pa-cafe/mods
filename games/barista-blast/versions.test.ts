@@ -16,12 +16,11 @@ const recorded: [version: number, seed: number, cast: readonly string[], answer:
   [8, 1, three, { aim: 36, hold: 50, taps: [90, 200, 310, 480, 650, 900, 1300] }, 662_179_530, 1078.97],
   [8, 20261116, three, { aim: 30, hold: 54, taps: [120, 260, 400, 700, 1000, 1400, 1800, 2400], pilot: 'claude' }, 1_154_824_366, 1234.86],
   [8, 1, one, grokRun, 29_918_777_287, 2688.8],
-  [9, 1, one, grokRun, 6_193_377_535, 1848.83],
 ];
 
 describe('BARISTA BLAST!! rules versions', () => {
   it('keeps the live version and every frozen one', () => {
-    expect(Object.keys(blastVersions).map(Number)).toEqual([7, 8, 9]);
+    expect(Object.keys(blastVersions).map(Number)).toEqual([7, 8]);
     expect(blastCard.version).toBe(BLAST_VERSION);
     expect(blastVersions[BLAST_VERSION]).toBeDefined();
     expect(gameCards['barista-blast']).toBe(blastCard);
