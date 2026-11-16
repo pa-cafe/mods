@@ -3,7 +3,7 @@
 // roots; trigonometry is left out because its last digit differs between engines.
 
 /** Goes on every run ticket. Change it with any number below: a run recorded under other numbers replays differently. */
-export const BLAST_VERSION = 7;
+export const BLAST_VERSION = 8;
 export const BLAST_HZ = 120;
 const DT = 1 / BLAST_HZ;
 
@@ -88,11 +88,15 @@ export const blastTuning = {
    * hurt instead, more often with every metre, until `rampOver` metres on every one of them does. Past `banAlways`
    * Claude no longer lets any ban go.
    */
-  rampFrom: 2000,
-  rampOver: 4000,
-  banAlways: 3000,
+  rampFrom: 1000,
+  rampOver: 2000,
+  banAlways: 1500,
   /** Running into a resident who helps straight out of a dive pays: this much more speed, and one more cell of caffeine. */
   diveBonus: 1.1,
+  /** How tall a resident stands for what hits her: to the top of her head as the screen draws her, ornaments not counted. */
+  tall: 3.6,
+  /** Two who have history, hit one after the other while both help: this much more speed, and a cup. */
+  combo: 1.25,
   /** The cafe's own barista is handed a cup every this many metres. */
   topUp: 250,
 };
@@ -210,7 +214,7 @@ export type BlastNode = { kind: BlastKind; x: number; mood?: BlastMood; cast?: n
  * only a barista flying high passes over them.
  */
 export const blastHitSpan = (node: Pick<BlastNode, 'kind' | 'mood'>): readonly [number, number] =>
-  node.kind === 'window' ? [0, 2.6] : node.mood === 'bad' && (node.kind === 'claude' || node.kind === 'dots') ? [0, blastTuning.gate] : [0, 2.4];
+  node.kind === 'window' ? [0, 2.6] : node.mood === 'bad' && (node.kind === 'claude' || node.kind === 'dots') ? [0, blastTuning.gate] : [0, blastTuning.tall];
 
 /**
  * `as` and `mood` are who the hit acted as and in which state: another resident after a made-up answer, otherwise
@@ -222,6 +226,8 @@ export type BlastHit = {
   waived?: true; copied?: { as: BlastLook; mood: BlastMood }; fixed?: number; uninvited?: true;
   /** The barista came straight out of a dive into someone who helps, and was paid for it. */
   dive?: true;
+  /** She and the resident hit just before have history, and both helped: a combo. The name of the pair, earlier look first as listed in `blastPairs`. */
+  combo?: BlastPair;
 };
 /**
  * Who is launched. The cafe's own barista (`null`) flies past all eight residents, and the cafe looks after its own:
@@ -243,6 +249,15 @@ const traits: Record<BlastLook, Trait> = {
   dots: { shield: T.shield }, claude: { cap: 0.8, budget: 0.5 }, grok: { launch: 1.12 }, gemini: { lift: 1.25 },
   deepseek: { sight: true }, qwen: { caffeine: T.caffeine }, doubao: { dive: 0.5 }, muse: { bonus: 1 },
 };
+/**
+ * The pairs with history in the community's telling: GPT and Claude bicker like old friends, Grok and Gemini cannot
+ * stand each other, DeepSeek hands her work to Qwen, Qwen keeps Gemini's jar full, DeepSeek and Claude are the pair
+ * everyone draws. Hit in either order.
+ */
+export const blastPairs = ['dots+claude', 'grok+gemini', 'deepseek+qwen', 'qwen+gemini', 'deepseek+claude'] as const;
+export type BlastPair = typeof blastPairs[number];
+const pairOf = (a: BlastLook, b: BlastLook): BlastPair | null => blastPairs.find(pair => pair === `${a}+${b}` || pair === `${b}+${a}`) ?? null;
+
 /** One line a screen can show for each pilot's trait is the screen's business; this is what the rules do with it. */
 export const blastTrait = (pilot: BlastPilot): Readonly<Trait> => pilot ? traits[pilot] : {};
 
@@ -460,6 +475,12 @@ function strike(run: BlastRun, node: BlastNode) {
   }
   if (charged && !helps) { run.boost = { left: T.boostWindow, hit, speed, held: trick }; run.frozen = T.boostWindow; return; }
   apply(run, hit, who, trick, speed, helps, !node.copy);
+  const before = run.hits[run.hits.length - 2], pair = before && !before.waived && before.as !== 'window' && (before.mood === 'one' || before.mood === 'two') ? pairOf(before.as, who) : null;
+  if (pair && helps && !run.end) {
+    // Two with history, one straight after the other and both helping: the combo the list ahead is read for.
+    const top = topSpeed(run), fast = Math.sqrt(run.vx * run.vx + run.vy * run.vy), times = fast > 0 ? Math.min(T.combo, top / fast) : 1;
+    run.vx *= times; run.vy *= times; run.refills = Math.min(T.refills, run.refills + 1); hit.combo = pair;
+  }
   if (dove && helps && !run.end) {
     // A dive that found someone who helps: aimed, not lucky, and paid as such.
     const top = topSpeed(run), fast = Math.sqrt(run.vx * run.vx + run.vy * run.vy), times = fast > 0 ? Math.min(T.diveBonus, top / fast) : 1;
