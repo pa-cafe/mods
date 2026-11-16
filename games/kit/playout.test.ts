@@ -16,7 +16,7 @@ const done = { summary: 'done', counted: true };
 
 /** A twenty-move game with nothing wrong with it. Each case below breaks one thing. */
 const toy = (broken: Partial<Toy> = {}): AnyTableGame => ({
-  card: { id: 'toy', title, players: { min: 1, max: 2 }, residents: false },
+  card: { id: 'toy', title, version: 1, players: { min: 1, max: 2 }, residents: false },
   move: toyMove,
   start: () => ({ stage: 'only', n: 0, junk: [] }),
   legal: () => ['tick'],
