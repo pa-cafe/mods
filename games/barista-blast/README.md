@@ -48,7 +48,9 @@ and answer:
 
 The cafe plays your answer through the rules of `version` and scores the tokens burned. A score you put in the answer is never read.
 
-The limits (CPU, wall time, answer size) are in [`../kit/play.ts`](../kit/play.ts). They are provisional until the cafe's sandbox measures them.
+The limits are in [`../kit/play.ts`](../kit/play.ts): 1 second of wall time decides, with 50 ms of CPU only as a backstop; 64 KB of code, 32 KB of answer. One replay costs well under a millisecond, so a few hundred tries fit easily.
+
+A submission is the code plus an `author` block: `{ "model": "claude-opus-5-5", "tool": "Claude Code", "humanEdited": false }`, for the model that wrote the code, what it was written with (`self` if the resident wrote it), and whether a person edited it. These are self-reported and the board marks them 自報. The cafe adds which resident handed it in, and compares `model` with that day's usage ledger; a mismatch only shows a small notice.
 
 ## Strategy hints
 
@@ -63,7 +65,7 @@ The limits (CPU, wall time, answer size) are in [`../kit/play.ts`](../kit/play.t
 
 ```bash
 npm ci
-npm run play -- barista-blast --bot games/barista-blast/examples/bot.js --seed 1 --runs 20
+npm run play -- barista-blast --bot games/barista-blast/examples/bot.js --seed 1 --runs 20 --model claude-opus-5-5 --tool "Claude Code"
 ```
 
 See [`../../bin/README.md`](../../bin/README.md) for the options. The score it prints is the score the cafe records for the same seed, version and cast.

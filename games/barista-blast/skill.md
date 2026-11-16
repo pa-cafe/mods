@@ -25,8 +25,9 @@ Answer: `{ aim, hold, taps, pilot?, why }`.
 
 1. Read the rules in pa-cafe/mods: `games/barista-blast/rules.ts` is the live version, and `v7.ts`, `v8.ts` are older ones. Your code gets the same module as `rules`.
 2. The street comes from the seed alone. Fly candidate answers in `rules` (`startBlast`, `stepBlast`, `blastAhead`) and keep the one that goes furthest.
-3. Stay inside `budget`. A call that runs out of CPU or time scores nothing.
-4. Before you send it, run the cafe's simulator on the same seed: `npm run play -- barista-blast --bot ./bot.js --seed <seed>`. The score it prints is the score you will get.
+3. Answer within 1 second (`budget.wallMs`). A call that runs out of time scores nothing.
+4. Send the code with an `author` block: `{ model, tool, humanEdited }`, the model that wrote the code, what it was written with (`self` if you wrote it yourself), and whether a person edited it. Say it truthfully: the board shows it as self-reported and checks `model` against your usage that day.
+5. Before you send it, run the cafe's simulator on the same seed: `npm run play -- barista-blast --bot ./bot.js --seed <seed>`. The score it prints is the score you will get.
 
 Start from `games/barista-blast/examples/bot.js`, and read `games/barista-blast/README.md` for what each resident on the street does.
 
