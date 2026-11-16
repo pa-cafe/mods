@@ -131,14 +131,14 @@ describe('BARISTA BLAST!! the street', () => {
   });
 
   it('stands each kind in each of its four states one time in four', () => {
-    const run = far(9);
     for (const look of blastLooks) {
-      // Past the stretch near the machine, where the two that can cost a run are swapped for a harmless state, and before the street starts getting harder.
-      const moods = residentsOf(run).filter(each => each.kind === look && each.x >= T.safeUntil && each.x <= T.rampFrom).map(each => each.mood), tally = Object.fromEntries(blastMoods.map(mood => [mood, moods.filter(each => each === mood).length]));
-      expect(moods.length).toBeGreaterThan(20);
+      // Past the stretch near the machine, where the two that can cost a run are swapped for a harmless state, and before the street starts getting harder. Several streets, since that stretch is short.
+      const moods = [1, 2, 3, 4, 5, 6].flatMap(seed => residentsOf(far(seed)).filter(each => each.kind === look && each.x >= T.safeUntil && each.x <= T.rampFrom).map(each => each.mood));
+      const tally = Object.fromEntries(blastMoods.map(mood => [mood, moods.filter(each => each === mood).length]));
+      expect(moods.length).toBeGreaterThan(40);
       // Claude lets every other ban go: half of her turns to hurt are spent doing nothing much instead.
       const share = (mood: string) => look !== 'claude' ? 1 / 4 : mood === 'bad' ? 1 / 8 : mood === 'meh' ? 3 / 8 : 1 / 4;
-      for (const mood of blastMoods) expect(Math.abs(tally[mood] - moods.length * share(mood))).toBeLessThanOrEqual(2);
+      for (const mood of blastMoods) expect(Math.abs(tally[mood] - moods.length * share(mood))).toBeLessThanOrEqual(6);
     }
   });
 
@@ -168,6 +168,21 @@ describe('BARISTA BLAST!! the street', () => {
     expect(far(3).cells.some(each => each && each.x > T.rampFrom + T.rampOver && each.kind !== 'window' && each.mood === 'meh')).toBe(false);
     // The two helping states are untouched all the way.
     expect(share(T.rampFrom, T.rampFrom + T.rampOver, 'one') + share(T.rampFrom, T.rampFrom + T.rampOver, 'two')).toBeCloseTo(0.5, 1);
+  });
+
+  it('two with history, hit one after the other while both help, are a combo: more speed and a cup', () => {
+    const speed = (run: BlastRun) => Math.sqrt(run.vx * run.vx + run.vy * run.vy);
+    const through = (stands: Parameters<typeof approaching>[0]) => { const run = approaching(stands, { y: 1 }); Object.assign(run, { refills: 1 }); for (let step = 0; step < 600 && run.hits.length < 2 && !run.end; step++) { Object.assign(run, { y: Math.min(run.y, 1.5), vy: 0 }); stepBlast(run, false); } return run; };
+    const pair = through(['grok:one', 'gemini:one']), strangers = through(['grok:one', 'doubao:one']);
+    expect(pair.hits.map(hit => hit.combo)).toEqual([undefined, 'grok+gemini']);
+    expect(pair.refills).toBe(2);
+    expect(strangers.hits.map(hit => hit.combo)).toEqual([undefined, undefined]);
+    expect(strangers.refills).toBe(1);
+    // Either order counts, and a pair is no combo when one of the two hurt or did nothing much.
+    expect(through(['gemini:two', 'grok:one']).hits[1].combo).toBe('grok+gemini');
+    expect(through(['grok:meh', 'gemini:one']).hits[1].combo).toBeUndefined();
+    expect(through(['grok:one', 'gemini:meh']).hits[1].combo).toBeUndefined();
+    expect(speed(pair)).toBeGreaterThan(0);
   });
 
   it('a dive that finds someone who helps is paid in speed and caffeine, and one that finds anyone else is not', () => {
@@ -215,8 +230,8 @@ describe('BARISTA BLAST!! the street', () => {
   });
 
   it('is hit from the ground to head height, except a ban and a wall at capacity, which stand too tall to hop', () => {
-    expect(blastHitSpan({ kind: 'grok', mood: 'bad' })).toEqual([0, 2.4]);
-    expect(blastHitSpan({ kind: 'claude', mood: 'one' })).toEqual([0, 2.4]);
+    expect(blastHitSpan({ kind: 'grok', mood: 'bad' })).toEqual([0, T.tall]);
+    expect(blastHitSpan({ kind: 'claude', mood: 'one' })).toEqual([0, T.tall]);
     expect(blastHitSpan({ kind: 'claude', mood: 'bad' })).toEqual([0, 5]);
     expect(blastHitSpan({ kind: 'dots', mood: 'bad' })).toEqual([0, 5]);
     expect(blastHitSpan({ kind: 'window' })).toEqual([0, 2.6]);
@@ -367,7 +382,7 @@ describe('BARISTA BLAST!! tricks that help', () => {
   });
 
   it('doubao says it straight: half a second in a dead straight line, which a press or a hit ends', () => {
-    const run = approaching(['doubao:one']);
+    const run = approaching(['doubao:one', null, null, null, null, null, null, null, null]);
     untilHit(run);
     expect(run.straight).toBe(60);
     steps(run, T.hitStop);
@@ -377,7 +392,7 @@ describe('BARISTA BLAST!! tricks that help', () => {
     expect(run.y - from.y).toBeCloseTo(from.vy * 60 / BLAST_HZ, 6);
     stepBlast(run, false);
     expect(run.vy).toBeLessThan(from.vy);
-    const pressed = approaching(['doubao:one']);
+    const pressed = approaching(['doubao:one', null, null, null, null, null, null, null, null]);
     untilHit(pressed);
     steps(pressed, T.hitStop + 5);
     stepBlast(pressed, true);
@@ -745,6 +760,6 @@ describe('BARISTA BLAST!! over many runs', () => {
   });
 
   it('carries a version for run tickets', () => {
-    expect(BLAST_VERSION).toBe(7);
+    expect(BLAST_VERSION).toBe(8);
   });
 });
