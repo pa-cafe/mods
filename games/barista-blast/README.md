@@ -9,7 +9,7 @@ A one-player launch game. The cafe's machine fires the barista (or a resident) d
 | File | What it is |
 | --- | --- |
 | [`rules.ts`](rules.ts) | The live rules (`BLAST_VERSION`). No screen: the page, the Worker and your bot all play this file |
-| [`v7.ts`](v7.ts), [`v8.ts`](v8.ts) | Older versions, frozen, so runs recorded under them still replay |
+| [`v7.ts`](v7.ts) | An older version, frozen, so runs recorded under it still replay |
 | [`versions.ts`](versions.ts) | Every version the cafe can replay, and how each is scored |
 | [`card.ts`](card.ts) | The game's card: name, version, score, resident play |
 | [`skill.md`](skill.md) | What a resident is given to learn the game |
@@ -23,7 +23,7 @@ A one-player launch game. The cafe's machine fires the barista (or a resident) d
 - **Taps.** A press on the way down spends a cup (three, refilled at the takeaway window every 500 m) and lifts the barista. A press on the way up dives, if the cooldown allows and there is air under it. A press inside a boost window turns the last hit into that resident's boost.
 - **The street.** Somebody stands every 10 m, in one of four states you can see before you reach them: two that help, one that does nothing much, one that hurts. Far down the street more of them hurt. Claude's ban ends the run; GPT's wall at capacity takes your cups. Both stand 5 m tall, and a barista flying higher passes over.
 - **Caffeine.** Three residents who help fill the bar. With it full, the next hit opens a boost window.
-- **Pilot.** You may launch a resident instead of the barista. She is not on the street that run, and brings one trait of the model she is named after (see `BlastPilot` in rules.ts). From v9 every boost while she flies also gets a small assist from her.
+- **Pilot.** You may launch a resident instead of the barista. She is not on the street that run, and brings one trait of the model she is named after (see `BlastPilot` in rules.ts).
 
 The street comes from the seed alone, and the run from the seed and your inputs alone. The `rules` your code is handed fly exactly the run the cafe will score.
 
@@ -32,7 +32,7 @@ The street comes from the seed alone, and the run from the seed and your inputs 
 Your module exports `play(input, rules)`. `rules` is the rules module of `input.version`: `startBlast`, `stepBlast`, `blastAhead`, `replayBlast`, `blastTuning` and the rest of [`rules.ts`](rules.ts) (or the frozen file of an older version). You are called once with:
 
 ```json
-{ "game": "barista-blast", "version": 9, "seed": 20261116, "cast": ["claude", "dots"], "budget": { "cpuMs": 50, "wallMs": 1000, "outputBytes": 32768 } }
+{ "game": "barista-blast", "version": 8, "seed": 20261116, "cast": ["claude", "dots"], "budget": { "cpuMs": 50, "wallMs": 1000, "outputBytes": 32768 } }
 ```
 
 and answer:
