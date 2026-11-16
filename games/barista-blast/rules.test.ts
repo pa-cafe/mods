@@ -177,6 +177,10 @@ describe('BARISTA BLAST!! the street', () => {
     expect(plain.hits[0].dive).toBeUndefined();
     expect(dived.caffeine).toBe(plain.caffeine + 1);
     expect(through('grok:meh', true).hits[0].dive).toBeUndefined();
+    // A dive ends at the first thing it hits, whatever that is: a window passed on the way does not leave the bonus for the next resident.
+    const two = approaching(['window', 'grok:one'], { y: 2 }); two.dove = true; steps(two, 30);
+    expect(two.hits.map(hit => [hit.kind, hit.dive])).toEqual([['window', undefined]]);
+    expect(two.dove).toBe(false);
     // A dive ends when it lands or a cup is drunk: what is hit after that was not aimed.
     const landed = approaching([null], { y: 0.3 }); landed.dove = true; Object.assign(landed, { vy: -4 }); steps(landed, 20);
     expect(landed.dove).toBe(false);

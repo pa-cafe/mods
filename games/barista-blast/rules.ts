@@ -426,6 +426,9 @@ function apply(run: BlastRun, hit: BlastHit, who: BlastLook, trick: Trick, speed
 }
 
 function strike(run: BlastRun, node: BlastNode) {
+  // A dive ends at whatever it hits first, a window, a shield or a hit that waits on a tap included: only that hit can be paid for it.
+  const dove = run.dove;
+  run.dove = false;
   const speed = Math.sqrt(run.vx * run.vx + run.vy * run.vy), charged = run.caffeine >= T.caffeine;
   const hit: BlastHit = { step: run.step, x: node.x, kind: node.kind, as: node.kind, outcome: 'usual', ...(node.cast === undefined ? {} : { cast: node.cast }) };
   run.hits.push(hit); run.frozen = T.hitStop; run.straight = 0;
@@ -456,8 +459,6 @@ function strike(run: BlastRun, node: BlastNode) {
     return;
   }
   if (charged && !helps) { run.boost = { left: T.boostWindow, hit, speed, held: trick }; run.frozen = T.boostWindow; return; }
-  const dove = run.dove;
-  run.dove = false;
   apply(run, hit, who, trick, speed, helps, !node.copy);
   if (dove && helps && !run.end) {
     // A dive that found someone who helps: aimed, not lucky, and paid as such.
