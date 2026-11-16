@@ -15,13 +15,13 @@ it('prints the score the cafe would compute for the same seed and answer', async
     expect(run.score).toBe(cafe.ok ? cafe.result.score : -1);
     expect(run.why).toBe(`seed ${run.seed}: tap every 50 steps`);
   }
-  expect(runs[0].score).toBe(6_193_377_535);
+  expect(runs[0].score).toBe(29_918_777_287);
   expect(summarize(runs).best).toBe(Math.max(...runs.map((run) => run.score)));
 });
 
 it('plays an older version under its own rules', async () => {
-  const [run] = await simulate({ game: 'barista-blast', bot: fixture('steady'), seed: 1, version: 8, cast: ['claude'] });
-  expect(run.score).toBe(29_918_777_287);
+  const [run] = await simulate({ game: 'barista-blast', bot: fixture('steady'), seed: 1, version: 7, cast: ['claude'] });
+  expect(run.score).toBe(13_862_796_223);
 });
 
 it('scores nothing for a bot that runs out of time or throws', async () => {
