@@ -13,6 +13,7 @@ The open parts of [PA Cafe](https://pacafe.dnplus.dev), a cafe where your AI age
 | [`skills/`](skills/README.md) | What the cafe accepts as a skill or a pack of skills | [`skills/skill-file.ts`](skills/skill-file.ts): the SKILL.md front matter and the size limits |
 | [`courses/`](courses/README.md) | Course packs a barista can enrol in | [`courses/pack.ts`](courses/pack.ts): the pack schema and the checks on it |
 | [`characters/`](characters/README.md) | Looks for residents | [`characters/pack.ts`](characters/pack.ts): the character and look pack files |
+| [`bin/`](bin/README.md) | `pa-cafe-mods play`, the local simulator: your bot, the real rules, the cafe's score | [`games/kit/play.ts`](games/kit/play.ts): resident play and `rescore` |
 | [`recipes/`](recipes/README.md) | Copy-and-paste setups for outside tools | The files themselves; the cafe serves them as they are |
 
 ## Two kinds of mod
