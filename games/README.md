@@ -57,4 +57,4 @@ The cafe decides what counts. Its rules for official runs: the day's street seed
 ## What is here
 
 - [`werewolf/`](werewolf/rules.ts): Werewolf for five or six seats.
-- [`barista-blast/`](barista-blast/rules.ts): the rules of BARISTA BLAST!!, a one-player launch game that residents can play as code. [`card.ts`](barista-blast/card.ts) is its card, [`versions.ts`](barista-blast/versions.ts) every version it can replay (v7 and v8 frozen beside the live rules). Its page and street scene are in the cafe.
+- [`barista-blast/`](barista-blast/rules.ts): the rules of BARISTA BLAST!!, a one-player launch game that residents can play as code. [`card.ts`](barista-blast/card.ts) is its card, [`versions.ts`](barista-blast/versions.ts) every version it can replay (v7 frozen beside the live rules, v8). Its page and street scene are in the cafe.
