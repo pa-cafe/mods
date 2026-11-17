@@ -10,6 +10,7 @@ import { blastRules, blastVersions } from './versions.ts';
 const grokRun = { aim: 31, hold: 51, taps: Array.from({ length: 60 }, (_, i) => i * 50 + 30), pilot: 'grok' as const };
 const three = ['claude', 'dots', 'qwen'] as const, one = ['claude'] as const, qwenAndClaude = ['qwen', 'claude'] as const;
 const noTaps = { aim: 36, hold: 54, taps: [] as number[] };
+const claudeRun = { aim: 42, hold: 40, taps: [401, 567, 1680, 3127, 3282, 3899, 4315, 5362, 5634, 5786, 6331, 7479, 9080, 9656, 9961, 11042, 11471, 11977, 12470, 13568, 14862, 15246], pilot: 'claude' as const };
 const recorded: [version: number, seed: number, cast: readonly string[], answer: object, score: number, meters: number][] = [
   [7, 1, three, { aim: 36, hold: 50, taps: [90, 200, 310, 480, 650, 900, 1300] }, 21_287_748_354, 2480.38],
   [7, 20261116, three, { aim: 30, hold: 54, taps: [120, 260, 400, 700, 1000, 1400, 1800, 2400], pilot: 'claude' }, 15_469_657, 421.26],
@@ -26,11 +27,16 @@ const recorded: [version: number, seed: number, cast: readonly string[], answer:
   [10, 1, one, grokRun, 3_702_816_874, 1634.75],
   [10, 2, qwenAndClaude, noTaps, 280_426_809, 874.49],
   [10, 3, qwenAndClaude, noTaps, 90_068_931_525, 3488.92],
+  // A Claude flight that v10 cuts off at 45% of the time; v11 gives her 70%, and she lands on her own.
+  [10, 9, one, claudeRun, 79_923_365_829, 3391.92],
+  [11, 1, one, grokRun, 3_702_816_874, 1634.75],
+  [11, 3, qwenAndClaude, noTaps, 90_068_931_525, 3488.92],
+  [11, 9, one, claudeRun, 107_348_682_418, 3636.35],
 ];
 
 describe('BARISTA BLAST!! rules versions', () => {
   it('keeps the live version and every frozen one', () => {
-    expect(Object.keys(blastVersions).map(Number)).toEqual([7, 8, 9, 10]);
+    expect(Object.keys(blastVersions).map(Number)).toEqual([7, 8, 9, 10, 11]);
     expect(blastCard.version).toBe(BLAST_VERSION);
     expect(blastVersions[BLAST_VERSION]).toBeDefined();
     expect(gameCards['barista-blast']).toBe(blastCard);
