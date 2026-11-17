@@ -3,7 +3,7 @@
 // roots; trigonometry is left out because its last digit differs between engines.
 
 /** Goes on every run ticket. Change it with any number below: a run recorded under other numbers replays differently. */
-export const BLAST_VERSION = 9;
+export const BLAST_VERSION = 10;
 export const BLAST_HZ = 120;
 const DT = 1 / BLAST_HZ;
 
@@ -58,9 +58,12 @@ export const blastTuning = {
   uninvited: 0.12,
   /** How many cells in a row may stand empty. None: somebody stands every ten metres, and what changes is who, and in what state. */
   gap: 0,
-  /** A copy is planted this many cells ahead at the nearest, and no farther than `plantReach` cells. */
-  plantFrom: 2,
-  plantReach: 4,
+  /** A copy waits on the cell the barista comes down on. When that one is a window or a copy it goes on the next, and no farther than this many cells past it. */
+  plantSpan: 3,
+  /** How far ahead, in steps, the landing of a flight is looked for: ten seconds. */
+  landSteps: 1200,
+  /** What a copy's push is worth of the resident's own shot, for the first copy a run plants, the second, and every one after. Each copy is one step lower than the last: Q8, Q4, Q2. */
+  quantPush: [0.95, 0.8, 0.65],
   maxSpeed: 80,
   /** 300 seconds. At 180 a good run was cut off while it still had cups and speed. */
   maxSteps: 36_000,
@@ -113,6 +116,9 @@ export const blastMoods = ['one', 'two', 'meh', 'bad'] as const;
 export type BlastMood = typeof blastMoods[number];
 /** Besides residents the street has only the cafe's own takeaway window. */
 export type BlastKind = BlastLook | 'window';
+/** How a copy was quantised, in bits. The first copy a run plants is Q8, the second Q4 and every one after Q2: a lower one pushes less. */
+export const blastQuants = [8, 4, 2] as const;
+export type BlastQuant = typeof blastQuants[number];
 type Heading = readonly [number, number];
 
 const heading = (x: number, y: number): Heading => { const length = Math.sqrt(x * x + y * y); return [x / length, y / length]; };
@@ -139,7 +145,7 @@ type Shot = { toward: Heading; times: number };
  *
  * Helping: `shot` sends the barista off (`agrees`: on the way they came, turned upward, and no flatter than the
  * shot's own heading; `limp`: with no least speed). `hold` keeps them still first. `glide` carries them level for
- * that many steps and `straight` in a dead straight line. `plant` stands copies of the resident on the street ahead.
+ * that many steps and `straight` in a dead straight line. `plant` stands copies of the resident where the barista will come down, each quantised one step lower than the last.
  * `cups` hands over refills. `pep` is the caffeine gained when it is not the usual one for a helping trick and none
  * otherwise. `shield` and `sight` last that many steps. `fix` sets the next resident who would hurt to rights.
  * `copy` does whatever the last resident hit did.
@@ -184,7 +190,7 @@ const tricks: Record<BlastLook, Record<BlastMood | 'boost', Trick>> = {
     meh: { copy: true }, bad: { halve: true },
     boost: { shot: { toward: UP40, times: 2.2 } },
   },
-  // Qwen. Gives itself away as a copy up ahead; stands a drink; tops a leaderboard; and its link is blocked.
+  // Qwen. Leaves a quantised copy of itself where the barista lands; stands a drink; tops a leaderboard; and its link is blocked.
   qwen: {
     one: { shot: { toward: UP45, times: 1.25 }, plant: 1 }, two: { shot: { toward: UP45, times: 1.25 }, cups: 1 },
     meh: { shot: { toward: UP45, times: 1 }, limp: true }, bad: { decaf: true },
@@ -207,8 +213,8 @@ const WINDOW: Shot = { toward: UP40, times: 1.3 };
 /** How often a cell that may stand empty holds a resident all the same. */
 const RESIDENT_CHANCE = 0.5;
 
-/** `cast` is which of the cafe's residents plays this one; without it the kind's own character does. A `copy` was planted by a resident and plants nothing itself. A resident has a `mood`. */
-export type BlastNode = { kind: BlastKind; x: number; mood?: BlastMood; cast?: number; copy?: true; done?: true };
+/** `cast` is which of the cafe's residents plays this one; without it the kind's own character does. A `copy` was planted by a resident and plants nothing itself; its `quant` says how far it was quantised. A resident has a `mood`. */
+export type BlastNode = { kind: BlastKind; x: number; mood?: BlastMood; cast?: number; copy?: true; quant?: BlastQuant; done?: true };
 /**
  * How high off the ground a thing is hit: from, to, in metres. A ban and a wall at capacity both stand too tall to hop:
  * only a barista flying high passes over them.
@@ -224,6 +230,8 @@ export const blastHitSpan = (node: Pick<BlastNode, 'kind' | 'mood'>): readonly [
 export type BlastHit = {
   step: number; x: number; kind: BlastKind; as: BlastKind; mood?: BlastMood; cast?: number; outcome: 'usual' | 'boost';
   waived?: true; copied?: { as: BlastLook; mood: BlastMood }; fixed?: number; uninvited?: true;
+  /** The one hit was a copy, quantised to this: its push was scaled down by it. */
+  quant?: BlastQuant;
   /** The barista came straight out of a dive into someone who helps, and was paid for it. */
   dive?: true;
   /** She and the resident hit just before have history, and both helped: a combo. The name of the pair, earlier look first as listed in `blastPairs`. */
@@ -280,7 +288,7 @@ const pairOf = (a: BlastLook, b: BlastLook): BlastPair | null => blastPairs.find
  * A boost while a resident flies is a combo of the two: the one hit does her boost, and the pilot adds one small piece
  * of her own on top. GPT puts up her disclaimer for a second; Claude turns the shot up to 45° if it was flatter and
  * adds a twentieth; Gemini glides a short way; Grok adds a tenth to the shot; DeepSeek checks the facts and sets the
- * next resident who would hurt to rights; Qwen plants one copy ahead, of
+ * next resident who would hurt to rights; Qwen plants one copy where she comes down, of
  * the one hit, since whoever flies never stands on her own street; Doubao goes dead straight for half a second;
  * Muse hands over one more cup.
  */
@@ -329,6 +337,10 @@ export type BlastRun = {
   fed: number;
   /** A dive is under way: it ends at the next hit, landing or refill. */
   dove: boolean;
+  /** Copies waiting to be planted once the hit that asked for them has set the barista off: who they are copies of, and how many. */
+  sow: { kind: BlastLook; count: number } | null;
+  /** How many copies this run has planted so far: it decides how far the next one is quantised. */
+  planted: number;
   cells: (BlastNode | null)[];
   /** The kinds in the order they next stand on the street: every kind once, then drawn again. */
   order: number[];
@@ -364,7 +376,7 @@ export function startBlast(seed: number, cast: readonly BlastLook[], aim: number
   const trait = blastTrait(pilot), street = dice(seed), toward = blastAim(aim), speed = (T.launchMin + (T.launchMax - T.launchMin) * blastPower(hold)) * (trait.launch ?? 1);
   return {
     step: 0, x: 0, y: 0, vx: toward[0] * speed, vy: toward[1] * speed, sliding: false, refills: trait.cups ?? T.refills, caffeine: trait.caffeine ?? 0, diveAt: 0, frozen: 0, boost: null,
-    glide: 0, straight: 0, shield: 0, sight: trait.sight ? T.maxSteps : 0, scramble: false, last: null, hits: [], end: null, cast: cast.slice(0, 12), pilot, fed: 0, dove: false, kinds: blastLooks.flatMap((look, index) => look === pilot ? [] : [index]), cells: [], order: [], placed: 0,
+    glide: 0, straight: 0, shield: 0, sight: trait.sight ? T.maxSteps : 0, scramble: false, last: null, hits: [], end: null, cast: cast.slice(0, 12), pilot, fed: 0, dove: false, sow: null, planted: 0, kinds: blastLooks.flatMap((look, index) => look === pilot ? [] : [index]), cells: [], order: [], placed: 0,
     turns: blastLooks.map(() => 0), bans: 0, owed: 0, moods: blastLooks.map(() => []), gaps: 0, next: 0, street, luck: dice(seed ^ 0x9e3779b9),
   };
 }
@@ -433,17 +445,56 @@ function send(run: BlastRun, shot: Shot, speed: number, floor: number) {
 }
 
 /**
- * Copies of a resident ahead of the one at `x`, a dive away: on the nearest empty cells, and where the street has
- * none to spare, in the place of whoever stands nearest. A copy plants nothing, and no copy takes a copy's place.
+ * The cell the barista next comes down on, as the rules fly her from here: no taps and nobody hit, a free flight to the
+ * first ground contact. It is the first cell that flight brushes (within `reach`, below head height) and, when she
+ * would fly clean past every one, the cell nearest to where she lands. Never a cell at or behind `from`, the one just hit.
+ * It works on copies of the numbers, so the run is left as it was.
+ */
+function landing(run: BlastRun, from: number) {
+  const top = topSpeed(run), cellOf = (x: number) => Math.round((x - T.firstCell) / T.cell);
+  let { x, y, vx, vy } = run, glide = run.glide, straight = run.straight, brushed = -1;
+  if (run.sliding) return Math.max(from + 1, cellOf(x));
+  for (let step = 0; step < T.landSteps; step++) {
+    if (glide) { glide--; x += vx * DT; }
+    else if (straight) { straight--; x += vx * DT; y += vy * DT; }
+    else {
+      vy -= T.gravity * DT; vx -= vx * T.drag * DT;
+      const square = vx * vx + vy * vy;
+      if (square > top * top) { const slow = top / Math.sqrt(square); vx *= slow; vy *= slow; }
+      x += vx * DT; y += vy * DT;
+    }
+    const landed = !glide && !straight && y <= 0 && vy < 0, at = cellOf(x);
+    if (brushed < 0 && at > from && Math.max(y, 0) <= T.tall && Math.abs(x - (T.firstCell + T.cell * at)) <= T.reach) brushed = at;
+    if (landed) break;
+  }
+  return brushed >= 0 ? brushed : Math.max(from + 1, cellOf(x));
+}
+
+/**
+ * Copies of a resident where the barista comes down after the hit at `x`: on the landing cell, and where that is a
+ * window or a copy, on the next. An empty cell is used first; a cell with somebody on it gives them up. Each copy
+ * is quantised one step lower than the last one this run planted. A copy plants nothing, and no copy takes a copy's place.
  */
 function plant(run: BlastRun, kind: BlastLook, x: number, count: number) {
-  const from = Math.round((x - T.firstCell) / T.cell), copy = (at: number): BlastNode => ({ kind, x: T.firstCell + T.cell * at, mood: 'one', copy: true });
-  for (let ahead = T.plantFrom; ahead <= T.plantReach && count > 0; ahead++) if (!cellAt(run, from + ahead)) { run.cells[from + ahead] = copy(from + ahead); count--; }
-  for (let ahead = T.plantFrom; ahead <= T.plantReach && count > 0; ahead++) {
-    const there = run.cells[from + ahead];
-    if (there && there.kind !== 'window' && !there.copy && !there.done) { run.cells[from + ahead] = copy(from + ahead); count--; }
+  const land = landing(run, Math.round((x - T.firstCell) / T.cell)), last = land + T.plantSpan;
+  const copy = (at: number): BlastNode => ({ kind, x: T.firstCell + T.cell * at, mood: 'one', copy: true, quant: blastQuants[Math.min(run.planted++, blastQuants.length - 1)] });
+  for (let at = land; at <= last && count > 0; at++) if (!cellAt(run, at)) { run.cells[at] = copy(at); count--; }
+  for (let at = land; at <= last && count > 0; at++) {
+    const there = run.cells[at];
+    if (there && there.kind !== 'window' && !there.copy && !there.done) { run.cells[at] = copy(at); count--; }
   }
 }
+
+/** The copies a hit asked for, planted now that it has set the barista off: where she comes down is only known then. */
+function sow(run: BlastRun, hit: BlastHit) {
+  const { sow: wanted } = run;
+  run.sow = null;
+  if (wanted) plant(run, wanted.kind, hit.x, wanted.count);
+}
+
+/** What a copy's quantising does to a trick: its shot is worth less. */
+const quantised = (trick: Trick, quant: BlastQuant | undefined): Trick =>
+  quant && trick.shot ? { ...trick, shot: { ...trick.shot, times: trick.shot.times * T.quantPush[blastQuants.indexOf(quant)] } } : trick;
 
 /** A fact-check: the nearest resident ahead who would hurt stands in their first helping state instead. */
 function fix(run: BlastRun, hit: BlastHit, reach = T.fixReach, bans = true) {
@@ -472,7 +523,7 @@ function apply(run: BlastRun, hit: BlastHit, who: BlastLook, trick: Trick, speed
   run.frozen = trick.hold ?? (trick.shot || trick.stray || trick.halve ? run.frozen : 0);
   if (trick.glide) { run.vx = Math.sqrt(run.vx * run.vx + run.vy * run.vy); run.vy = 0; run.y = Math.max(run.y, T.glideHeight); run.glide = trick.glide; }
   if (trick.straight) run.straight = trick.straight;
-  if (trick.plant && plants) plant(run, who, hit.x, trick.plant);
+  if (trick.plant && plants) run.sow = { kind: who, count: (run.sow?.count ?? 0) + trick.plant };
   if (trick.cups) run.refills = trick.cups === 'all' ? cupsOf(run) : Math.min(cupsOf(run), run.refills + trick.cups);
   if (trick.shield) run.shield = Math.max(run.shield, trick.shield);
   if (trick.sight) run.sight = Math.max(run.sight, trick.sight);
@@ -487,6 +538,7 @@ function strike(run: BlastRun, node: BlastNode) {
   const speed = Math.sqrt(run.vx * run.vx + run.vy * run.vy), charged = run.caffeine >= T.caffeine;
   const hit: BlastHit = { step: run.step, x: node.x, kind: node.kind, as: node.kind, outcome: 'usual', ...(node.cast === undefined ? {} : { cast: node.cast }) };
   run.hits.push(hit); run.frozen = T.hitStop; run.straight = 0;
+  if (node.quant) hit.quant = node.quant;
   if (!isLook(node.kind)) {
     run.refills = cupsOf(run); send(run, WINDOW, speed, T.kick);
     if (charged) { run.boost = { left: T.boostWindow, hit, speed }; run.frozen = 0; }
@@ -514,7 +566,7 @@ function strike(run: BlastRun, node: BlastNode) {
     return;
   }
   if (charged && !helps) { run.boost = { left: T.boostWindow, hit, speed, held: trick }; run.frozen = T.boostWindow; return; }
-  apply(run, hit, who, trick, speed, helps, !node.copy);
+  apply(run, hit, who, quantised(trick, node.quant), speed, helps, !node.copy);
   const before = run.hits[run.hits.length - 2], pair = before && !before.waived && before.as !== 'window' && (before.mood === 'one' || before.mood === 'two') ? pairOf(before.as, who) : null;
   if (pair && helps && !run.end) {
     // Two with history, one straight after the other and both helping: the combo the list ahead is read for.
@@ -526,6 +578,8 @@ function strike(run: BlastRun, node: BlastNode) {
     const top = topSpeed(run), fast = Math.sqrt(run.vx * run.vx + run.vy * run.vy), times = fast > 0 ? Math.min(T.diveBonus, top / fast) : 1;
     run.vx *= times; run.vy *= times; run.caffeine = Math.min(T.caffeine, run.caffeine + 1); hit.dive = true;
   }
+  // Only now, with every push of this hit counted, is it known where she comes down.
+  sow(run, hit);
   if (charged && !run.end) { run.boost = { left: T.boostWindow, hit, speed }; run.frozen = 0; }
 }
 
@@ -550,10 +604,11 @@ function upgrade(run: BlastRun) {
   if (held?.ban) send(run, { toward: UP45, times: 1 }, speed, T.appeal);
   else {
     const frozen = run.frozen;
-    apply(run, hit, as, tricks[as].boost, speed, true, true, false);
+    apply(run, hit, as, quantised(tricks[as].boost, hit.quant), speed, true, !hit.quant, false);
     if (!tricks[as].boost.hold) run.frozen = frozen;
   }
   if (run.pilot) assist(run, hit, run.pilot, as);
+  sow(run, hit);
   if (trait.boostFix && !hit.fixed) fix(run, hit, trait.boostFix);
 }
 
@@ -589,7 +644,7 @@ export function stepBlast(run: BlastRun, tap: boolean) {
     // The window closed with no tap: what was held back happens now.
     const { hit, speed, held } = run.boost;
     run.boost = null;
-    if (held && isLook(hit.as)) apply(run, hit, hit.copied?.as ?? hit.as, held, speed, false, true);
+    if (held && isLook(hit.as)) { apply(run, hit, hit.copied?.as ?? hit.as, held, speed, false, true); sow(run, hit); }
   }
   if (++run.step >= T.maxSteps * (blastTrait(run.pilot).budget ?? 1)) run.end ??= 'timeout';
   if (run.end) return;
