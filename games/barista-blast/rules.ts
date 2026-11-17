@@ -248,8 +248,7 @@ export type BlastHit = {
  * about 30% above them and Gemini about 10%, both for a careful player and for random tapping.
  * - GPT leaves under her disclaimer: every refill puts the shield up again for a short while. Claude is stricter
  *   with her, since she has a shield: no ban is let go (`strict`, see `resident`).
- * - Claude is careful: nobody bans her, since she is the one who bans, but she tops out slower, carries two cups and
- *   thinks through less than three quarters of the time anyone else gets before the output is cut off.
+ * - Claude is careful: nobody bans her, since she is the one who bans, but she tops out slower and carries two cups.
  * - Grok goes all in: a harder launch, every refill pushes her further forward, and every boost sets a resident
  *   ahead to rights.
  * - Gemini is light: every refill lifts her higher.
@@ -262,12 +261,12 @@ export type BlastHit = {
  */
 export type BlastPilot = BlastLook | null;
 type Trait = {
-  cap?: number; launch?: number; budget?: number; cups?: number; topUp?: number; strict?: true; caffeine?: number;
+  cap?: number; launch?: number; cups?: number; topUp?: number; strict?: true; caffeine?: number;
   refillShield?: number; push?: number; lift?: number; sight?: true; dive?: number; boostFix?: number; bonus?: number;
 };
 const traits: Record<BlastLook, Trait> = {
   dots: { refillShield: 300, cap: 0.88, topUp: 500, strict: true },
-  claude: { cap: 0.755, budget: 0.7, cups: 2, launch: 0.965 },
+  claude: { cap: 0.755, cups: 2, launch: 0.965 },
   grok: { launch: 1.12, push: 1.5, boostFix: 12, topUp: 1200 },
   gemini: { lift: 1.4, topUp: 2500 },
   deepseek: { sight: true, cap: 0.875, refillShield: 220, strict: true },
@@ -646,7 +645,7 @@ export function stepBlast(run: BlastRun, tap: boolean) {
     run.boost = null;
     if (held && isLook(hit.as)) { apply(run, hit, hit.copied?.as ?? hit.as, held, speed, false, true); sow(run, hit); }
   }
-  if (++run.step >= T.maxSteps * (blastTrait(run.pilot).budget ?? 1)) run.end ??= 'timeout';
+  if (++run.step >= T.maxSteps) run.end ??= 'timeout';
   if (run.end) return;
   if (run.frozen) { run.frozen--; return; }
   if (run.shield) run.shield--;
