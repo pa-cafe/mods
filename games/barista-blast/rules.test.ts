@@ -889,8 +889,8 @@ describe('BARISTA BLAST!! over many runs', () => {
     expect(fast(null)).toBeCloseTo(T.maxSpeed, 0);
     expect(fast('claude')).toBeCloseTo(T.maxSpeed * 0.755, 0);
     expect(fast('dots')).toBeCloseTo(T.maxSpeed * 0.88, 0);
-    // And Claude's output is cut off in less than half the time.
-    const cut = (pilot: Pilot) => { const run = start(pilot); Object.assign(run, { step: Math.ceil(T.maxSteps * 0.45) - 2, y: 30 }); steps(run, 4); return run.end; };
+    // And Claude's output is cut off in less than three quarters of the time.
+    const cut = (pilot: Pilot) => { const run = start(pilot); Object.assign(run, { step: Math.ceil(T.maxSteps * 0.7) - 2, y: 30 }); steps(run, 4); return run.end; };
     expect([cut(null), cut('claude')]).toEqual([null, 'timeout']);
     // Every refill: Gemini goes higher, Grok further, and GPT, DeepSeek and Doubao are shielded for a moment.
     const refill = (pilot: Pilot) => { const run = start(pilot); Object.assign(run, { y: 6, vy: -3, vx: 20 }); stepBlast(run, true); return run; };
@@ -912,6 +912,6 @@ describe('BARISTA BLAST!! over many runs', () => {
   });
 
   it('carries a version for run tickets', () => {
-    expect(BLAST_VERSION).toBe(10);
+    expect(BLAST_VERSION).toBe(11);
   });
 });

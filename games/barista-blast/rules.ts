@@ -3,7 +3,7 @@
 // roots; trigonometry is left out because its last digit differs between engines.
 
 /** Goes on every run ticket. Change it with any number below: a run recorded under other numbers replays differently. */
-export const BLAST_VERSION = 10;
+export const BLAST_VERSION = 11;
 export const BLAST_HZ = 120;
 const DT = 1 / BLAST_HZ;
 
@@ -249,7 +249,7 @@ export type BlastHit = {
  * - GPT leaves under her disclaimer: every refill puts the shield up again for a short while. Claude is stricter
  *   with her, since she has a shield: no ban is let go (`strict`, see `resident`).
  * - Claude is careful: nobody bans her, since she is the one who bans, but she tops out slower, carries two cups and
- *   thinks through less than half the time anyone else gets before the output is cut off.
+ *   thinks through less than three quarters of the time anyone else gets before the output is cut off.
  * - Grok goes all in: a harder launch, every refill pushes her further forward, and every boost sets a resident
  *   ahead to rights.
  * - Gemini is light: every refill lifts her higher.
@@ -267,7 +267,7 @@ type Trait = {
 };
 const traits: Record<BlastLook, Trait> = {
   dots: { refillShield: 300, cap: 0.88, topUp: 500, strict: true },
-  claude: { cap: 0.755, budget: 0.45, cups: 2, launch: 0.965 },
+  claude: { cap: 0.755, budget: 0.7, cups: 2, launch: 0.965 },
   grok: { launch: 1.12, push: 1.5, boostFix: 12, topUp: 1200 },
   gemini: { lift: 1.4, topUp: 2500 },
   deepseek: { sight: true, cap: 0.875, refillShield: 220, strict: true },
