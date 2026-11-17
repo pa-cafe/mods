@@ -353,23 +353,129 @@ describe('BARISTA BLAST!! tricks that help', () => {
     expect(run.sight).toBe(T.sight - 100);
   });
 
-  it('qwen gives itself away: a copy stands on the nearest empty cell from two ahead, and a copy plants nothing', () => {
-    const run = approaching(['qwen:one', null, 'muse:one', null, null, null, null, null], { speed: 30 });
-    untilHit(run);
-    expect(run.cells[3]).toEqual({ kind: 'qwen', x: T.firstCell + 3 * T.cell, mood: 'one', copy: true });
-    before(run, 3, 30);
-    expect(untilHit(run, 2)).toMatchObject({ kind: 'qwen', as: 'qwen', mood: 'one' });
-    expect(run.cells.filter(each => each?.copy)).toHaveLength(1);
+  /** The cell a free flight from Qwen's hit comes down on: the same street with no copy planted, no taps, nobody else hit on the way. */
+  const comesDown = (street: (Stands | null)[], speed: number) => {
+    const span = T.plantSpan;
+    T.plantSpan = -1;
+    try {
+      const free = approaching(street, { speed });
+      untilHit(free);
+      for (let step = 0; free.y > 0 && step < 4000; step++) stepBlast(free, false);
+      return Math.round((free.x - T.firstCell) / T.cell);
+    } finally { T.plantSpan = span; }
+  };
+  const copiesOf = (run: BlastRun) => run.cells.flatMap((each, index) => each?.copy ? [index] : []);
+  const waiting = Array.from({ length: 14 }, () => 'muse:meh' as const);
+
+  it('qwen leaves a copy on the cell the barista comes down on, and she meets it there', () => {
+    for (const [speed, index] of [[20, 3], [30, 6], [40, 11]] as const) {
+      const street: Stands[] = ['qwen:one', ...waiting];
+      expect(comesDown(street, speed)).toBe(index);
+      const run = approaching(street, { speed });
+      untilHit(run);
+      expect(copiesOf(run)).toEqual([index]);
+      expect(run.cells[index]).toEqual({ kind: 'qwen', x: T.firstCell + index * T.cell, mood: 'one', copy: true, quant: 8 });
+      expect(untilHit(run, 2)).toMatchObject({ kind: 'qwen', as: 'qwen', mood: 'one', quant: 8, x: T.firstCell + index * T.cell });
+      // A copy plants nothing.
+      expect(copiesOf(run)).toEqual([index]);
+      expect(run.planted).toBe(1);
+    }
   });
 
-  it('on a street with no cell to spare the copy takes the place of whoever stands nearest, but never of the window or another copy', () => {
-    const full = approaching(['qwen:one', 'muse:one', 'claude:bad', 'grok:one', 'grok:one']);
+  it('looks at where she comes down only after every push of the hit is counted: a combo carries her further', () => {
+    const run = approaching(['deepseek:one', 'qwen:one', ...waiting]);
+    untilHit(run);
+    before(run, 1);
+    const hit = untilHit(run, 2);
+    expect(hit.combo).toBe('deepseek+qwen');
+    const [index] = copiesOf(run);
+    expect(index).toBeGreaterThan(comesDown(['qwen:one', ...waiting], 20) + 1);
+    expect(untilHit(run, 3)).toMatchObject({ kind: 'qwen', quant: 8, x: T.firstCell + index * T.cell });
+  });
+
+  it('a copy waits past a glide, where she lands and not where the glide begins', () => {
+    const run = approaching(['gemini:one', ...Array.from({ length: 20 }, () => 'muse:meh' as const)], { caffeine: T.caffeine });
+    Object.assign(run, { pilot: 'qwen', refills: 1 });
+    const hit = untilHit(run);
+    steps(run, 30, 29);
+    const [index] = copiesOf(run), glided = run.vx * run.glide / BLAST_HZ;
+    expect(run.glide).toBe(T.glideSteps);
+    expect(T.firstCell + index * T.cell - hit.x).toBeGreaterThan(glided);
+    expect(T.firstCell + index * T.cell - hit.x).toBeLessThan(glided + 40);
+    expect(untilHit(run, 2)).toMatchObject({ kind: 'gemini', quant: 8 });
+  });
+
+  it('on a street with no cell to spare the copy takes the place of whoever stands there, but never of the window or another copy', () => {
+    const marks = (run: BlastRun) => run.cells.slice(0, 6).map(each => `${each?.kind}${each?.mood ? `:${each.mood}` : ''}${each?.copy ? `*${each.quant}` : ''}`);
+    const full = approaching(['qwen:one', 'muse:one', 'claude:bad', 'grok:one', 'grok:one', 'grok:one']);
     untilHit(full);
-    expect(full.cells.map(each => `${each?.kind}:${each?.mood}${each?.copy ? '*' : ''}`)).toEqual(['qwen:one', 'muse:one', 'qwen:one*', 'grok:one', 'grok:one']);
-    const blocked = approaching(['qwen:one', 'muse:one', 'window', 'grok:one', 'grok:one']);
-    blocked.cells[3]!.copy = true;
+    expect(marks(full)).toEqual(['qwen:one', 'muse:one', 'claude:bad', 'qwen:one*8', 'grok:one', 'grok:one']);
+    const blocked = approaching(['qwen:one', 'muse:one', 'muse:one', 'window', 'grok:one', 'grok:one']);
     untilHit(blocked);
-    expect(blocked.cells.map(each => `${each?.kind}${each?.copy ? '*' : ''}`)).toEqual(['qwen', 'muse', 'window', 'grok*', 'qwen*']);
+    expect(marks(blocked)).toEqual(['qwen:one', 'muse:one', 'muse:one', 'window', 'qwen:one*8', 'grok:one']);
+    const crowded = approaching(['qwen:one', 'muse:one', 'muse:one', 'grok:one', 'grok:one', 'grok:one']);
+    crowded.cells[3] = { ...crowded.cells[3]!, copy: true, quant: 2 };
+    untilHit(crowded);
+    expect(marks(crowded)).toEqual(['qwen:one', 'muse:one', 'muse:one', 'grok:one*2', 'qwen:one*8', 'grok:one']);
+    // An empty cell is used before anybody is replaced.
+    const spare = approaching(['qwen:one', 'muse:one', 'muse:one', 'grok:one', null, 'grok:one']);
+    untilHit(spare);
+    expect(marks(spare)).toEqual(['qwen:one', 'muse:one', 'muse:one', 'grok:one', 'qwen:one*8', 'grok:one']);
+  });
+
+  it('never plants a copy behind the barista, however short her flight', () => {
+    const run = approaching(['qwen:one', ...waiting], { speed: 12 });
+    untilHit(run);
+    expect(comesDown(['qwen:one', ...waiting], 12)).toBe(1);
+    expect(copiesOf(run)).toEqual([1]);
+  });
+
+  it('each copy a run plants is one step lower than the last: Q8, then Q4, then Q2 for the rest', () => {
+    const street: Stands[] = Array.from({ length: 50 }, (_, index) => index % 15 === 0 ? 'qwen:one' : 'muse:meh');
+    const run = approaching(street), tiers: (number | undefined)[] = [];
+    for (const [round, index] of [0, 15, 30, 45].entries()) {
+      if (index) before(run, index);
+      const known = copiesOf(run);
+      untilHit(run, round + 1);
+      tiers.push(...copiesOf(run).filter(at => !known.includes(at)).map(at => run.cells[at]!.quant));
+    }
+    expect(tiers).toEqual([8, 4, 2, 2]);
+    expect(run.planted).toBe(4);
+  });
+
+  it.each([[8, 0.95], [4, 0.8], [2, 0.65]] as const)('a Q%i copy pushes %f of what the resident would, and says so on the hit', (quant, push) => {
+    const run = approaching(['qwen:one']);
+    run.cells[0] = { ...run.cells[0]!, copy: true, quant };
+    const was = speedOf(run), hit = untilHit(run);
+    expect(hit).toMatchObject({ kind: 'qwen', as: 'qwen', mood: 'one', quant });
+    expect(degrees(run)).toBeCloseTo(45, 0);
+    expect(speedOf(run)).toBeCloseTo(was * 1.25 * push, 1);
+    expect(run.caffeine).toBe(1);
+    expect(run.planted).toBe(0);
+    // The same resident standing there herself pushes in full, and her hit carries no tier.
+    const own = approaching(['qwen:one']), ownHit = untilHit(own);
+    expect(ownHit.quant).toBeUndefined();
+    expect(speedOf(own)).toBeCloseTo(20 * 1.25, 1);
+    // A boost on a copy is a boost of the same push, and plants nothing.
+    const boosted = approaching(['qwen:one', null, null, null, null, null], { caffeine: T.caffeine });
+    boosted.cells[0] = { ...boosted.cells[0]!, copy: true, quant };
+    untilHit(boosted); steps(boosted, 30, 29);
+    expect(boosted.hits[0]).toMatchObject({ outcome: 'boost', quant });
+    expect(speedOf(boosted)).toBeCloseTo(20 * 1.6 * push, 1);
+    expect(copiesOf(boosted)).toEqual([0]);
+    expect(boosted.planted).toBe(0);
+  });
+
+  it('plays the same copies on every replay of the same inputs', () => {
+    const answer = { aim: 40, hold: 60, taps: [300, 900, 1500, 2400, 3600] };
+    let seen = 0;
+    for (let seed = 1; seed <= 30; seed++) {
+      const first = replayBlast(seed, ['qwen', 'claude'], answer), again = replayBlast(seed, ['qwen', 'claude'], answer);
+      expect([again.x, again.hits, again.planted]).toEqual([first.x, first.hits, first.planted]);
+      expect(first.cells.map(each => each?.quant)).toEqual(again.cells.map(each => each?.quant));
+      seen += first.planted;
+    }
+    expect(seen).toBeGreaterThan(10);
   });
 
   it('qwen stands a cup and muse’s signing bonus fills them all, up to the three a barista can hold', () => {
@@ -559,8 +665,9 @@ describe('BARISTA BLAST!! the boost', () => {
     const tapped = (stands: Stands, fill: (Stands | null)[] = []) => { const run = approaching([stands, ...fill], { caffeine: T.caffeine }); run.refills = 1; untilHit(run); steps(run, 30, 29); return run; };
     expect(tapped('dots:one').shield).toBe(T.shield * 2);
     expect(tapped('gemini:one').glide).toBe(T.glideSteps);
-    const qwen = tapped('qwen:meh', [null, null, null, null, null]);
-    expect(qwen.cells.slice(0, 5).map(each => Boolean(each?.copy))).toEqual([false, false, true, true, false]);
+    const qwen = tapped('qwen:meh', [null, null, null, null, null]), copies = qwen.cells.flatMap(each => each?.copy ? [each] : []);
+    expect(copies.map(each => each.quant)).toEqual([8, 4]);
+    expect(copies[1].x - copies[0].x).toBe(T.cell);
     expect(qwen.refills).toBe(2);
     expect(tapped('muse:meh').refills).toBe(T.refills);
     expect(tapped('doubao:one').straight).toBe(120);
@@ -592,9 +699,9 @@ describe('BARISTA BLAST!! the boost', () => {
     // A ban is Claude's to hand out: DeepSeek leaves it standing and sets right the next one who would hurt.
     const banned = boosted('deepseek', 'grok:one', [null, 'claude:bad', 'qwen:bad']);
     expect([banned.cells[2]?.mood, banned.cells[3]?.mood, banned.hits[0].fixed]).toEqual(['bad', 'one', T.firstCell + T.cell * 3]);
-    // Qwen plants one copy of the one hit, never of herself.
+    // Qwen plants one copy of the one hit, never of herself, where the barista comes down.
     const qwen = boosted('qwen', 'grok:one', [null, null, null, null, null]);
-    expect(qwen.cells.slice(0, 5).map(each => each?.copy ? each.kind : null)).toEqual([null, null, 'grok', null, null]);
+    expect(qwen.cells.flatMap(each => each?.copy ? [`${each.kind}${each.quant}`] : [])).toEqual(['grok8']);
     expect(boosted('doubao').straight).toBeGreaterThan(0);
     expect(boosted('doubao').straight).toBeLessThanOrEqual(60);
     expect(boosted('muse').refills).toBe(3);
@@ -805,6 +912,6 @@ describe('BARISTA BLAST!! over many runs', () => {
   });
 
   it('carries a version for run tickets', () => {
-    expect(BLAST_VERSION).toBe(9);
+    expect(BLAST_VERSION).toBe(10);
   });
 });

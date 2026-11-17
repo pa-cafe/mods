@@ -8,7 +8,8 @@ import { blastRules, blastVersions } from './versions.ts';
 // The same answer, scored under each version when this table was made. A frozen version that scores it differently
 // has been edited, and every run recorded under it would now replay to another score.
 const grokRun = { aim: 31, hold: 51, taps: Array.from({ length: 60 }, (_, i) => i * 50 + 30), pilot: 'grok' as const };
-const three = ['claude', 'dots', 'qwen'] as const, one = ['claude'] as const;
+const three = ['claude', 'dots', 'qwen'] as const, one = ['claude'] as const, qwenAndClaude = ['qwen', 'claude'] as const;
+const noTaps = { aim: 36, hold: 54, taps: [] as number[] };
 const recorded: [version: number, seed: number, cast: readonly string[], answer: object, score: number, meters: number][] = [
   [7, 1, three, { aim: 36, hold: 50, taps: [90, 200, 310, 480, 650, 900, 1300] }, 21_287_748_354, 2480.38],
   [7, 20261116, three, { aim: 30, hold: 54, taps: [120, 260, 400, 700, 1000, 1400, 1800, 2400], pilot: 'claude' }, 15_469_657, 421.26],
@@ -16,11 +17,20 @@ const recorded: [version: number, seed: number, cast: readonly string[], answer:
   [8, 1, three, { aim: 36, hold: 50, taps: [90, 200, 310, 480, 650, 900, 1300] }, 662_179_530, 1078.97],
   [8, 20261116, three, { aim: 30, hold: 54, taps: [120, 260, 400, 700, 1000, 1400, 1800, 2400], pilot: 'claude' }, 1_154_824_366, 1234.86],
   [8, 1, one, grokRun, 29_918_777_287, 2688.8],
+  // Two Qwen streets that v10 plays differently: its copies wait where the barista comes down, so she meets them. v9 left them far ahead.
+  [9, 1, three, { aim: 36, hold: 50, taps: [90, 200, 310, 480, 650, 900, 1300] }, 662_179_530, 1078.97],
+  [9, 20261116, three, { aim: 30, hold: 54, taps: [120, 260, 400, 700, 1000, 1400, 1800, 2400], pilot: 'claude' }, 683_422, 178.13],
+  [9, 1, one, grokRun, 3_702_816_874, 1634.75],
+  [9, 2, qwenAndClaude, noTaps, 9_985_365, 375.65],
+  [9, 3, qwenAndClaude, noTaps, 64_025_657_288, 3218.89],
+  [10, 1, one, grokRun, 3_702_816_874, 1634.75],
+  [10, 2, qwenAndClaude, noTaps, 280_426_809, 874.49],
+  [10, 3, qwenAndClaude, noTaps, 90_068_931_525, 3488.92],
 ];
 
 describe('BARISTA BLAST!! rules versions', () => {
   it('keeps the live version and every frozen one', () => {
-    expect(Object.keys(blastVersions).map(Number)).toEqual([7, 8, 9]);
+    expect(Object.keys(blastVersions).map(Number)).toEqual([7, 8, 9, 10]);
     expect(blastCard.version).toBe(BLAST_VERSION);
     expect(blastVersions[BLAST_VERSION]).toBeDefined();
     expect(gameCards['barista-blast']).toBe(blastCard);

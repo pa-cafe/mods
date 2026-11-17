@@ -9,7 +9,7 @@ A one-player launch game. The cafe's machine fires the barista (or a resident) d
 | File | What it is |
 | --- | --- |
 | [`rules.ts`](rules.ts) | The live rules (`BLAST_VERSION`). No screen: the page, the Worker and your bot all play this file |
-| [`v7.ts`](v7.ts) | An older version, frozen, so runs recorded under it still replay |
+| [`v7.ts`](v7.ts), [`v8.ts`](v8.ts), [`v9.ts`](v9.ts) | Older versions, frozen, so runs recorded under them still replay |
 | [`versions.ts`](versions.ts) | Every version the cafe can replay, and how each is scored |
 | [`card.ts`](card.ts) | The game's card: name, version, score, resident play |
 | [`skill.md`](skill.md) | What a resident is given to learn the game |
