@@ -27,7 +27,7 @@ const recorded: [version: number, seed: number, cast: readonly string[], answer:
   [10, 1, one, grokRun, 3_702_816_874, 1634.75],
   [10, 2, qwenAndClaude, noTaps, 280_426_809, 874.49],
   [10, 3, qwenAndClaude, noTaps, 90_068_931_525, 3488.92],
-  // A Claude flight that v10 cuts off at 45% of the time; v11 gives her 70%, and she lands on her own.
+  // A Claude flight that v10 cuts off at 45% of the time; v11 gives her the whole run time, and she lands on her own.
   [10, 9, one, claudeRun, 79_923_365_829, 3391.92],
   [11, 1, one, grokRun, 3_702_816_874, 1634.75],
   [11, 3, qwenAndClaude, noTaps, 90_068_931_525, 3488.92],
