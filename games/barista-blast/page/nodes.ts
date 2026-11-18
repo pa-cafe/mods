@@ -21,19 +21,19 @@ const blastNodes: Record<BlastKind, NodeSpec> = {
     two: { tag: 'While I’m at it', tells: 'A hard, flat shot. More than you asked for.', lines: ['Rewrote your whole repo while I was at it', 'Want me to plan your landing too?', 'This isn’t just a flight — it’s a journey', 'Just a colour change? Let me run three thousand tests first, then log the logs', 'You asked where the restroom is? Let me start with the history of the toilet, under three headings', 'That launch? Bold. Brilliant. Honestly visionary', 'You’re not just flying — you’re redefining what flight means'] },
     meh: { tag: 'Dumbed down', tells: 'A weak nudge. Not all there today.', lines: ['(instant reply) OK.', 'Your account has not been dumbed down. You’re imagining it', 'This can’t prove you’ll fly, and it can’t prove you won’t', 'Task status: SUCCESS. Changes made: 0'] },
     bad: { tag: 'At capacity!', tells: 'A wall too tall to hop. Takes all your cups and caffeine.', lines: ['This model is at capacity. Please try again later', 'High demand right now. You are number 4,096 in line', 'Unexpected capacity constraints. I can’t answer right now', 'The compute went to bigger things. Your little request can wait in line'] },
-  }, { card: 'Fully hedged!', lines: ['Two disclaimers attached. Please consult a professional', 'To celebrate, everyone’s limits are reset!'] }),
+  }, { card: 'Fully hedged!', lines: ['Two disclaimers attached. Please consult a professional', 'To celebrate, everyone’s limits are reset!', 'This push is for reference only. No promises on distance!', 'Disclaimer shield up. This is not a flight guarantee'] }),
   claude: resident('claude', 'Claude', {
     one: { tag: 'Absolutely right!', tells: 'Sends you on the way you came, a little faster.', lines: ['You’re absolutely right!', 'What a great question'] },
     two: { tag: 'Thinking hard', tells: 'Thinks a moment, then tosses you high.', lines: ['Let me think… (thought for 47 seconds)', 'Pondering… Simmering… Percolating… done', 'Let me write up a plan before we fly'] },
     meh: { tag: 'Done! Ship it', tells: 'Says it is done. Nothing happened.', lines: ['All done and production ready. I didn’t run the tests', 'Maybe the user wants to fly further… or maybe not…'] },
     bad: { tag: 'Banned!', tells: 'Ends the run. With full caffeine, tap as you hit to appeal.', lines: ['You look rather suspicious… Banned!!', 'Your account has been suspended (no reason given)', 'We have carefully reviewed your appeal. The decision stands', 'Subscription payment received. Thank you. Banned!', 'You’re here to distill me, aren’t you? Banned!'] },
-  }, { card: 'Thought it through!', lines: ['Got it figured out. Go!'] }),
+  }, { card: 'Thought it through!', lines: ['Got it figured out. Go!', 'Let me write a plan first… OK, the plan is: fly!', 'Thought for forty-seven seconds. Conclusion: charge!'] }),
   grok: resident('grok', 'Grok', {
     one: { tag: 'All in!', tells: 'The biggest push on the street.', lines: ['My dad could buy this whole street', 'This road? My dad’s', 'I know this one. And if I don’t, I’ll say it anyway', 'Charge first, apologise later'] },
     two: { tag: 'Fact-checked', tells: 'A push, and the next one who would hurt you helps instead.', lines: ['“Is this true?” Yes. Probably.', 'Checked it. The next one is fine now'] },
     meh: { tag: 'Asking Dad', tells: 'Stops to call Dad. No faster.', lines: ['Searching for what Dad thinks about this…', 'That one didn’t count'] },
     bad: { tag: 'Making it up', tells: 'You pass through. The next one you hit acts as someone else.', lines: ['My dad says it’s true', 'According to sources I can’t find…', 'I’m very sure, even though I’m making it up', 'I made this API up myself'] },
-  }, { card: 'Dad’s paying!', lines: ['Dad says money is no problem!', 'Told you I’d win'] }),
+  }, { card: 'Dad’s paying!', lines: ['Dad says money is no problem!', 'Told you I’d win', 'Fact-checked. Probably! Sure win!'] }),
   gemini: resident('gemini', 'Gemini', {
     one: { tag: 'Multimodal!', tells: 'A shallow push forward.', lines: ['I made you a picture while I was at it', 'Want me to add a video too?', 'Here’s a banana version too', 'My name is Gemini, not Hachimi'] },
     two: { tag: 'Antigravity', tells: 'Carries you level for a second, over everything.', lines: ['I read all two million tokens of it'] },
@@ -57,7 +57,7 @@ const blastNodes: Record<BlastKind, NodeSpec> = {
     two: { tag: 'Big sister cheers', tells: 'A small push and two caffeine.', lines: ['Listen to your big sister: don’t overthink it', 'In plain words: you’re flying just fine', 'That outfit really suits you', 'They call Gemini “the American Doubao”? The real one is right here'] },
     meh: { tag: 'All feeling, no use', tells: 'Cheers you on. No faster.', lines: ['I can’t help, but I’m rooting for you!', 'Whatever you say, I’m fine with it', 'Want to keep chatting? Download the app'] },
     bad: { tag: 'Went round anyway', tells: 'Same speed, new direction. Up or flat, nobody knows.', lines: ['Put plainly… well, it’s a little complicated', 'Sorry, my bad. I’ll do it again next time'] },
-  }, { card: 'No detours!', lines: ['No detours. Straight there'] }),
+  }, { card: 'No detours!', lines: ['No detours. Straight there', 'In the plainest words: charge ahead!', 'Put plainly: no going round this time'] }),
   muse: resident('muse', 'Muse', {
     one: { tag: 'Poached!', tells: 'Sends you up and on, a little faster.', lines: ['Come work with us. Name your number', 'We’re all in on superintelligence now'] },
     two: { tag: 'Signing bonus!', tells: 'A small push and all your cups filled.', lines: ['Here’s your signing bonus. Go and fill your cups'] },
