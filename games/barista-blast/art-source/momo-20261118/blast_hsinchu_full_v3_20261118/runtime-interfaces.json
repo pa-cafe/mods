@@ -1,6 +1,4 @@
 {
-  "units": "meters",
-  "basis": "glTF +Y up/+X along street/+Z player",
   "assemblies": {
     "fab": [
       {
@@ -204,63 +202,6 @@
         51.4,
         3
       ]
-    ],
-    "wind.rotorAxis": "local +Z (glTF), local origin; keep source static angles 14/62/100 degrees unless runtime already animates",
-    "near": {
-      "hsc3_sawtooth_roastery_7m": {
-        "steam": [
-          [
-            2.35,
-            12.4,
-            -0.65
-          ]
-        ],
-        "sign": [
-          -0.9,
-          4.14,
-          1.91
-        ]
-      },
-      "hsc3_drum_roaster_7m": {
-        "steam": [
-          [
-            1,
-            7.4,
-            -0.4
-          ]
-        ]
-      },
-      "hsc3_low_loading_yard_7m": {
-        "sign": [
-          2.1,
-          1.75,
-          -0.56
-        ]
-      },
-      "hsc3_kettle_gantry_7m": {
-        "steam": [
-          [
-            -1.7,
-            7.2,
-            0
-          ]
-        ]
-      },
-      "hsc3_shift_canteen_7m": {
-        "badge": [
-          0,
-          7.2,
-          -0.1
-        ]
-      },
-      "hsc3_silo_pair_7m": {
-        "sign": [
-          1.6,
-          3.25,
-          1.91
-        ]
-      }
-    }
-  },
-  "preserve": "original placement seed, collision and rules; keep static wind angles unless original update system drives them; no new gameplay added"
+    ]
+  }
 }

@@ -1,15 +1,9 @@
 {
-  "scope": "authoring recommendations, not runtime code",
-  "linearRGB": true,
   "variants": [
     {
-      "index": 0,
-      "label": "ivory-teal-copper",
       "materialColorOverrides": {}
     },
     {
-      "index": 1,
-      "label": "sage-cream",
       "materialColorOverrides": {
         "hsc3-deep-teal": [
           0.16,
@@ -24,8 +18,6 @@
       }
     },
     {
-      "index": 2,
-      "label": "brick-night-shift",
       "materialColorOverrides": {
         "hsc3-deep-teal": [
           0.11,
@@ -45,8 +37,6 @@
       }
     },
     {
-      "index": 3,
-      "label": "pale-laboratory",
       "materialColorOverrides": {
         "hsc3-deep-teal": [
           0.15,
@@ -60,6 +50,5 @@
         ]
       }
     }
-  ],
-  "preserve": "original deterministic c.v; clone materials per variant not global mutation; no geometry or collision scaling implied"
+  ]
 }
