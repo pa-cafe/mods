@@ -42,6 +42,8 @@ function floater(b: Build, kind: number, color: string) {
 const rad = (degrees: number) => degrees * Math.PI / 180;
 const mod = (value: number, by: number) => (value % by + by) % by;
 
+const facadeTints = [undefined, [0.91, 1, 0.94], [1, 0.9, 0.84], [0.88, 0.94, 1]] as const;
+
 const moods = [
   { sky: ['#7799C8', '#C8B8CB', '#E9CDB7', '#F7E1BC'], sun: '#FFE9C8', power: 2.45, fill: 1.75, glow: 0.2, angle: [-6, 9, 8] },
   { sky: ['#719C9A', '#B7C6B9', '#E3C39C', '#F4D9AC'], sun: '#FFE0B9', power: 2.55, fill: 1.85, glow: 0.4, angle: [-10, 6, 7] },
@@ -324,6 +326,7 @@ export class Street3d {
     const piece = pieces[place][kind];
     const styledFurniture = this.models.hasStyle(place);
     const group = this.parts(`row:${place}:${kind}:${v}`, true, b => {
+      b.facadeTint = facadeTints[v];
       b.windowLight = (0.76 + v * 0.14) * (scene.stars ? 1.18 : 1);
       if (place === 1) {
         b.finishes = factoryStyle.variants[v].materialColorOverrides;

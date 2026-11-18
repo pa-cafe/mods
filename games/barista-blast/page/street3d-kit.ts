@@ -47,14 +47,15 @@ export class Kit {
     return material;
   }
 
-  variant(material: THREE.MeshStandardMaterial, light: number, color?: number[], metal = false) {
-    if (!color && !metal && (light === 1 || material.emissive.getHex() === 0)) return material;
-    const key = `window:${material.uuid}:${light}:${color ?? ''}:${metal}`;
+  variant(material: THREE.MeshStandardMaterial, light: number, color?: number[], metal = false, tint?: readonly [number, number, number]) {
+    if (!tint && !color && !metal && (light === 1 || material.emissive.getHex() === 0)) return material;
+    const key = `window:${material.uuid}:${light}:${color ?? ''}:${metal}:${tint ?? ''}`;
     let variant = this.materials.get(key);
     if (!variant) {
       const copy = material.clone();
       copy.emissiveIntensity *= light;
       if (color) copy.color.fromArray(color);
+      if (tint) copy.color.multiply(new THREE.Color(...tint));
       if (metal) { copy.metalness = 0.45; copy.roughness = 0.48; }
       variant = copy;
       this.materials.set(key, copy);
@@ -67,6 +68,7 @@ export class Kit {
 
 export class Build {
   windowLight = 1;
+  facadeTint?: readonly [number, number, number];
   finishes?: Record<string, number[] | undefined>;
   polishedCopper = false;
   roofLift = 0;
@@ -102,8 +104,10 @@ export class Build {
     const at = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, rad(yaw), rad(roll))).scale(typeof scale === 'number' ? new THREE.Vector3().setScalar(scale) : new THREE.Vector3(...scale));
     at.setPosition(x, y, z);
     if (this.frame) at.premultiply(this.frame);
+    // Only the authored 7 m facades share the row tint. Paving, signs and attached items keep their own paint.
+    const tint = /^(tpe[35]|sf3|orb3|div3)_.+_7m$/.test(id) && id !== 'div3_causeway_7m' ? this.facadeTint : undefined;
     for (const mesh of parts) {
-      const material = this.kit.variant(mesh.material, this.windowLight, this.finishes?.[mesh.material.name], this.polishedCopper && mesh.material.name === 'hsc3-roasted-copper');
+      const material = this.kit.variant(mesh.material, this.windowLight, this.finishes?.[mesh.material.name], this.polishedCopper && mesh.material.name === 'hsc3-roasted-copper', tint);
       const key = material.uuid;
       this.modelMaterials.set(key, material);
       this.pending.push({ geometry: mesh.geometry, matrix: at.clone().multiply(mesh.matrixWorld), key, roofLift: id === 'hsc3_sawtooth_roastery_7m' && mesh.material.name === 'hsc3-cream-enamel' ? this.roofLift : 0 });
