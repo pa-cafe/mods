@@ -643,6 +643,15 @@ export function skyline(b: Build, place: number, v: number, sight: number, train
   behind?.(b, FAR_TILE, train, lit);
   // A 76 m hill crosses four 14 m tiles behind the skyline, including the temple's sight tile.
   if (place === 0 && v === 2) b.model('tpe5_distant_hill', FAR_TILE / 2, 2, -106, [0.82, 1, 0.85]);
+  // Low trees connect the street to the hillside, below the rail deck and the sight silhouettes.
+  if (place < 2) {
+    const treeId = place === 0 ? 'tpe5_street_tree_4p4m' : 'hsc3_tree';
+    for (let i = 0; i < 2; i++) {
+      const depth = 35 + roll(i + 2, v) * 10;
+      const y = (depth - 32) * 4.95 / 22;
+      b.model(treeId, i * 7 + 1.5 + roll(i, v + 6) * 3, y - 0.1, -depth, 0.65 + roll(i, v + 2) * 0.27);
+    }
+  }
   const row = middleRows[place];
   if (row.length && !taken.some(([a, b]) => a < FAR_TILE && b > 0)) {
     const [id, size] = row[v % row.length];
