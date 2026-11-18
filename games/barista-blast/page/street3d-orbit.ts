@@ -42,6 +42,7 @@ function foamBed(b: Build, x: number, z: number, spread: number) {
 }
 
 function datacentre(b: Build, x: number, z: number, lit: number) {
+  if (b.model('orb4_data_station_landmark', x, 0, z)) return;
   if (b.model('orbital_data_station_v2', x, 30, z, 0.83)) return;
   const mid = 34, bayW = 17, bayH = 8.6, bayD = 7.4;
   foamBed(b, x, z, 20);
@@ -106,6 +107,7 @@ function module(b: Build, x: number, y: number, z: number, length: number, r: nu
 }
 
 function moonbase(b: Build, x: number, z: number, lit: number) {
+  if (b.model('orb4_moon_base_landmark', x, 0, z)) return;
   if (b.model('lunar_base_v2', x, 8, z, 1.25)) return;
   const rx = 30, ry = 26, rz = 22, top = 23.5, surface = (at: number, y: number) => rz * sqrt(Math.max(0, 1 - (at / rx) ** 2 - (y / ry) ** 2));
   b.dome(MOON, rx, ry, rz, x, 0, z, { rough: 1, glow: 0.3 });
@@ -142,6 +144,7 @@ function moonbase(b: Build, x: number, z: number, lit: number) {
 }
 
 function satellite(b: Build, cx: number, cy: number, z: number, size: number, tilt: number, lit: number) {
+  if (b.model('orb4_satellite_landmark_unit', cx, cy, z, size, tilt)) return;
   if (b.model('solar_satellite_unit_v2', cx, cy, z, size * 0.43, tilt)) return;
   const a = tilt * PI / 180, turn = [0, 0, tilt] as const;
   const at = (lx: number, ly: number): [number, number] => [cx + (lx * cos(a) - ly * sin(a)) * size, cy + (lx * sin(a) + ly * cos(a)) * size];
@@ -178,6 +181,10 @@ function facing(out: THREE.Vector3) {
 }
 
 function ring(b: Build, x: number, z: number, lit: number) {
+  if (b.model('orb4_dyson_core', x, 0, z)) {
+    b.model('orb4_dyson_panel_shell', x, 0, z);
+    return;
+  }
   if (b.model('dyson_sphere_v2', x, 27, z, 1.25)) return;
   const cy = 26, shell = 15, core = '#FFF3C0', centre = new THREE.Vector3(x, cy, z);
   b.ball(core, 9, 9, 9, x, cy, z, { glow: 3.2 });

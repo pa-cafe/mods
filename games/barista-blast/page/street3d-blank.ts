@@ -36,20 +36,26 @@ export function thoughtLabel(kit: Kit) {
 
 function slab(b: Build, x: number, z: number, lit: number) {
   const w = 18, h = 40.5, d = 4.5, foot = 9, front = z + d / 2;
-  if (!b.model('v6_monolith_dais', x, foot - 3, z)) {
-    b.tube(DAIS, 16, 1.2, x, foot - 2.4, z, { sides: 48, rough: 0.6 }); b.tube(DAIS, 13, 1.2, x, foot - 1.2, z, { sides: 48, rough: 0.6 });
-  }
-  b.disc(EDGE, 12.2, x, foot + 0.02, z, { turn: [-90, 0, 0], flat: 0.25 });
-  if (!b.model('v6_thinking_monolith', x, foot, z)) {
-    b.box(SLAB, w, h, d, x, foot, z, { rough: 0.12 });
+  if (b.model('void3_thinking_monolith', x, 0, z)) {
     const said = Math.floor(Math.random() * SAYINGS.length);
-    b.sign(`void:face:${said}`, face(w - 1.6, h - 1.6, SAYINGS[said]), w - 1.6, h - 1.6, x, foot + h / 2, front + 0.05, { glow: 0.5, sharp: true });
-    for (const side of [-1, 1]) b.box(EDGE, 0.14, h - 1.6, 0.06, x + side * (w / 2 - 0.8), foot + 0.8, front + 0.12, { glow: 0.5 + lit * 0.3 });
-    for (const y of [foot + 0.8, foot + h - 0.8]) b.box(EDGE, w - 1.46, 0.14, 0.06, x, y - 0.07, front + 0.12, { glow: 0.5 + lit * 0.3 });
+    b.sign(`void:face:${said}`, face(16.4, 38.9, SAYINGS[said]), 16.4, 38.9, x, 29.25, z + 2.36, { glow: 0.5, sharp: true });
+  } else {
+    if (!b.model('v6_monolith_dais', x, foot - 3, z)) {
+      b.tube(DAIS, 16, 1.2, x, foot - 2.4, z, { sides: 48, rough: 0.6 }); b.tube(DAIS, 13, 1.2, x, foot - 1.2, z, { sides: 48, rough: 0.6 });
+    }
+    b.disc(EDGE, 12.2, x, foot + 0.02, z, { turn: [-90, 0, 0], flat: 0.25 });
+    if (!b.model('v6_thinking_monolith', x, foot, z)) {
+      b.box(SLAB, w, h, d, x, foot, z, { rough: 0.12 });
+      const said = Math.floor(Math.random() * SAYINGS.length);
+      b.sign(`void:face:${said}`, face(w - 1.6, h - 1.6, SAYINGS[said]), w - 1.6, h - 1.6, x, foot + h / 2, front + 0.05, { glow: 0.5, sharp: true });
+      for (const side of [-1, 1]) b.box(EDGE, 0.14, h - 1.6, 0.06, x + side * (w / 2 - 0.8), foot + 0.8, front + 0.12, { glow: 0.5 + lit * 0.3 });
+      for (const y of [foot + 0.8, foot + h - 0.8]) b.box(EDGE, w - 1.46, 0.14, 0.06, x, y - 0.07, front + 0.12, { glow: 0.5 + lit * 0.3 });
+    }
   }
   const shards: readonly (readonly [number, number, number, number])[] = [[-17, 34, 1.6, 0], [-14, 18, 1.4, 1], [16, 41, 1.3, 2], [19, 24, 2, 1], [-21, 46, 1.2, 1], [13, 13, 1, 0], [22, 33, 1.5, 1], [-11, 28, 1.1, 1], [-24, 22, 1.7, 2]];
   shards.forEach(([dx, y, r, kind], i) => {
     const turn = [i * 37, i * 53, i * 29] as const;
+    if (b.model((['void3_floating_cube', 'void3_floating_cup', 'void3_floating_orb'] as const)[kind], x + dx, y, z + 2, r, turn[2], turn[1])) return;
     if (kind === 0) b.box(SHARD, r * 1.6, r * 1.6, r * 1.6, x + dx, y, z + 2, { turn, rough: 0.35 });
     else if (kind === 1) {
       if (!b.model('v6_coffee_cup', x + dx, y, z + 2, r * 0.4)) voidCup(b, r * 2.2, x + dx, y, z + 2, SHARD, { rough: 0.35 });

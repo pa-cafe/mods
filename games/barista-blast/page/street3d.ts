@@ -29,6 +29,8 @@ const sights = scenes.map((scene, place) => {
 });
 
 function floater(b: Build, kind: number, color: string) {
+  const forms = ['void3_floating_cube', 'void3_floating_diamond', 'void3_floating_cup', 'void3_floating_ring', 'void3_floating_cup'] as const;
+  if (b.model(forms[kind], 0, 0, 0)) return;
   const look = { rough: 0.35, glow: 0.15 };
   if (kind === 0) b.box(color, 3, 3, 3, 0, -1.5, 0, look);
   else if (kind === 1) { b.tube(color, 2, 2.4, 0, 0, 0, { ...look, top: 0, sides: 4 }); b.tube(color, 2, 2.4, 0, -2.4, 0, { ...look, top: 0, sides: 4, turn: [180, 0, 0] }); }
@@ -41,10 +43,10 @@ const mod = (value: number, by: number) => (value % by + by) % by;
 const moods = [
   { sky: ['#7799C8', '#C8B8CB', '#E9CDB7', '#F7E1BC'], sun: '#FFE9C8', power: 2.45, fill: 1.75, glow: 0.2, angle: [-6, 9, 8] },
   { sky: ['#719C9A', '#B7C6B9', '#E3C39C', '#F4D9AC'], sun: '#FFE0B9', power: 2.55, fill: 1.85, glow: 0.4, angle: [-10, 6, 7] },
-  { sky: ['#242744', '#453858', '#76536F', '#B57E80'], sun: '#CFCCFF', power: 1.65, fill: 1.55, glow: 1.15, angle: [-4, 10, 6] },
+  { sky: ['#20223F', '#373752', '#62627C', '#95819B'], sun: '#CFCCFF', power: 1.65, fill: 1.55, glow: 1.15, angle: [-4, 10, 6] },
   { sky: ['#161F3B', '#334469', '#716881', '#C7A7B0'], sun: '#FFF0E0', power: 2.15, fill: 1.85, glow: 1, angle: [-6, 12, 8] },
-  { sky: ['#8EB2CD', '#D2E1E2', '#EEE1BD', '#FBEDD0'], sun: '#FFF6D8', power: 2.45, fill: 1.85, glow: 0.8, angle: [-4, 14, 8] },
-  { sky: ['#CBCBD0', '#DDDDDF', '#EAE9E6', '#F2F0EC'], sun: '#FFFFFF', power: 2.1, fill: 2.05, glow: 0.4, angle: [-4, 10, 6] },
+  { sky: ['#A9C7DC', '#DCE7E7', '#EAE5D5', '#F8EDD2'], sun: '#FFF6D8', power: 2.45, fill: 1.85, glow: 0.8, angle: [-4, 14, 8] },
+  { sky: ['#D8D6D2', '#E2DFDA', '#E6E3DD', '#F3F0E9'], sun: '#FFFFFF', power: 2.1, fill: 2.05, glow: 0.4, angle: [-4, 10, 6] },
 ] as const;
 /** What the game's canvas saw this frame: its lens, the place the run is in, and the slanted edge (in pixels, at the top and bottom of the screen) while the next place sweeps in from the right. */
 /** A camera swung off the street's straight-on view, for a still picture: round `target` by `yaw` and `pitch` degrees, with `target` drawn at `at` (pixels). */
@@ -72,6 +74,10 @@ function bodyTexture(place: number) {
 }
 
 
+function releaseInstances(group: THREE.Object3D) {
+  group.traverse(node => { if (node instanceof THREE.InstancedMesh) node.dispose(); });
+}
+
 class World {
   scene = new THREE.Scene();
   sun = new THREE.DirectionalLight('#fff', 2);
@@ -81,6 +87,7 @@ class World {
   backdrop = new THREE.Group();
   sky: THREE.Mesh; body: THREE.Mesh;
   rows = new Map<number, THREE.Group>(); far = new Map<number, THREE.Group>(); clouds = new Map<number, THREE.Group>();
+  skyMaterials: THREE.Material[] = [];
   private owned: { dispose(): void }[] = [];
 
   constructor(readonly place: number, slab: (color: string, w: number, h: number, d: number, y: number, z: number) => THREE.Mesh, pane: THREE.BufferGeometry) {
@@ -108,11 +115,11 @@ class World {
 
 
   keep(layer: Map<number, THREE.Group>, first: number, last: number, make: (index: number) => THREE.Group) {
-    for (const [index, group] of layer) if (index < first || index > last) { this.scene.remove(group); layer.delete(index); }
+    for (const [index, group] of layer) if (index < first || index > last) { this.scene.remove(group); releaseInstances(group); layer.delete(index); }
     for (let index = first; index <= last; index++) if (!layer.has(index)) { const group = make(index); layer.set(index, group); this.scene.add(group); }
   }
 
-  dispose() { for (const item of this.owned) item.dispose(); }
+  dispose() { releaseInstances(this.scene); for (const item of [...this.owned, ...this.skyMaterials]) item.dispose(); }
 }
 
 export class Street3d {
@@ -121,7 +128,7 @@ export class Street3d {
   private pool = blastHost().furniture();
   private kit = new Kit();
   private models = new StreetModels(this.kit);
-  private machine = new Machine(this.kit);
+  private machine!: Machine;
   private made = new Map<string, Part[]>();
   private gags = new OrbitGags((key, make) => this.parts(key, false, make));
 
@@ -154,7 +161,7 @@ export class Street3d {
       const spots = [...sights[place]].map(([stretch, which]) => ({ at: stretch * FAR_TILE, which })), passed = spots.filter(spot => spot.at <= x);
       const spot = passed.length ? passed[passed.length - 1] : spots[0];
       const kit = new THREE.Box3(), half = 2 * Math.tan(rad(FOV / 2)), whole = height / half;
-      if (spot) { const build = new Build(street.kit); sightOn(build, place, spot.which); const group = meshes(build.done()); group.position.x = spot.at; kit.setFromObject(group); group.traverse(node => { if (node instanceof THREE.Mesh) node.geometry.dispose(); }); }
+      if (spot) { const build = new Build(street.kit); sightOn(build, place, spot.which); const group = meshes(build.done()); group.position.x = spot.at; kit.setFromObject(group); releaseInstances(group); group.traverse(node => { if (node instanceof THREE.Mesh) node.geometry.dispose(); }); }
       else kit.set(new THREE.Vector3(x, 0, -66), new THREE.Vector3(x + 20, 30, -66));
       const size = kit.getSize(new THREE.Vector3()), middle = kit.getCenter(new THREE.Vector3()), depth = Math.max(0, -middle.z);
 
@@ -175,7 +182,14 @@ export class Street3d {
   }
 
   /** Loads the cafe's marks for the signs, then stands the street up. Throws where there is no WebGL. */
-  static async open(canvas: HTMLCanvasElement, sharp = false) { await loadMarks(); const street = new Street3d(canvas); street.hold(sharp); return street; }
+  static async open(canvas: HTMLCanvasElement, sharp = false) {
+    await loadMarks();
+    const street = new Street3d(canvas);
+    await street.models.warm(6);
+    street.machine = new Machine(street.kit);
+    street.hold(sharp);
+    return street;
+  }
 
   /** Holds the street at everything on, or lets it step down again when the device falls behind. */
   hold(sharp: boolean) {
@@ -200,6 +214,24 @@ export class Street3d {
   }
 
 
+  private styleSky(world: World) {
+    const id = ([null, null, 'sf4_crescent_moon', 'orb4_sky_bean', 'div3_sun_disc'] as const)[world.place];
+    if (!id || !this.kit.models.has(id)) return;
+    const body = this.parts(`body:${world.place}`, false, b => { b.model(id, 0, 0, 0); });
+    const size = new THREE.Box3().setFromObject(body).getSize(new THREE.Vector3());
+    body.scale.setScalar(0.1875 / Math.max(size.x, size.y));
+    body.traverse(node => {
+      if (!(node instanceof THREE.Mesh)) return;
+      const material = node.material.clone();
+      material.fog = false; material.depthWrite = false;
+      node.material = material; world.skyMaterials.push(material);
+    });
+    // Keep the authored celestial object at the original disc's screen position.
+    world.body.material = new THREE.MeshBasicMaterial({ visible: false });
+    world.skyMaterials.push(world.body.material as THREE.Material);
+    world.body.add(body);
+  }
+
   private frame(world: World) {
     const half = -SKY * Math.tan(rad(FOV / 2)), wide = half * this.camera.aspect, scene = scenes[world.place], size = Math.min(wide, half) * 1.6;
     world.sky.scale.set(wide * 2.1, half * 2.1, 1);
@@ -221,18 +253,23 @@ export class Street3d {
       this.worlds[place] = world;
       this.frame(world);
       const current = world;
-      if (this.models.isReady(place)) return world;
+      if (this.models.isReady(place)) { this.styleSky(world); return world; }
       void this.models.warm(place).then(() => {
         if (this.worlds[place] !== current) return;
+        this.styleSky(current);
+        if (place === ORBIT) {
+          this.gags.group.removeFromParent();
+          this.gags = new OrbitGags((key, make) => this.parts(key, false, make));
+        }
         // Replace provisional tiles together on the next draw, including both sides of a wipe.
-        const provisional = [current.far, current.clouds];
-        if (place === 0) provisional.push(current.rows);
+        const provisional = [current.far, current.clouds, current.rows];
         for (const layer of provisional) {
-          for (const group of layer.values()) current.scene.remove(group);
+          for (const group of layer.values()) { current.scene.remove(group); releaseInstances(group); }
           layer.clear();
         }
         for (const [key, parts] of this.made) {
-          if (!key.startsWith(`far:${place}:`) && key !== `cloud:${place}` && !(place === 0 && key.startsWith('row:0:'))) continue;
+          if (!key.startsWith(`far:${place}:`) && key !== `cloud:${place}` && !key.startsWith(`row:${place}:`) &&
+              !key.startsWith(`floater:${place}:`) && !(place === ORBIT && key.startsWith('gag:'))) continue;
           for (const part of parts) part.geometry.dispose();
           this.made.delete(key);
         }
@@ -254,8 +291,26 @@ export class Street3d {
 
     const kind = index === 0 ? 0 : mod(index * 5 + Math.floor(hash(Math.floor(index / 6), 61 + place) * 6), 6), v = Math.floor(hash(index, 62 + place) * 4);
     const tint: Tint = { s: scene, wall: scene.walls[(kind + v) % scene.walls.length], accent: scene.accents[v % scene.accents.length], other: scene.accents[(v + 1) % scene.accents.length], glow: moods[place].glow, v };
-    const piece = pieces[place][kind], group = this.parts(`row:${place}:${kind}:${v}`, true, b => { piece.build(b, tint); groundMarks(b, scene); });
+    const piece = pieces[place][kind];
+    const decor: Record<string, 'tpe5_crate' | 'tpe5_menu_board' | 'tpe5_potted_plant' | 'tpe5_cafe_table' | 'tpe5_cafe_chair' | 'tpe5_street_bench'> = {
+      signal__crate_single: 'tpe5_crate', signal__crate_stack: 'tpe5_crate', signal__menuBoard: 'tpe5_menu_board', signal__signboard: 'tpe5_menu_board',
+      signal__plant: 'tpe5_potted_plant', signal__potPlant: 'tpe5_potted_plant', signal__cafe_table: 'tpe5_cafe_table',
+      signal__cafe_chair: 'tpe5_cafe_chair', signal__bench: 'tpe5_street_bench',
+    };
+    const styledFurniture = this.kit.models.has('tpe5_cafe_table');
+    const group = this.parts(`row:${place}:${kind}:${v}`, true, b => {
+      b.windowLight = (0.76 + v * 0.14) * (scene.stars ? 1.18 : 1);
+      piece.build(b, tint);
+      groundMarks(b, scene);
+      if (styledFurniture) for (const [id, x, z, yaw, size = 1] of piece.models ?? []) {
+        // Both pieces of furniture are already modeled into the SF vending alley and terrace.
+        if (place === 2 && (kind === 1 || kind === 3)) continue;
+        b.model(decor[id], x, 0, z, size, 0, yaw);
+        if (id === 'signal__crate_stack') b.model('tpe5_crate', x + 0.05, size * 0.59, z, size, 0, yaw + 7);
+      }
+    });
     group.position.x = index * TILE;
+    if (styledFurniture) return group;
     for (const [id, x, z, turn, size = 1] of piece.models ?? []) {
       void this.pool.load(id).then(model => {
         if (world.rows.get(index) !== group) return;
@@ -283,7 +338,8 @@ export class Street3d {
 
       const x = index * CLOUD_TILE + hash(at, 42) * CLOUD_TILE;
       if (scene.floaters && [...sights[world.place].keys()].some(stretch => Math.abs(x - (stretch + 0.5) * FAR_TILE) < 24)) continue;
-      const cloud = scene.floaters ? this.parts(`floater:${world.place}:${kind}`, false, b => floater(b, kind, scene.floaters![kind % scene.floaters!.length])) : this.parts(`cloud:${world.place}`, false, b => { if (world.place === 0 && b.model('tpe_soft_cloud', 0, 0, 0, 0.19)) return; b.ball(scene.cloud, 3, 1.1, 1.4, 0, 0, 0, { glow: 0.35, rough: 1 }); b.ball(scene.cloud, 1.9, 1.3, 1.3, -0.6, 0.7, 0.1, { glow: 0.35, rough: 1 }); b.ball(scene.cloud, 2.2, 0.9, 1.2, 2, -0.3, 0.2, { glow: 0.35, rough: 1 }); });
+      const cloud = scene.floaters ? this.parts(`floater:${world.place}:${kind}`, false, b => floater(b, kind, scene.floaters![kind % scene.floaters!.length])) : this.parts(`cloud:${world.place}`, false, b => { const asset = (['tpe5_cloud_lobe', null, 'sf4_cloud_bank', 'orb4_sky_cloud', 'div3_cloud_bank'] as const)[world.place];
+        if (asset && b.model(asset, 0, 0, 0, [1, 1, 0.5, 0.65, 1.5][world.place])) return; b.ball(scene.cloud, 3, 1.1, 1.4, 0, 0, 0, { glow: 0.35, rough: 1 }); b.ball(scene.cloud, 1.9, 1.3, 1.3, -0.6, 0.7, 0.1, { glow: 0.35, rough: 1 }); b.ball(scene.cloud, 2.2, 0.9, 1.2, 2, -0.3, 0.2, { glow: 0.35, rough: 1 }); });
       if (scene.floaters) cloud.rotation.set(hash(at, 46) * 6.3, hash(at, 47) * 6.3, hash(at, 48) * 6.3);
       cloud.position.set(hash(at, 42) * CLOUD_TILE, 13 + hash(at, 44) ** 1.7 * 180, -30 - hash(at, 43) * 34); cloud.scale.setScalar(size);
       group.add(cloud);

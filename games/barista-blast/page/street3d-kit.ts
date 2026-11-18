@@ -8,7 +8,7 @@ const rad = (degrees: number) => degrees * Math.PI / 180;
 export const shade = (color: string, by: number) => `#${new THREE.Color(color).multiplyScalar(by).getHexString()}`;
 /** `glow` lights a part from inside; `turn` is degrees about x, y, z; `flat` is an unlit see-through pool of light. */
 type Look = { glow?: number; turn?: readonly [number, number, number]; rough?: number; flat?: number };
-export type Part = { geometry: THREE.BufferGeometry; material: THREE.Material; shadow: boolean };
+export type Part = { geometry: THREE.BufferGeometry; material: THREE.Material; shadow: boolean; instances?: THREE.Matrix4[] };
 type Pending = { geometry: THREE.BufferGeometry; matrix: THREE.Matrix4; key: string };
 type Painter = (ctx: CanvasRenderingContext2D, size: number) => void;
 
@@ -47,10 +47,25 @@ export class Kit {
     return material;
   }
 
+  variant(material: THREE.MeshStandardMaterial, light: number) {
+    if (light === 1 || material.emissive.getHex() === 0) return material;
+    const key = `window:${material.uuid}:${light}`;
+    let variant = this.materials.get(key);
+    if (!variant) {
+      const copy = material.clone();
+      copy.emissiveIntensity *= light;
+      variant = copy;
+      this.materials.set(key, copy);
+    }
+    return variant;
+  }
+
   dispose() { for (const group of [this.shapes, this.materials, this.textures]) { for (const item of group.values()) item.dispose(); group.clear(); } }
 }
 
 export class Build {
+  windowLight = 1;
+  private instances: Part[] = [];
   private pending: Pending[] = [];
   private modelMaterials = new Map<string, THREE.Material>();
   private pictures = new Map<string, THREE.Texture>();
@@ -75,18 +90,29 @@ export class Build {
   }
 
   /** Places a trusted artist model into the same per-material batch as the procedural tile. */
-  model(id: ModelId, x: number, y: number, z: number, scale = 1, roll = 0) {
+  model(id: ModelId, x: number, y: number, z: number, scale: number | readonly [number, number, number] = 1, roll = 0, yaw = 0) {
     const parts = this.kit.models.get(id);
     if (!parts?.length) return false;
-    const at = new THREE.Matrix4().makeRotationZ(rad(roll)).scale(new THREE.Vector3(scale, scale, scale));
+    const at = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, rad(yaw), rad(roll))).scale(typeof scale === 'number' ? new THREE.Vector3().setScalar(scale) : new THREE.Vector3(...scale));
     at.setPosition(x, y, z);
     if (this.frame) at.premultiply(this.frame);
     for (const mesh of parts) {
-      const key = mesh.material.uuid;
-      this.modelMaterials.set(key, mesh.material);
+      const material = this.kit.variant(mesh.material, this.windowLight);
+      const key = material.uuid;
+      this.modelMaterials.set(key, material);
       this.pending.push({ geometry: mesh.geometry, matrix: at.clone().multiply(mesh.matrixWorld), key });
     }
     return true;
+  }
+
+  repeat(id: ModelId, positions: readonly THREE.Vector3[]) {
+    for (const mesh of this.kit.models.get(id) ?? []) {
+      const instances = positions.map(position => {
+        const at = new THREE.Matrix4().makeTranslation(position).multiply(mesh.matrixWorld);
+        return this.frame ? at.premultiply(this.frame) : at;
+      });
+      this.instances.push({ geometry: mesh.geometry.clone(), material: mesh.material, shadow: true, instances });
+    }
   }
 
   /** A box standing on `y`, centred on `x` and `z`. */
@@ -158,7 +184,7 @@ export class Build {
   done(): Part[] {
     const groups = new Map<string, Pending[]>();
     for (const item of this.pending) groups.set(item.key, [...groups.get(item.key) ?? [], item]);
-    return [...groups].map(([key, items]) => {
+    return this.instances.concat([...groups].map(([key, items]) => {
       const copies = items.map(item => item.geometry.clone().applyMatrix4(item.matrix));
       const geometry = mergeGeometries(copies)!;
       for (const copy of copies) copy.dispose();
@@ -166,7 +192,7 @@ export class Build {
       if (model) return { geometry, material: model, shadow: true };
       const { color, look } = this.looks.get(key)!;
       return { geometry, material: this.kit.material(key, color, look, this.pictures.get(key)), shadow: !look.flat };
-    });
+    }));
   }
 }
 
@@ -181,7 +207,8 @@ export type Skyline = { sights: readonly Sight[]; behind?(b: Build, length: numb
 
 export function meshes(parts: readonly Part[]) {
   const group = new THREE.Group();
-  for (const part of parts) { const mesh = new THREE.Mesh(part.geometry, part.material); mesh.castShadow = mesh.receiveShadow = part.shadow; group.add(mesh); }
+  for (const part of parts) { const mesh = part.instances ? new THREE.InstancedMesh(part.geometry, part.material, part.instances.length) : new THREE.Mesh(part.geometry, part.material);
+    if (mesh instanceof THREE.InstancedMesh) part.instances!.forEach((matrix, i) => mesh.setMatrixAt(i, matrix)); mesh.castShadow = mesh.receiveShadow = part.shadow; group.add(mesh); }
   return group;
 }
 

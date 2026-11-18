@@ -39,6 +39,7 @@ function column(b: Build, x: number, y: number, z: number, h: number, lit: numbe
 
 
 function serverTemple(b: Build, x: number, z: number, lit: number) {
+  if (b.model('div3_server_temple', x, 0, z)) return;
   if (b.model('d5_server_temple', x, 0, z)) {
     b.model('d5_celestial_halo', x, 56, z - 11, 0.85);
     for (const dx of [-23, 0, 23]) cloud(b, x + dx, 1, z + 14, 2.2);
@@ -82,6 +83,7 @@ const slope = (rise: number, run: number, y0: number, z0: number) => (s: number,
 
 
 function stairway(b: Build, x: number, z: number, lit: number) {
+  if (b.model('div3_continuous_stairway', x, 0, z)) return;
   const width = 16, steps = 36, rise = 1.1, run = 0.95, y0 = 1, front = z + 19, on = slope(rise, run, y0, front);
   const angle = deg(Math.atan2(rise, run)), hyp = Math.hypot(rise, run), length = steps * hyp, [midY, midZ] = on(steps / 2, -4.6);
   for (let i = 0; i < steps; i++) {
@@ -139,6 +141,7 @@ function fan(b: Build, x: number, y: number, z: number, r: number, lit: number) 
 
 
 function graphicsCard(b: Build, x: number, z: number, lit: number) {
+  if (b.model('div3_gpu_body', x, 0, z)) return;
   if (b.model('d5_divine_gpu', x, 31, z, 1.25)) {
     b.model('d5_celestial_halo', x, 48, z - 5, 0.63);
     for (const dx of [-18, 0, 18]) cloud(b, x + dx, 12, z + 3, 2);
@@ -190,6 +193,11 @@ function tree(b: Build, x: number, y: number, z: number, tall: boolean) {
 
 
 function cloudIsland(b: Build, x: number, z: number, lit: number) {
+  if (b.model('div3_cloud_island_complete', x, 0, z)) {
+    b.model('div3_waterfall', x + 17, 0, z + 4);
+    for (let i = 0; i < 7; i++) b.model('div3_light_mote', x + 17 + Math.sin(i) * 1.4, 4 + i * 2.8, z + 4);
+    return;
+  }
   const top = 30, rx = x - 2, rz = z - 2, ground = top + 0.4, floor = ground + 1.1, ring = 7.6, pillar = 9.2;
   island(b, x, z, top);
   for (const [dx, y, dz, s] of [[-15, 13, 8, 1.8], [8, 11, 12, 1.9], [19, 15, 2, 1.7], [-3, 8, 16, 2], [-18, 12, -4, 1.7], [2, 12, -14, 1.9], [13, 11, -10, 1.7], [-8, 5, 4, 1.8], [-5, 2, 24, 2.2]]) cloud(b, x + dx, y, z + dz, s);
