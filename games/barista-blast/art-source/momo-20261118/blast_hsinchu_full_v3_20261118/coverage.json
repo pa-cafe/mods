@@ -1,0 +1,120 @@
+{
+  "status": "asset production only; NOT integrated stage",
+  "rows": [
+    {
+      "original": "roastery[0..5]",
+      "replacements": [
+        "hsc3_sawtooth_roastery_7m",
+        "hsc3_drum_roaster_7m",
+        "hsc3_low_loading_yard_7m",
+        "hsc3_kettle_gantry_7m",
+        "hsc3_shift_canteen_7m",
+        "hsc3_silo_pair_7m"
+      ],
+      "assetReady": true,
+      "runtimeIntegrated": false
+    },
+    {
+      "original": "hsinchu.sights.fab",
+      "replacements": [
+        "hsc3_fab_hall",
+        "hsc3_fab_office",
+        "hsc3_fab_skybridge"
+      ],
+      "assetReady": true,
+      "runtimeIntegrated": false
+    },
+    {
+      "original": "hsinchu.sights.cooling",
+      "replacements": [
+        "hsc3_cooling_tower",
+        "hsc3_cooling_deck"
+      ],
+      "assetReady": true,
+      "runtimeIntegrated": false
+    },
+    {
+      "original": "hsinchu.sights.power",
+      "replacements": [
+        "hsc3_power_turbine_hall",
+        "hsc3_power_boiler",
+        "hsc3_power_striped_chimney",
+        "hsc3_power_flue_filter",
+        "hsc3_power_secondary_stack",
+        "hsc3_substation"
+      ],
+      "assetReady": true,
+      "runtimeIntegrated": false
+    },
+    {
+      "original": "hsinchu.sights.wind",
+      "replacements": [
+        "hsc3_wind_tower",
+        "hsc3_wind_rotor",
+        "hsc3_wind_dune"
+      ],
+      "assetReady": true,
+      "runtimeIntegrated": false
+    },
+    {
+      "original": "hsinchu.behind.pylons",
+      "replacements": [
+        "hsc3_pylon_14m",
+        "hsc3_cable_span_14m"
+      ],
+      "assetReady": true,
+      "runtimeIntegrated": false
+    },
+    {
+      "original": "skyline factory",
+      "replacements": [
+        "hsc3_far_factory_14m"
+      ],
+      "assetReady": true,
+      "runtimeIntegrated": false
+    },
+    {
+      "original": "plume/puffs/clouds geometry",
+      "replacements": [
+        "hsc3_steam_cluster_unit",
+        "hsc3_smoke_cluster_unit"
+      ],
+      "assetReady": true,
+      "runtimeIntegrated": false
+    },
+    {
+      "original": "groundMarks/ground",
+      "replacements": [
+        "hsc3_road_tile_7m",
+        "hsc3_walk_tile_7m"
+      ],
+      "assetReady": true,
+      "runtimeIntegrated": false
+    },
+    {
+      "original": "stage lamps/trees/catalog instances",
+      "replacements": [
+        "hsc3_streetlamp",
+        "hsc3_tree",
+        "hsc3_planter",
+        "hsc3_crate",
+        "hsc3_cafe_table",
+        "hsc3_cafe_chair",
+        "hsc3_blank_signboard"
+      ],
+      "assetReady": true,
+      "runtimeIntegrated": false
+    }
+  ],
+  "pending": [
+    "four variant material mapping",
+    "Canvas signs and roof badge",
+    "steam/smoke source bindings and any existing update behavior",
+    "original seeded placement and recycling",
+    "far depth/culling using measured reaches",
+    "new consistent fallback bundle",
+    "common Machine and StreetProp visual replacement",
+    "sky/sun/fog renderer mood",
+    "game desktop/mobile/replay/postcard/transition/performance checks"
+  ]
+}

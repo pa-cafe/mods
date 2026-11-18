@@ -1,0 +1,25 @@
+{
+  "cameraBlender": [
+    20.12321937,
+    -75.9522498,
+    11.22035256
+  ],
+  "rotationRadians": [
+    1.5707963267948966,
+    0,
+    0
+  ],
+  "sensorHeight": 24,
+  "focalLength": 61.73464819,
+  "image": [
+    1440,
+    810
+  ],
+  "landmarkRootGLTF": [
+    7,
+    5,
+    -66
+  ],
+  "landmarkScale": 0.62,
+  "type": "Blender proxy, not game capture; identical camera to near-only before"
+}
