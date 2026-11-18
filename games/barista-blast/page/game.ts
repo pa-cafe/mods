@@ -86,6 +86,8 @@ export function playBlast(canvas: HTMLCanvasElement, shell: BlastShell, stage: B
   const sound = new BlastAudio();
   scene.said = line => sound.say(line);
   sound.scene('theme');
+  // A replay plays itself, so nobody presses to open the speaker. Browsers let a page the player already used on this site make sound, so try now; a press anywhere opens it otherwise.
+  if (watch) sound.wake();
   const hints = (() => { try { return JSON.parse(read(HINTS) ?? '{}') as Partial<Keep>; } catch { return {}; } })();
   const keep: Keep = { best: Number(read(BEST)) || 0, aimHint: hints.aimHint === true, flyHint: hints.flyHint === true, runs: Number(read(RUNS)) || 0 };
   let street: import('./street3d').Street3d | null = null;
@@ -258,6 +260,7 @@ export function playBlast(canvas: HTMLCanvasElement, shell: BlastShell, stage: B
     press(stamp(event));
   };
   const up = (event: PointerEvent) => { if (event.isPrimary) release(stamp(event)); };
+  const anyPress = () => sound.wake();
   const key = (event: KeyboardEvent) => {
     if (event.code !== 'Space' || busy(event.target)) return;
     event.preventDefault();
@@ -279,6 +282,7 @@ export function playBlast(canvas: HTMLCanvasElement, shell: BlastShell, stage: B
   window.addEventListener('pointerup', up);
   window.addEventListener('pointercancel', up);
   window.addEventListener('keydown', key);
+  window.addEventListener('pointerdown', anyPress);
   window.addEventListener('keyup', key);
   document.addEventListener('visibilitychange', visibility);
   // The 3D street is its own download: the game plays on the 2D one until it arrives, and keeps it where there is no WebGL or the link says `&2d`.
@@ -342,6 +346,7 @@ export function playBlast(canvas: HTMLCanvasElement, shell: BlastShell, stage: B
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', up);
       window.removeEventListener('keydown', key);
+      window.removeEventListener('pointerdown', anyPress);
       window.removeEventListener('keyup', key);
       document.removeEventListener('visibilitychange', visibility);
     },
