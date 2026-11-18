@@ -40,7 +40,10 @@ export class Machine {
       const body = piece(b => {
         b.model('common_machine_body', 0, 0, 0);
         b.sign('machine-gauge', face, 0.7, 0.7, GAUGE[0], GAUGE[1], -0.115, { round: true, sharp: true });
-        b.sign('machine-logo', mark('logo', GREEN, name, 0.04), 1.1, 0.22, -1.80125, 1.51, -0.12, { sharp: true });
+        b.sign('machine-lettering', (ctx, size) => {
+          ctx.fillStyle = '#FFF1D9'; ctx.font = `bold ${size * 0.8}px sans-serif`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('PA CAFE', size / 2, size / 2, size);
+        }, 1.1, 0.22, -1.80125, 1.51, -0.12, { cutout: true, sharp: true });
       });
       body.traverse(node => {
         if (!(node instanceof THREE.Mesh)) return;

@@ -82,12 +82,10 @@ export function buildProp(b: Build, prop: StreetProp) {
       const mail = prop.kind === 'mail', word = prop.sign ?? '';
       const width = tagWidth(word, mail ? 2.2 : 2.1);
       b.sign(`engraved:${word}`, (ctx, size) => {
-        ctx.fillStyle = '#31463E';
-        ctx.fillRect(0, 0, size, size);
         ctx.fillStyle = '#FFF2D8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.font = `bold ${size * 0.82}px system-ui, sans-serif`;
         ctx.fillText(word, size / 2, size / 2, size * 0.96);
-      }, width, 0.28, 0, mail ? 5.59 : 5.73, mail ? -0.51 : -0.61, { sharp: true, glow: 0.3 });
+      }, width, 0.28, 0, mail ? 5.59 : 5.73, mail ? -0.51 : -0.61, { sharp: true, glow: 0.3, cutout: true });
     }
     return;
   }

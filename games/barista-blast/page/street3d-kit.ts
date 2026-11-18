@@ -7,7 +7,7 @@ const rad = (degrees: number) => degrees * Math.PI / 180;
 /** A colour made darker or lighter by a factor, as a hex string. */
 export const shade = (color: string, by: number) => `#${new THREE.Color(color).multiplyScalar(by).getHexString()}`;
 /** `glow` lights a part from inside; `turn` is degrees about x, y, z; `flat` is an unlit see-through pool of light. */
-type Look = { glow?: number; turn?: readonly [number, number, number]; rough?: number; flat?: number };
+type Look = { cutout?: boolean; glow?: number; turn?: readonly [number, number, number]; rough?: number; flat?: number };
 export type Part = { geometry: THREE.BufferGeometry; material: THREE.Material; shadow: boolean; instances?: THREE.Matrix4[] };
 type Pending = { geometry: THREE.BufferGeometry; matrix: THREE.Matrix4; key: string };
 type Painter = (ctx: CanvasRenderingContext2D, size: number) => void;
@@ -41,7 +41,7 @@ export class Kit {
     if (!material) {
       material = look.flat
         ? new THREE.MeshBasicMaterial({ color, transparent: true, opacity: look.flat, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })
-        : new THREE.MeshStandardMaterial({ color: picture ? '#fff' : color, map: picture ?? null, roughness: look.rough ?? 0.85, emissive: look.glow ? picture ? '#fff' : color : '#000', emissiveMap: look.glow && picture ? picture : null, emissiveIntensity: look.glow ?? 0 });
+        : new THREE.MeshStandardMaterial({ color: picture ? '#fff' : color, map: picture ?? null, alphaTest: look.cutout ? 0.12 : 0, roughness: look.rough ?? 0.85, emissive: look.glow ? picture ? '#fff' : color : '#000', emissiveMap: look.glow && picture ? picture : null, emissiveIntensity: look.glow ?? 0 });
       this.materials.set(key, material);
     }
     return material;

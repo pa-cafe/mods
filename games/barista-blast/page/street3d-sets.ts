@@ -219,11 +219,17 @@ const street: readonly Piece[] = [
       }
       const words = [['咖啡', '早餐'], ['豆花', '麵'], ['茶', '書店'], ['冰', '咖啡']][c.v];
       const front = arcade ? F + 0.7 : F;
-      if (!b.model('tpe5_runtime_plaque_wide', MID, 4.15, front + 0.1)) b.box(c.other, 5.6, 0.9, 0.16, MID, 3.7, front + 0.1); b.sign(`plaque:${words[0]}:${c.other}:wide`, plaque(words[0] + '・' + words[1], CREAM, c.other, 5.3, 0.8), 5.3, 0.8, MID, 4.15, front + 0.19);
+      if (!b.model('tpe5_runtime_plaque_wide', MID, 3.67, front + 0.1)) b.box(c.other, 5.6, 0.9, 0.16, MID, 3.7, front + 0.1); b.sign(`plaque:${words[0]}:${c.other}:wide`, plaque(words[0] + '・' + words[1], CREAM, c.other, 5.3, 0.8), 5.3, 0.8, MID, 4.15, front + (arcade ? 0.23 : 0.19));
       [[0.5, c.accent, words[0]], [6.5, RED, words[1]]].forEach(([x, color, word], i) => {
         const tall = 2.4 + i * 0.6;
-        if (!b.model('tpe5_runtime_plaque_tall', x as number, 5 + tall / 2, front + 0.75)) b.box(color as string, 0.2, tall + 0.2, 1.1, x as number, 4.9, front + 0.75); b.sign(`plaque:${word}:${color}:${tall}`, plaque(word as string, CREAM, color as string, 0.9, tall), 0.9, tall, (x as number) + (i ? -0.11 : 0.11), 5 + tall / 2, front + 0.75, { turn: [0, i ? -90 : 90, 0], glow: c.glow * 0.4 });
-        b.sign(`plaque:${word}:${color}:${tall}:f`, plaque(word as string, CREAM, color as string, 0.9, tall), 0.9, tall, x as number, 5 + tall / 2, front + 1.31, { glow: c.glow * 0.4 });
+        const px = x as number, ink = color as string, label = word as string;
+        if (arcade) {
+          b.model('tpe5_runtime_plaque_tall', px, 4.9, front + 0.75, [1, (tall + 0.2) / 2.6, 1], 0, i ? -90 : 90);
+        } else {
+          b.box(ink, 0.2, tall + 0.2, 1.1, px, 4.9, front + 0.75);
+        }
+        b.sign(`plaque:${label}:${ink}:${tall}`, plaque(label, CREAM, ink, 0.9, tall), 0.9, tall, px + (i ? -0.14 : 0.14), 5 + tall / 2, front + 0.75, { turn: [0, i ? -90 : 90, 0], glow: c.glow * 0.4 });
+        b.sign(`plaque:${label}:${ink}:${tall}:f`, plaque(label, CREAM, ink, 0.9, tall), 0.9, tall, px, 5 + tall / 2, front + (arcade ? 1.23 : 1.31), { glow: c.glow * 0.4 });
       });
       scooter(b, 1.5, -1.9, c.accent); scooter(b, 3.9, -1.9, WHITE);
     },
@@ -349,7 +355,7 @@ const roastery: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('hsc3_shift_canteen_7m', MID, 0, -8)) {
-        poster(b, 'badge:roof', mark('badge', CREAM, board('bean', ROAST, CREAM, '#9C6A45'), 0.03), 2.2, MID, 7.8, F - 1.4, c.s.trim);
+        b.sign('badge:roof', mark('badge', CREAM, board('bean', ROAST, CREAM, '#9C6A45'), 0.03), 1.9, 1.9, MID, 7.2, -7.96, { round: true, sharp: true });
         return;
       }
       walls(b, c, 5.8, 5.2); bricks(b, c, MID, 5.8, 5.2, c.v + 5);
@@ -388,8 +394,7 @@ const night: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('sf3_highrise_shop_7m', MID, 0, -8)) {
-        const h = 15 + c.v;
-        poster(b, `neon-mascot:${c.accent}`, mark('mascot', '#0E0B24', neon('cup', c.accent)), 2.8, MID, h + 2.7, F - 1.1, INK, 1.1);
+        b.sign(`neon-mascot:${c.accent}`, mark('mascot', '#0E0B24', neon('cup', c.accent)), 1.8 * markShape.mascot, 1.8, MID, 17.8, -5.94, { glow: 1.1, sharp: true });
         return;
       }
       const h = 15 + c.v;
@@ -406,9 +411,9 @@ const night: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('sf3_neon_cafe_7m', MID, 0, -8)) {
-        b.sign('badge:glass', mark('badge', c.s.window, board('cup', INK, c.s.window, c.accent), 0.04), 1.2, 1.2, 3.6, 2.3, F + 0.13, { glow: c.glow * 0.8, sharp: true });
+        b.sign('badge:glass', mark('badge', c.s.window, board('cup', INK, c.s.window, c.accent), 0.04), 1.2, 1.2, 3.6, 2.3, -6.30, { glow: c.glow * 0.8, sharp: true });
         poster(b, `neon-open:${c.other}`, neon('OPEN', c.other), 1.1, 5.5, 3.75, F + 0.5, INK, 2.4);
-        for (let i = 0; i < 4; i++) b.sign(`neon-${'CAFE'[i]}:${c.accent}`, neon('CAFE'[i], c.accent), 1.1, 1.1, 1.7 + i * 1.2, 6.35, F - 1.28, { glow: 2.2 });
+        for (let i = 0; i < 4; i++) b.sign(`neon-${'CAFE'[i]}:${c.accent}`, neon('CAFE'[i], c.accent), 1.1, 1.1, 1.7 + i * 1.2, 6.5, -5.94, { glow: 2.2 });
         return;
       }
       walls(b, c, 6.4, 4.4);
@@ -427,8 +432,9 @@ const night: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('sf3_server_exchange_7m', MID, 0, -8)) {
-        const h = 9 + c.v * 0.5;
-        b.sign(`racks:${c.v}`, lights([MINT, GOLD, PINK, SKYBLUE], 16, 18, 0.55, '#0E0B24', c.v + 1), 5, h - 3.6, MID, (h + 3.2) / 2, F + 0.05, { glow: 1.6 });
+        for (const dx of [-1.9, 0, 1.9]) {
+          b.sign(`cabinet:${dx}:${c.v}`, lights([MINT, GOLD, PINK, SKYBLUE], 4, 18, 0.55, '#151929', c.v + dx), 1.36, 5.5, MID + dx, 6.2, -6.29, { glow: 0.95 });
+        }
         return;
       }
       const h = 9 + c.v * 0.5;
@@ -461,7 +467,7 @@ const night: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('sf3_billboard_garage_7m', MID, 0, -8)) {
-        b.sign('logo:billboard', mark('logo', CREAM, board('bean', '#5A3520', CREAM, '#C98A55'), 0.02), 1.5 * markShape.logo, 1.5, MID, 7.9, F - 1.27, { glow: 0.7, sharp: true });
+        b.sign('logo:billboard', mark('logo', CREAM, board('bean', '#5A3520', CREAM, '#C98A55'), 0.02), 1.5 * markShape.logo, 1.5, MID, 7.8, -5.94, { glow: 0.7, sharp: true });
         return;
       }
       walls(b, c, 6, 3.4); b.box(shade(STEEL, 0.45), 3, 2.6, 0.1, 2.3, 0, F + 0.06); for (let y = 0.3; y < 2.5; y += 0.3) b.box(INK, 3, 0.04, 0.04, 2.3, y, F + 0.12);

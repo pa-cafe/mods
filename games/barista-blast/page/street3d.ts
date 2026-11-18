@@ -63,12 +63,12 @@ function skyTexture(colors: readonly string[]) {
   return texture;
 }
 
-function bodyTexture(place: number) {
+function bodyTexture(place: number, disc = true) {
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 256;
   const ctx = canvas.getContext('2d')!, halo = ctx.createRadialGradient(128, 128, 0, 128, 128, 128), scene = scenes[place];
   halo.addColorStop(0, `${scene.glow}cc`); halo.addColorStop(0.35, `${scene.glow}40`); halo.addColorStop(1, `${scene.glow}00`);
   ctx.fillStyle = halo; ctx.fillRect(0, 0, 256, 256);
-  paintBody(ctx, scene, 128, 128, 24);
+  if (disc) paintBody(ctx, scene, 128, 128, 24);
   const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
@@ -77,6 +77,12 @@ function bodyTexture(place: number) {
 function releaseInstances(group: THREE.Object3D) {
   group.traverse(node => { if (node instanceof THREE.InstancedMesh) node.dispose(); });
 }
+
+const pavementFurniture: Record<string, 'tpe5_crate' | 'tpe5_menu_board' | 'tpe5_potted_plant' | 'tpe5_cafe_table' | 'tpe5_cafe_chair' | 'tpe5_street_bench'> = {
+  signal__crate_single: 'tpe5_crate', signal__crate_stack: 'tpe5_crate', signal__menuBoard: 'tpe5_menu_board', signal__signboard: 'tpe5_menu_board',
+  signal__plant: 'tpe5_potted_plant', signal__potPlant: 'tpe5_potted_plant', signal__cafe_table: 'tpe5_cafe_table',
+  signal__cafe_chair: 'tpe5_cafe_chair', signal__bench: 'tpe5_street_bench',
+};
 
 class World {
   scene = new THREE.Scene();
@@ -88,6 +94,7 @@ class World {
   sky: THREE.Mesh; body: THREE.Mesh;
   rows = new Map<number, THREE.Group>(); far = new Map<number, THREE.Group>(); clouds = new Map<number, THREE.Group>();
   skyMaterials: THREE.Material[] = [];
+  skyTextures: THREE.Texture[] = [];
   private owned: { dispose(): void }[] = [];
 
   constructor(readonly place: number, slab: (color: string, w: number, h: number, d: number, y: number, z: number) => THREE.Mesh, pane: THREE.BufferGeometry) {
@@ -119,7 +126,7 @@ class World {
     for (let index = first; index <= last; index++) if (!layer.has(index)) { const group = make(index); layer.set(index, group); this.scene.add(group); }
   }
 
-  dispose() { releaseInstances(this.scene); for (const item of [...this.owned, ...this.skyMaterials]) item.dispose(); }
+  dispose() { releaseInstances(this.scene); for (const item of [...this.owned, ...this.skyMaterials, ...this.skyTextures]) item.dispose(); }
 }
 
 export class Street3d {
@@ -215,6 +222,9 @@ export class Street3d {
 
 
   private styleSky(world: World) {
+    if ([2, 3, 4, 5].includes(world.place) && this.kit.models.has((['sf4_ground_7m', 'orb4_ground_7m', 'div3_causeway_7m', 'void3_ground_7m'] as const)[world.place - 2])) {
+      world.ground.position.y = -0.05;
+    }
     const id = ([null, null, 'sf4_crescent_moon', 'orb4_sky_bean', 'div3_sun_disc'] as const)[world.place];
     if (!id || !this.kit.models.has(id)) return;
     const body = this.parts(`body:${world.place}`, false, b => { b.model(id, 0, 0, 0); });
@@ -227,7 +237,9 @@ export class Street3d {
       node.material = material; world.skyMaterials.push(material);
     });
     // Keep the authored celestial object at the original disc's screen position.
-    world.body.material = new THREE.MeshBasicMaterial({ visible: false });
+    const halo = bodyTexture(world.place, false);
+    world.body.material = new THREE.MeshBasicMaterial({ map: halo, transparent: true, depthWrite: false, fog: false });
+    world.skyTextures.push(halo);
     world.skyMaterials.push(world.body.material as THREE.Material);
     world.body.add(body);
   }
@@ -292,11 +304,6 @@ export class Street3d {
     const kind = index === 0 ? 0 : mod(index * 5 + Math.floor(hash(Math.floor(index / 6), 61 + place) * 6), 6), v = Math.floor(hash(index, 62 + place) * 4);
     const tint: Tint = { s: scene, wall: scene.walls[(kind + v) % scene.walls.length], accent: scene.accents[v % scene.accents.length], other: scene.accents[(v + 1) % scene.accents.length], glow: moods[place].glow, v };
     const piece = pieces[place][kind];
-    const decor: Record<string, 'tpe5_crate' | 'tpe5_menu_board' | 'tpe5_potted_plant' | 'tpe5_cafe_table' | 'tpe5_cafe_chair' | 'tpe5_street_bench'> = {
-      signal__crate_single: 'tpe5_crate', signal__crate_stack: 'tpe5_crate', signal__menuBoard: 'tpe5_menu_board', signal__signboard: 'tpe5_menu_board',
-      signal__plant: 'tpe5_potted_plant', signal__potPlant: 'tpe5_potted_plant', signal__cafe_table: 'tpe5_cafe_table',
-      signal__cafe_chair: 'tpe5_cafe_chair', signal__bench: 'tpe5_street_bench',
-    };
     const styledFurniture = this.kit.models.has('tpe5_cafe_table');
     const group = this.parts(`row:${place}:${kind}:${v}`, true, b => {
       b.windowLight = (0.76 + v * 0.14) * (scene.stars ? 1.18 : 1);
@@ -305,7 +312,7 @@ export class Street3d {
       if (styledFurniture) for (const [id, x, z, yaw, size = 1] of piece.models ?? []) {
         // Both pieces of furniture are already modeled into the SF vending alley and terrace.
         if (place === 2 && (kind === 1 || kind === 3)) continue;
-        b.model(decor[id], x, 0, z, size, 0, yaw);
+        b.model(pavementFurniture[id], x, 0, z, size, 0, yaw);
         if (id === 'signal__crate_stack') b.model('tpe5_crate', x + 0.05, size * 0.59, z, size, 0, yaw + 7);
       }
     });

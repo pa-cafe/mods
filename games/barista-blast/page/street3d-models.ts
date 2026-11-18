@@ -86,12 +86,10 @@ const districts = [
   {
     'orb3_cup_eyes_station_7m': new URL('../art-source/momo-20261118/blast_orbit_v3_20261118/assets/orb3_cup_eyes_station_7m.glb', import.meta.url).href,
     'orb3_drifting_bean_cluster_7m': new URL('../art-source/momo-20261118/blast_orbit_v3_20261118/assets/orb3_drifting_bean_cluster_7m.glb', import.meta.url).href,
-    'orb3_floating_bean': new URL('../art-source/momo-20261118/blast_orbit_v3_20261118/assets/orb3_floating_bean.glb', import.meta.url).href,
     'orb3_foam_bank': new URL('../art-source/momo-20261118/blast_orbit_v3_20261118/assets/orb3_foam_bank.glb', import.meta.url).href,
     'orb3_latte_heart_hill_7m': new URL('../art-source/momo-20261118/blast_orbit_v3_20261118/assets/orb3_latte_heart_hill_7m.glb', import.meta.url).href,
     'orb3_spoon_bean_garden_7m': new URL('../art-source/momo-20261118/blast_orbit_v3_20261118/assets/orb3_spoon_bean_garden_7m.glb', import.meta.url).href,
     'orb3_sugar_constellation_7m': new URL('../art-source/momo-20261118/blast_orbit_v3_20261118/assets/orb3_sugar_constellation_7m.glb', import.meta.url).href,
-    'orb3_sugar_floater': new URL('../art-source/momo-20261118/blast_orbit_v3_20261118/assets/orb3_sugar_floater.glb', import.meta.url).href,
     'orb3_tripod_moka_robot_7m': new URL('../art-source/momo-20261118/blast_orbit_v3_20261118/assets/orb3_tripod_moka_robot_7m.glb', import.meta.url).href,
     'orb4_data_station_landmark': new URL('../art-source/momo-20261118/blast_orbit_v4_20261118/assets/orb4_data_station_landmark.glb', import.meta.url).href,
     'orb4_dyson_core': new URL('../art-source/momo-20261118/blast_orbit_v4_20261118/assets/orb4_dyson_core.glb', import.meta.url).href,
