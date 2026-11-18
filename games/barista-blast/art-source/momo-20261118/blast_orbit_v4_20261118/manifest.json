@@ -1,0 +1,630 @@
+{
+  "version": "orbit-v4-rest-of-scene",
+  "units": "meters",
+  "assets": [
+    {
+      "asset": "orb4_data_station_landmark",
+      "glb": "assets/orb4_data_station_landmark.glb",
+      "bytes": 208296,
+      "triangles": 4644,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -24.75,
+          -7.0,
+          0.0
+        ],
+        "max": [
+          24.75,
+          7.118188381195068,
+          58.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_moon_base_landmark",
+      "glb": "assets/orb4_moon_base_landmark.glb",
+      "bytes": 140524,
+      "triangles": 4548,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -30.0,
+          -22.0,
+          0.0
+        ],
+        "max": [
+          30.0,
+          22.0,
+          37.75
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_satellite_landmark_unit",
+      "glb": "assets/orb4_satellite_landmark_unit.glb",
+      "bytes": 33180,
+      "triangles": 692,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -6.849999904632568,
+          -1.399999976158142,
+          -1.5
+        ],
+        "max": [
+          6.849999904632568,
+          1.399999976158142,
+          3.549999952316284
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_dyson_core",
+      "glb": "assets/orb4_dyson_core.glb",
+      "bytes": 3308,
+      "triangles": 120,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -9.0,
+          -9.0,
+          17.0
+        ],
+        "max": [
+          9.0,
+          9.0,
+          35.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_dyson_panel_shell",
+      "glb": "assets/orb4_dyson_panel_shell.glb",
+      "bytes": 184712,
+      "triangles": 3180,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -26.899999618530273,
+          -15.160002708435059,
+          3.6412746906280518
+        ],
+        "max": [
+          26.899999618530273,
+          14.907894134521484,
+          48.358726501464844
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_launch_tower",
+      "glb": "assets/orb4_gag_launch_tower.glb",
+      "bytes": 46424,
+      "triangles": 876,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -4.400000095367432,
+          -1.399999976158142,
+          -0.125
+        ],
+        "max": [
+          4.400000095367432,
+          5.400000095367432,
+          23.599998474121094
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_arm_left",
+      "glb": "assets/orb4_gag_arm_left.glb",
+      "bytes": 9916,
+      "triangles": 140,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.5362103581428528,
+          -1.100000023841858,
+          -1.2000000476837158
+        ],
+        "max": [
+          2.799999952316284,
+          1.100000023841858,
+          1.2000000476837158
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_arm_right",
+      "glb": "assets/orb4_gag_arm_right.glb",
+      "bytes": 9924,
+      "triangles": 140,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.799999952316284,
+          -1.100000023841858,
+          -1.2000000476837158
+        ],
+        "max": [
+          0.5362103581428528,
+          1.100000023841858,
+          1.2000000476837158
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_rocket",
+      "glb": "assets/orb4_gag_rocket.glb",
+      "bytes": 63728,
+      "triangles": 1348,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.950000047683716,
+          -1.7492595911026,
+          -2.1855694143368964e-08
+        ],
+        "max": [
+          2.950000047683716,
+          1.5499999523162842,
+          17.05000114440918
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_flame",
+      "glb": "assets/orb4_gag_flame.glb",
+      "bytes": 8264,
+      "triangles": 132,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.2999999523162842,
+          -1.2999999523162842,
+          -7.0
+        ],
+        "max": [
+          1.2999999523162842,
+          1.2999999523162842,
+          0.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_puff",
+      "glb": "assets/orb4_gag_puff.glb",
+      "bytes": 3228,
+      "triangles": 120,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.0,
+          -1.0,
+          -1.0
+        ],
+        "max": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_fire",
+      "glb": "assets/orb4_gag_fire.glb",
+      "bytes": 3420,
+      "triangles": 120,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.0,
+          -1.0,
+          -1.0
+        ],
+        "max": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_flash",
+      "glb": "assets/orb4_gag_flash.glb",
+      "bytes": 3304,
+      "triangles": 120,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.0,
+          -1.0,
+          -1.0
+        ],
+        "max": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_shard_ivory",
+      "glb": "assets/orb4_gag_shard_ivory.glb",
+      "bytes": 3672,
+      "triangles": 44,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.6499999761581421,
+          -0.25,
+          -0.3499999940395355
+        ],
+        "max": [
+          0.6499999761581421,
+          0.25,
+          0.3499999940395355
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_shard_rose",
+      "glb": "assets/orb4_gag_shard_rose.glb",
+      "bytes": 3668,
+      "triangles": 44,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.6499999761581421,
+          -0.25,
+          -0.3499999940395355
+        ],
+        "max": [
+          0.6499999761581421,
+          0.25,
+          0.3499999940395355
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_roadster_left",
+      "glb": "assets/orb4_gag_roadster_left.glb",
+      "bytes": 48752,
+      "triangles": 952,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.75,
+          -1.559999942779541,
+          0.0
+        ],
+        "max": [
+          2.75,
+          1.559999942779541,
+          3.5199999809265137
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_roadster_right",
+      "glb": "assets/orb4_gag_roadster_right.glb",
+      "bytes": 48756,
+      "triangles": 952,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.75,
+          -1.559999942779541,
+          0.0
+        ],
+        "max": [
+          2.75,
+          1.559999942779541,
+          3.5199999809265137
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_gag_train_satellite",
+      "glb": "assets/orb4_gag_train_satellite.glb",
+      "bytes": 15960,
+      "triangles": 296,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.5,
+          -0.41999998688697815,
+          -0.4000000059604645
+        ],
+        "max": [
+          1.5,
+          0.41999998688697815,
+          0.7100000381469727
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_sky_cloud",
+      "glb": "assets/orb4_sky_cloud.glb",
+      "bytes": 7716,
+      "triangles": 360,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.0,
+          -1.4000000953674316,
+          -1.2000000476837158
+        ],
+        "max": [
+          4.199999809265137,
+          1.399999976158142,
+          2.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_sky_bean",
+      "glb": "assets/orb4_sky_bean.glb",
+      "bytes": 8156,
+      "triangles": 200,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.7565187215805054,
+          -0.42165935039520264,
+          -0.92301344871521
+        ],
+        "max": [
+          0.7565187215805054,
+          0.4000000059604645,
+          0.92301344871521
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_far_foam_dome",
+      "glb": "assets/orb4_far_foam_dome.glb",
+      "bytes": 5980,
+      "triangles": 258,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.2999999523162842,
+          -1.0,
+          0.0
+        ],
+        "max": [
+          1.2999999523162842,
+          1.0,
+          0.75
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_ground_7m",
+      "glb": "assets/orb4_ground_7m.glb",
+      "bytes": 10444,
+      "triangles": 288,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.5,
+          -12.0,
+          -0.4599999785423279
+        ],
+        "max": [
+          3.5,
+          6.400000095367432,
+          0.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_near_variant_0",
+      "glb": "assets/orb4_near_variant_0.glb",
+      "bytes": 3324,
+      "triangles": 120,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.1500000953674316,
+          -0.800000011920929,
+          0.0
+        ],
+        "max": [
+          -2.6500000953674316,
+          -0.19999998807907104,
+          0.36000001430511475
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_near_variant_1",
+      "glb": "assets/orb4_near_variant_1.glb",
+      "bytes": 6264,
+      "triangles": 88,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.940000057220459,
+          -0.4399999976158142,
+          0.010000020265579224
+        ],
+        "max": [
+          3.0399997234344482,
+          0.5400000214576721,
+          0.5199999809265137
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_near_variant_2",
+      "glb": "assets/orb4_near_variant_2.glb",
+      "bytes": 14320,
+      "triangles": 400,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.969123125076294,
+          -0.7062900066375732,
+          0.004983365535736084
+        ],
+        "max": [
+          2.9555938243865967,
+          -0.30799993872642517,
+          0.4950166344642639
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "orb4_near_variant_3",
+      "glb": "assets/orb4_near_variant_3.glb",
+      "bytes": 5528,
+      "triangles": 240,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.1499998569488525,
+          -0.949999988079071,
+          0.0
+        ],
+        "max": [
+          3.1499998569488525,
+          -0.44999998807907104,
+          0.4000000059604645
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    }
+  ]
+}

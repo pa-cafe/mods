@@ -1,0 +1,68 @@
+{
+  "units": "meters",
+  "coordinates": "GLB/Three Y up, +Z toward player",
+  "sights": {
+    "placement": "keep original sight root; scale .62 and y lift5",
+    "div3_cloud_island_complete": {
+      "waterfall_relative": [
+        17,
+        0,
+        4
+      ],
+      "waterfall_asset": "div3_waterfall"
+    },
+    "void3_thinking_monolith": {
+      "canvas_face": {
+        "position": [
+          0,
+          29.25,
+          2.36
+        ],
+        "width": 16.4,
+        "height": 38.9,
+        "keep": "original SAYINGS selection and CanvasTexture"
+      }
+    }
+  },
+  "floaters": {
+    "origin": "center; preserve existing motion/rotation/scale",
+    "0": "void3_floating_cube",
+    "1": "void3_floating_diamond",
+    "2": "void3_floating_cup",
+    "3": "void3_floating_ring",
+    "4": "void3_floating_cup"
+  },
+  "near": {
+    "kind0_to5": "div3_near_00_7m through div3_near_05_7m",
+    "root": [
+      3.5,
+      0,
+      -6.5
+    ],
+    "stride": 7,
+    "scale": 1,
+    "variants": "runtime clone new material palette variants; never restore original geometry"
+  },
+  "sky": {
+    "divine_gradient": [
+      "#A9C7DC",
+      "#DCE7E7",
+      "#F8EDD2"
+    ],
+    "void_gradient": [
+      "#D8D6D2",
+      "#E6E3DD",
+      "#F3F0E9"
+    ],
+    "divine_body": "div3_sun_disc, billboard at original bodyAt; size per camera",
+    "void_body": "none"
+  },
+  "unchanged_mechanics": [
+    "original positions and timing",
+    "random Chinese text",
+    "cloud/floater movement",
+    "camera",
+    "gameplay/collisions",
+    "common props handled separately"
+  ]
+}
