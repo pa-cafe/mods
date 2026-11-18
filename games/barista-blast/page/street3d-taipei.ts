@@ -24,6 +24,7 @@ function coin(b: Build, r: number, x: number, y: number, z: number, lit: number)
 
 
 function tower(b: Build, x: number, z: number, lit: number) {
+  if (b.model('tpe_101_refined', x, 0, z)) return;
   const dark = shade(GLASS, 0.7), frame = shade(GLASS, 0.55), mall = '#D9D2C2';
   b.box(mall, 34, 5, 20, x, 0, z + 2); b.box(shade(mall, 0.9), 35, 0.6, 21, x, 5, z + 2);
   for (let i = 0; i < 7; i++) b.pane(lit ? GOLD : '#7FB3B5', 3.2, 3, x - 13.5 + i * 4.5, 2.4, z + 12.02, { glow: lit * 0.6 });
@@ -108,6 +109,7 @@ function hotel(b: Build, x: number, z: number, lit: number) {
 
 
 function hall(b: Build, x: number, z: number, lit: number) {
+  if (b.model('cks-memorial-refined', x, 0, z)) return;
   const eight = { sides: 8, turn: [0, 22.5, 0], rough: 0.5 } as const, stone = shade(WHITE, 0.95), foot = 7.8, h = 14, eave = foot + h;
   [[36, 0], [31, 2.6], [26, 5.2]].forEach(([w, y]) => b.box(stone, w, 2.6, 24, x, y, z));
   b.taper(WHITE, 22, h, 20, x, foot, z, 0.93, 0.93);
@@ -153,10 +155,12 @@ export const taipei: Skyline = {
 
 
 function viaduct(b: Build, length: number, train: boolean, lit: number) {
-  b.box(CONCRETE, length, 1, 3.2, length / 2, 8.4, -19); b.box(shade(CONCRETE, 0.9), length, 0.7, 0.2, length / 2, 9.4, -17.5);
-  for (const x of [length * 0.25, length * 0.75]) { b.box(shade(CONCRETE, 0.92), 1.8, 8.4, 1.8, x, 0, -19); b.box(CONCRETE, 3.4, 0.8, 3, x, 7.6, -19); }
+  if (!b.model('tpe_mrt_viaduct_tile14m', length / 2, 0, -19)) {
+    b.box(CONCRETE, length, 1, 3.2, length / 2, 8.4, -19); b.box(shade(CONCRETE, 0.9), length, 0.7, 0.2, length / 2, 9.4, -17.5);
+    for (const x of [length * 0.25, length * 0.75]) { b.box(shade(CONCRETE, 0.92), 1.8, 8.4, 1.8, x, 0, -19); b.box(CONCRETE, 3.4, 0.8, 3, x, 7.6, -19); }
+  }
   b.dome(shade(HILL, 0.95), 26, 15, 12, length / 2, 0, -128, { rough: 1 });
-  if (!train) return;
+  if (!train || b.model('tpe_mrt_train_2car_tile14m', length / 2, 9.5, -19)) return;
   for (const x of [length * 0.27, length * 0.77]) {
     b.box('#F2F2F2', length * 0.46, 2.5, 2.5, x, 9.5, -19); b.box('#2E6FD8', length * 0.46, 0.4, 0.04, x, 9.9, -17.73);
     for (let i = 0; i < 4; i++) b.pane(lit ? GOLD : '#3D4A66', 1.1, 0.9, x - length * 0.17 + i * length * 0.115, 11.1, -17.73, lit ? { glow: lit } : {});

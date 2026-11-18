@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
+import type { ModelId, ModelMesh } from './street3d-models';
+
 const rad = (degrees: number) => degrees * Math.PI / 180;
 /** A colour made darker or lighter by a factor, as a hex string. */
 export const shade = (color: string, by: number) => `#${new THREE.Color(color).multiplyScalar(by).getHexString()}`;
@@ -12,6 +14,7 @@ type Painter = (ctx: CanvasRenderingContext2D, size: number) => void;
 
 /** Geometries, materials and painted signs, made once and shared by every piece. */
 export class Kit {
+  readonly models = new Map<ModelId, ModelMesh[]>();
   private shapes = new Map<string, THREE.BufferGeometry>();
   private materials = new Map<string, THREE.Material>();
   private textures = new Map<string, THREE.CanvasTexture>();
@@ -49,6 +52,7 @@ export class Kit {
 
 export class Build {
   private pending: Pending[] = [];
+  private modelMaterials = new Map<string, THREE.Material>();
   private pictures = new Map<string, THREE.Texture>();
   private looks = new Map<string, { color: string; look: Look }>();
   private frame: THREE.Matrix4 | null = null;
@@ -68,6 +72,21 @@ export class Build {
     const [rx, ry, rz] = look.turn ?? [0, 0, 0];
     const matrix = new THREE.Matrix4().compose(new THREE.Vector3(...at), new THREE.Quaternion().setFromEuler(new THREE.Euler(rad(rx), rad(ry), rad(rz))), new THREE.Vector3(...size));
     this.pending.push({ geometry, matrix: this.frame ? matrix.premultiply(this.frame) : matrix, key });
+  }
+
+  /** Places a trusted artist model into the same per-material batch as the procedural tile. */
+  model(id: ModelId, x: number, y: number, z: number, scale = 1, roll = 0) {
+    const parts = this.kit.models.get(id);
+    if (!parts?.length) return false;
+    const at = new THREE.Matrix4().makeRotationZ(rad(roll)).scale(new THREE.Vector3(scale, scale, scale));
+    at.setPosition(x, y, z);
+    if (this.frame) at.premultiply(this.frame);
+    for (const mesh of parts) {
+      const key = mesh.material.uuid;
+      this.modelMaterials.set(key, mesh.material);
+      this.pending.push({ geometry: mesh.geometry, matrix: at.clone().multiply(mesh.matrixWorld), key });
+    }
+    return true;
   }
 
   /** A box standing on `y`, centred on `x` and `z`. */
@@ -140,9 +159,12 @@ export class Build {
     const groups = new Map<string, Pending[]>();
     for (const item of this.pending) groups.set(item.key, [...groups.get(item.key) ?? [], item]);
     return [...groups].map(([key, items]) => {
-      const { color, look } = this.looks.get(key)!, copies = items.map(item => item.geometry.clone().applyMatrix4(item.matrix));
+      const copies = items.map(item => item.geometry.clone().applyMatrix4(item.matrix));
       const geometry = mergeGeometries(copies)!;
       for (const copy of copies) copy.dispose();
+      const model = this.modelMaterials.get(key);
+      if (model) return { geometry, material: model, shadow: true };
+      const { color, look } = this.looks.get(key)!;
       return { geometry, material: this.kit.material(key, color, look, this.pictures.get(key)), shadow: !look.flat };
     });
   }

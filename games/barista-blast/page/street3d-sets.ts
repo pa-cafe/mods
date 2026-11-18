@@ -6,6 +6,7 @@ export type FurnitureAssetId = string;
 import { CREAM, INK, MINT, PINK, RED } from './art';
 import { type Scene, scenes } from './scenes';
 import { board, type Build, lights, mark, markShape, neon, shade, type Skyline } from './street3d-kit';
+import type { ModelId } from './street3d-models';
 import { bay } from './street3d-bay';
 import { blank } from './street3d-blank';
 import { hsinchu } from './street3d-hsinchu';
@@ -476,6 +477,17 @@ export function sightOn(b: Build, place: number, which: number) {
   b.scaled(SIGHT.size, FAR_TILE / 2, -66, SIGHT.lift, () => skylines[place].sights[which].build(b, FAR_TILE / 2, -66, scenes[place].stars ? 1.4 : 0));
 }
 
+// A second row behind the existing shops. Leave a gap in front of each landmark,
+// and keep the void empty. Scales fit these metre-sized modules to a 14 m tile.
+const middleRows: readonly (readonly (readonly [ModelId, number])[])[] = [
+  [['tpe_cafe_front', 0.27], ['tpe_tea_front', 0.24], ['tpe_coffee_kiosk', 0.25], ['tpe_arcade_front', 0.25]],
+  [['hsinchu_tank_pair_v2', 0.28], ['hsinchu_pipe_gantry_v2', 0.21], ['hsinchu_utility_hall_v2', 0.22]],
+  [['sfv2_deco_arcade', 0.32], ['sfv2_neon_diner', 0.36]],
+  [['coffee_cup_habitat_v2', 0.25], ['moka_lander_v2', 0.33], ['milk_foam_drift_v2', 0.21]],
+  [['d5_portal_colonnade', 0.43]],
+  [],
+];
+
 /**
  * One 14 m stretch of the skyline of place `place`. `sight` is the landmark that stands on it (-1 for none), `near`
  * the ones standing on other stretches close enough to reach this one, as [stretches away, which landmark].
@@ -487,6 +499,14 @@ export function skyline(b: Build, place: number, v: number, sight: number, train
 
   const taken = [...near, ...sight >= 0 ? [[0, sight] as const] : []].map(([away, which]) => [(away + 0.5) * FAR_TILE - sights[which].reach * SIGHT.size, (away + 0.5) * FAR_TILE + sights[which].reach * SIGHT.size] as const);
   behind?.(b, FAR_TILE, train, lit);
+  const row = middleRows[place];
+  if (row.length && !taken.some(([a, b]) => a < FAR_TILE && b > 0)) {
+    const [id, size] = row[v % row.length];
+    if (v !== 3 || place === 0) b.model(id, FAR_TILE / 2, 0, -29, size);
+    if (v === 2 && (place === 0 || place === 2)) {
+      b.model(place === 0 ? 'tpe_distant_skyline' : 'sfv2_back_skyline', FAR_TILE / 2, 0, -99, 0.38);
+    }
+  }
   for (let i = 0; i < 6; i++) {
     const back = i % 2, x = i * 2.4 + roll(i, v) * 1.2, z = -40 - back * 30 - roll(i, v + 1) * 10, w = 4 + roll(i, v + 2) * 3.4, tone = shade(color, back ? 1.06 : 0.94);
     if (taken.some(([from, to]) => x + w / 2 > from && x - w / 2 < to)) continue;

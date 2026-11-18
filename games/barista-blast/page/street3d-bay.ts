@@ -44,6 +44,7 @@ function bridge(b: Build, x: number, z: number, lit: number) {
   const glow = lit * 0.32, tower = 34, end = 60, deck = 17, top = 55, low = deck + 2.4, planes = [-4.4, 4.4], deckTop = deck + 1;
   b.dome(GREEN_HILL, 11, 20, 12, x - end - 4, 0, z - 1, { rough: 1 }); b.dome(shade(GREEN_HILL, 1.1), 11, 18.8, 11, x + end + 4, 0, z - 1, { rough: 1 });
   b.dome(GREEN_DEEP, 12, 13, 9, x - end + 4, 0, z - 8, { rough: 1 }); b.dome(GREEN_DEEP, 10, 11, 9, x + end - 2, 0, z - 9, { rough: 1 });
+  if (b.model('sfv2_golden_gate', x, 0, z)) return;
   b.box(DECK, end * 2 + 2, 1, 7.6, x, deck, z); b.box(ASPHALT, end * 2, 0.06, 5.8, x, deckTop, z);
   for (let i = 0; i < Math.floor(end * 2 / 3.1); i++) b.box(CREAM, 1.4, 0.04, 0.16, x - end + 1.5 + i * 3.1, deckTop + 0.04, z, { glow: lit * 0.3 });
   for (const plane of planes) {
@@ -98,6 +99,7 @@ function pyramid(b: Build, x: number, z: number, lit: number) {
     b.box(BLOCK, w, height, d, x + dx, 0, z - 3);
     b.sign(`bay:block:${name}:${lit ? 1 : 0}`, lights(colors, 6, 14, 0.55, '#3B4670', name + 3), w * 0.86, height * 0.9, x + dx, height * 0.5, z - 3 + d / 2 + 0.03, { glow: lit ? 1.1 : 0 });
   }
+  if (b.model('sfv2_transamerica_pyramid', x, 0, z)) return;
   b.taper(QUARTZ, base, h, base, x, 0, z, top / base, top / base, { glow: lit * 0.42 });
   const ys = [8, 13.5, 19, 24.5, 30, 35.5, 41], columns = [-7, -5.2, -3.4, -1.6, 0.2, 2, 3.8, 5.6, 7.4];
   for (const face of ['front', 'right', 'left'] as const) columns.forEach((u, i) => ys.forEach((y0, j) => {
@@ -133,6 +135,7 @@ function coit(b: Build, x: number, z: number, lit: number) {
     if (lit) b.pane(LAMP, 0.7, 0.8, x + dx - 0.7, y - 1, z + dz + 1.42, { glow: lit * 0.9 });
   }
   b.tube(STONE, 8.2, 0.8, x, peak - 0.4, z, { rough: 1 }); b.tube(shade(white, 0.92), 6.2, 1.2, x, peak + 0.4, z); b.tube(white, 5.5, 0.8, x, peak + 1.6, z, { glow });
+  if (b.model('sfv2_coit_tower', x, peak, z)) return;
   const foot = peak + 2.4, shaft = 24, r = 3.6, crest = foot + shaft;
   b.tube(shade(white, 0.96), r, shaft, x, foot, z, { sides: 28, glow });
   for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; b.tube(rib, 0.3, shaft, x + Math.cos(a) * r, foot, z + Math.sin(a) * r, { sides: 6, glow }); }
@@ -199,7 +202,9 @@ function ladies(b: Build, x: number, z: number, lit: number) {
   b.dome(GREEN_HILL, 46, 46, 20, x, 0, z - 26, { rough: 1 }); b.dome(shade(GREEN_HILL, 1.12), 20, 33, 12, x - 28, 0, z - 20, { rough: 1 }); b.dome(shade(GREEN_HILL, 0.9), 18, 30, 12, x + 30, 0, z - 21, { rough: 1 });
   for (const [dx, y, size, round] of [[-30, 26, 7, false], [-14, 40, 6, true], [-4, 45, 7, false], [6, 46, 6.5, true], [16, 40, 7, false], [29, 24, 6, true]] as const) tree(b, x + dx, y, z - 24, size, round);
   b.box(STONE, pitch * 5 + 3.4, terrace, 13, x, 0, z + 0.5); b.box(shade(STONE, 1.12), pitch * 5 + 3.8, 0.5, 13.6, x, terrace - 0.5, z + 0.5);
-  for (let i = 0; i < 5; i++) house(b, at(i), z - 1, lit, i, front);
+  if (!b.model('sfv2_painted_ladies', x, terrace, z - 1, 1.15)) {
+    for (let i = 0; i < 5; i++) house(b, at(i), z - 1, lit, i, front);
+  }
   for (let i = 0; i <= 5; i++) {
     const lx = x + (i - 2.5) * pitch;
     b.tube(INK, 0.1, 4.6, lx, terrace, z + 6.6, { sides: 6 }); b.ball(LAMP, 0.32, 0.32, 0.32, lx, terrace + 4.9, z + 6.6, { glow: lit * 2.2 });

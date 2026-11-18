@@ -22,6 +22,10 @@ function plume(b: Build, color: string, x: number, y: number, z: number, n: numb
 
 
 function fab(b: Build, x: number, z: number, lit: number) {
+  if (b.model('hsinchu_wafer_fab_v2', x - 12, 0, z, 0.78)) {
+    b.model('hsinchu_office_v2', x + 27, 0, z - 2, 0.66);
+    return;
+  }
   const hallX = x - 13, w = 58, d = 16, base = 5, h = 24, top = base + h, roof = top + 0.9, front = z + d / 2;
   b.box(DARK, w + 4, base, d + 3, hallX, 0, z); b.box(shade(DARK, 1.12), w + 4.4, 0.4, d + 3.4, hallX, base - 0.4, z);
   b.box(PALE, w, h, d, hallX, base, z);
@@ -75,6 +79,7 @@ function fab(b: Build, x: number, z: number, lit: number) {
 
 
 function coolingTower(b: Build, x: number, y: number, z: number, size: number) {
+  if (b.model('hsinchu_cooling_tower_v2', x, y, z, size * 46 / 43.1)) return;
   const foot = 15.5 * size, throat = 10 * size, mouth = 10.8 * size, height = 46 * size, waist = 33 * size, n = 23, step = height / n;
   const radius = (at: number) => at <= waist ? Math.hypot(throat, Math.sqrt(foot * foot - throat * throat) * (waist - at) / waist) : Math.hypot(throat, Math.sqrt(mouth * mouth - throat * throat) * (at - waist) / (height - waist));
   for (let i = 0; i < n; i++) {
@@ -140,6 +145,7 @@ function power(b: Build, x: number, z: number, lit: number) {
   const stack = x - 38;
   b.tube('#A5B0B7', 1.7, 42, stack, 0, z - 4, { top: 0.6, sides: 16 }); b.tube(STRIPE, 1.2, 3, stack, 36, z - 4, { top: 0.82, sides: 16 }); b.tube(DARK, 0.9, 0.4, stack, 42, z - 4, { sides: 16 });
   plume(b, SMOKE, stack, 42.4, z - 4, 4, 1.7, 0.9, 3.6);
+  if (b.model('hsinchu_substation_v2', x - 46, 0, z + 7, 0.53)) return;
   for (const [at, depth] of [[-56, 8], [-46, 14]] as const) {
     for (const side of [0, 11]) b.tube(DARK, 0.28, 17, x + at + side, 0, z + depth);
     b.box(DARK, 11.6, 0.4, 0.4, x + at + 5.5, 17, z + depth);
@@ -150,6 +156,7 @@ function power(b: Build, x: number, z: number, lit: number) {
 
 
 function turbine(b: Build, x: number, y: number, z: number, hub: number, blade: number, turn: number) {
+  if (b.model('hsinchu_wind_turbine_v2', x, y, z, (hub + blade) / 91)) return;
   b.tube('#EDEFEC', 1.9, hub - 1, x, y, z, { top: 0.55, sides: 24 }); b.tube('#C8CCC9', 2, 0.5, x, y, z, { sides: 24 });
   b.box('#E3E6E3', 2.8, 2.8, 8, x, y + hub - 1.6, z - 1.2); b.box('#F8F9F7', 2.4, 0.5, 6, x, y + hub + 1.2, z - 1.2); b.ball(LIGHT, 0.3, 0.3, 0.3, x, y + hub + 1.9, z - 3.2, { glow: 3 });
   b.tube('#F2F3F0', 1.7, 2.4, x, y + hub - 1.2, z + 3, { top: 0.35, sides: 18, turn: [90, 0, 0] });

@@ -9,6 +9,7 @@ import type { Lens } from './camera';
 import { ORBIT, paintBody, sceneAt, scenes } from './scenes';
 import { Build, Kit, loadMarks, meshes, type Part } from './street3d-kit';
 import { voidCup } from './street3d-blank';
+import { StreetModels } from './street3d-models';
 import { Machine, type MachineState } from './street3d-machine';
 import { buildProp, propKey, type StreetProp } from './street3d-props';
 import { GAG_DEPTH, OrbitGags } from './street3d-gags';
@@ -38,12 +39,12 @@ const rad = (degrees: number) => degrees * Math.PI / 180;
 const mod = (value: number, by: number) => (value % by + by) % by;
 
 const moods = [
-  { sun: '#FFE9C8', power: 3.2, fill: 2.3, glow: 0.2, angle: [-6, 9, 8] },
-  { sun: '#FFD2A0', power: 3.2, fill: 2.2, glow: 0.4, angle: [-10, 6, 7] },
-  { sun: '#A9B4FF', power: 1.5, fill: 1.5, glow: 1.7, angle: [-4, 10, 6] },
-  { sun: '#FFF0E0', power: 2.4, fill: 2.3, glow: 1, angle: [-6, 12, 8] },
-  { sun: '#FFF6D8', power: 3.4, fill: 2.6, glow: 0.8, angle: [-4, 14, 8] },
-  { sun: '#FFFFFF', power: 2.2, fill: 2.8, glow: 0.4, angle: [-4, 10, 6] },
+  { sun: '#FFE9C8', power: 2.45, fill: 1.75, glow: 0.2, angle: [-6, 9, 8] },
+  { sun: '#FFE0B9', power: 2.55, fill: 1.85, glow: 0.4, angle: [-10, 6, 7] },
+  { sun: '#CFCCFF', power: 1.65, fill: 1.55, glow: 1.15, angle: [-4, 10, 6] },
+  { sun: '#FFF0E0', power: 2.15, fill: 1.85, glow: 1, angle: [-6, 12, 8] },
+  { sun: '#FFF6D8', power: 2.45, fill: 1.85, glow: 0.8, angle: [-4, 14, 8] },
+  { sun: '#FFFFFF', power: 2.1, fill: 2.05, glow: 0.4, angle: [-4, 10, 6] },
 ] as const;
 /** What the game's canvas saw this frame: its lens, the place the run is in, and the slanted edge (in pixels, at the top and bottom of the screen) while the next place sweeps in from the right. */
 /** A camera swung off the street's straight-on view, for a still picture: round `target` by `yaw` and `pitch` degrees, with `target` drawn at `at` (pixels). */
@@ -119,6 +120,7 @@ export class Street3d {
   private camera = new THREE.PerspectiveCamera(FOV, 1, 0.5, 900);
   private pool = blastHost().furniture();
   private kit = new Kit();
+  private models = new StreetModels(this.kit);
   private machine = new Machine(this.kit);
   private made = new Map<string, Part[]>();
   private gags = new OrbitGags((key, make) => this.parts(key, false, make));
@@ -148,10 +150,11 @@ export class Street3d {
       street.level = 0; street.resize(width, height, 1);
       const tokens = blastTokens(x), place = Math.max(0, sceneAt(tokens));
 
+      await street.models.warm(place);
       const spots = [...sights[place]].map(([stretch, which]) => ({ at: stretch * FAR_TILE, which })), passed = spots.filter(spot => spot.at <= x);
       const spot = passed.length ? passed[passed.length - 1] : spots[0];
       const kit = new THREE.Box3(), half = 2 * Math.tan(rad(FOV / 2)), whole = height / half;
-      if (spot) { const build = new Build(street.kit); sightOn(build, place, spot.which); const group = meshes(build.done()); group.position.x = spot.at; kit.setFromObject(group); }
+      if (spot) { const build = new Build(street.kit); sightOn(build, place, spot.which); const group = meshes(build.done()); group.position.x = spot.at; kit.setFromObject(group); group.traverse(node => { if (node instanceof THREE.Mesh) node.geometry.dispose(); }); }
       else kit.set(new THREE.Vector3(x, 0, -66), new THREE.Vector3(x + 20, 30, -66));
       const size = kit.getSize(new THREE.Vector3()), middle = kit.getCenter(new THREE.Vector3()), depth = Math.max(0, -middle.z);
 
@@ -213,7 +216,25 @@ export class Street3d {
 
   private world(place: number) {
     let world = this.worlds[place];
-    if (!world) { world = this.worlds[place] = new World(place, this.slab, this.pane); this.frame(world); }
+    if (!world) {
+      world = new World(place, this.slab, this.pane);
+      this.worlds[place] = world;
+      this.frame(world);
+      const current = world;
+      void this.models.warm(place).then(() => {
+        if (this.worlds[place] !== current) return;
+        // Replace provisional tiles together on the next draw, including both sides of a wipe.
+        for (const layer of [current.far, current.clouds]) {
+          for (const group of layer.values()) current.scene.remove(group);
+          layer.clear();
+        }
+        for (const [key, parts] of this.made) {
+          if (!key.startsWith(`far:${place}:`) && key !== `cloud:${place}`) continue;
+          for (const part of parts) part.geometry.dispose();
+          this.made.delete(key);
+        }
+      });
+    }
     return world;
   }
 
@@ -259,7 +280,7 @@ export class Street3d {
 
       const x = index * CLOUD_TILE + hash(at, 42) * CLOUD_TILE;
       if (scene.floaters && [...sights[world.place].keys()].some(stretch => Math.abs(x - (stretch + 0.5) * FAR_TILE) < 24)) continue;
-      const cloud = scene.floaters ? this.parts(`floater:${world.place}:${kind}`, false, b => floater(b, kind, scene.floaters![kind % scene.floaters!.length])) : this.parts(`cloud:${world.place}`, false, b => { b.ball(scene.cloud, 3, 1.1, 1.4, 0, 0, 0, { glow: 0.35, rough: 1 }); b.ball(scene.cloud, 1.9, 1.3, 1.3, -0.6, 0.7, 0.1, { glow: 0.35, rough: 1 }); b.ball(scene.cloud, 2.2, 0.9, 1.2, 2, -0.3, 0.2, { glow: 0.35, rough: 1 }); });
+      const cloud = scene.floaters ? this.parts(`floater:${world.place}:${kind}`, false, b => floater(b, kind, scene.floaters![kind % scene.floaters!.length])) : this.parts(`cloud:${world.place}`, false, b => { if (world.place === 0 && b.model('tpe_soft_cloud', 0, 0, 0, 0.19)) return; b.ball(scene.cloud, 3, 1.1, 1.4, 0, 0, 0, { glow: 0.35, rough: 1 }); b.ball(scene.cloud, 1.9, 1.3, 1.3, -0.6, 0.7, 0.1, { glow: 0.35, rough: 1 }); b.ball(scene.cloud, 2.2, 0.9, 1.2, 2, -0.3, 0.2, { glow: 0.35, rough: 1 }); });
       if (scene.floaters) cloud.rotation.set(hash(at, 46) * 6.3, hash(at, 47) * 6.3, hash(at, 48) * 6.3);
       cloud.position.set(hash(at, 42) * CLOUD_TILE, 13 + hash(at, 44) ** 1.7 * 180, -30 - hash(at, 43) * 34); cloud.scale.setScalar(size);
       group.add(cloud);
@@ -349,6 +370,7 @@ export class Street3d {
     for (const world of this.worlds) world?.dispose();
     for (const parts of this.made.values()) for (const part of parts) part.geometry.dispose();
     for (const material of this.plain.values()) material.dispose();
+    this.worlds.length = 0; this.models.dispose();
     this.machine.dispose(); this.kit.dispose(); this.pool.dispose(); this.renderer.dispose(); this.box.dispose(); this.pane.dispose();
   }
 }
