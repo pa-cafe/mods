@@ -1,6 +1,8 @@
 # BARISTA BLAST!! 場景審閱
 
-[台北 v3 最新畫面、尺寸與測試](taipei-v3.md)
+[六關全面組裝、前後畫面與實測](full-style.md)
+
+[前版台北 v3 畫面、尺寸與測試](taipei-v3.md)
 
 ## 六關初版審閱紀錄
 
