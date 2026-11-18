@@ -39,12 +39,12 @@ const rad = (degrees: number) => degrees * Math.PI / 180;
 const mod = (value: number, by: number) => (value % by + by) % by;
 
 const moods = [
-  { sun: '#FFE9C8', power: 2.45, fill: 1.75, glow: 0.2, angle: [-6, 9, 8] },
-  { sun: '#FFE0B9', power: 2.55, fill: 1.85, glow: 0.4, angle: [-10, 6, 7] },
-  { sun: '#CFCCFF', power: 1.65, fill: 1.55, glow: 1.15, angle: [-4, 10, 6] },
-  { sun: '#FFF0E0', power: 2.15, fill: 1.85, glow: 1, angle: [-6, 12, 8] },
-  { sun: '#FFF6D8', power: 2.45, fill: 1.85, glow: 0.8, angle: [-4, 14, 8] },
-  { sun: '#FFFFFF', power: 2.1, fill: 2.05, glow: 0.4, angle: [-4, 10, 6] },
+  { sky: ['#7799C8', '#C8B8CB', '#E9CDB7', '#F7E1BC'], sun: '#FFE9C8', power: 2.45, fill: 1.75, glow: 0.2, angle: [-6, 9, 8] },
+  { sky: ['#719C9A', '#B7C6B9', '#E3C39C', '#F4D9AC'], sun: '#FFE0B9', power: 2.55, fill: 1.85, glow: 0.4, angle: [-10, 6, 7] },
+  { sky: ['#242744', '#453858', '#76536F', '#B57E80'], sun: '#CFCCFF', power: 1.65, fill: 1.55, glow: 1.15, angle: [-4, 10, 6] },
+  { sky: ['#161F3B', '#334469', '#716881', '#C7A7B0'], sun: '#FFF0E0', power: 2.15, fill: 1.85, glow: 1, angle: [-6, 12, 8] },
+  { sky: ['#8EB2CD', '#D2E1E2', '#EEE1BD', '#FBEDD0'], sun: '#FFF6D8', power: 2.45, fill: 1.85, glow: 0.8, angle: [-4, 14, 8] },
+  { sky: ['#CBCBD0', '#DDDDDF', '#EAE9E6', '#F2F0EC'], sun: '#FFFFFF', power: 2.1, fill: 2.05, glow: 0.4, angle: [-4, 10, 6] },
 ] as const;
 /** What the game's canvas saw this frame: its lens, the place the run is in, and the slanted edge (in pixels, at the top and bottom of the screen) while the next place sweeps in from the right. */
 /** A camera swung off the street's straight-on view, for a still picture: round `target` by `yaw` and `pitch` degrees, with `target` drawn at `at` (pixels). */
@@ -86,15 +86,15 @@ class World {
   constructor(readonly place: number, slab: (color: string, w: number, h: number, d: number, y: number, z: number) => THREE.Mesh, pane: THREE.BufferGeometry) {
     const scene = scenes[place], mood = moods[place];
 
-    const fill = new THREE.HemisphereLight(new THREE.Color(scene.sky[1]).lerp(new THREE.Color('#fff'), 0.6), scene.walk, mood.fill);
+    const fill = new THREE.HemisphereLight(new THREE.Color(mood.sky[1]).lerp(new THREE.Color('#fff'), 0.6), scene.walk, mood.fill);
     this.sun.color.set(mood.sun); this.sun.intensity = mood.power;
     this.sun.castShadow = true; this.sun.shadow.bias = -0.0004; this.sun.shadow.normalBias = 0.04;
     Object.assign(this.sun.shadow.camera, { left: -32, right: 32, top: 26, bottom: -6, near: 1, far: 90 });
-    this.fog.color.set(scene.sky[2]); this.scene.fog = this.fog;
+    this.fog.color.set(mood.sky[2]); this.scene.fog = this.fog;
     this.ground.add(slab(scene.walk, 500, 0.3, -FACE + 8, -0.3, (FACE - 8) / 2 - 0.6), slab(scene.walkEdge, 500, 0.24, 0.3, -0.34, -0.6), slab(scene.road, 500, 0.3, 60, -0.48, 29.4), slab(scene.far.color, 500, 0.3, 120, -0.5, FACE - 68));
     const own = <T extends { dispose(): void }>(item: T) => { this.owned.push(item); return item; };
     const flat = (map: THREE.Texture, see = false) => own(new THREE.MeshBasicMaterial({ map: own(map), fog: false, depthWrite: false, transparent: see }));
-    this.sky = new THREE.Mesh(pane, flat(skyTexture(scene.sky))); this.sky.position.z = SKY; this.sky.renderOrder = -3;
+    this.sky = new THREE.Mesh(pane, flat(skyTexture(mood.sky))); this.sky.position.z = SKY; this.sky.renderOrder = -3;
     this.body = new THREE.Mesh(pane, flat(bodyTexture(place), true)); this.body.position.z = SKY + 20; this.body.renderOrder = -1;
     this.backdrop.add(this.sky, this.body);
     if (scene.stars) {
@@ -221,6 +221,7 @@ export class Street3d {
       this.worlds[place] = world;
       this.frame(world);
       const current = world;
+      if (this.models.isReady(place)) return world;
       void this.models.warm(place).then(() => {
         if (this.worlds[place] !== current) return;
         // Replace provisional tiles together on the next draw, including both sides of a wipe.

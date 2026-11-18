@@ -66,10 +66,14 @@ export type ModelMesh = THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMater
 
 export class StreetModels {
   private readonly pending = new Map<number, Promise<void>>();
+  private readonly paint = new Map<string, THREE.MeshStandardMaterial>();
+  private readonly ready = new Set<number>();
   private readonly loader = new GLTFLoader();
   private readonly stop = new AbortController();
 
   constructor(private readonly kit: Kit) {}
+
+  isReady(place: number) { return this.ready.has(place); }
 
   warm(place: number) {
     let pending = this.pending.get(place);
@@ -83,7 +87,7 @@ export class StreetModels {
   private async loadDistrict(place: number) {
     const loaded = await Promise.all(Object.entries(districts[place]).map(async ([id, url]) => {
       try {
-        const response = await fetch(url, { signal: this.stop.signal });
+        const response = await fetch(url, { signal: AbortSignal.any([this.stop.signal, AbortSignal.timeout(8000)]) });
         if (!response.ok) return;
         const { scene } = await this.loader.parseAsync(await response.arrayBuffer(), '');
         scene.updateMatrixWorld(true);
@@ -100,24 +104,43 @@ export class StreetModels {
         for (const mesh of asset.parts) { mesh.geometry.dispose(); mesh.material.dispose(); }
         continue;
       }
-      for (const { material } of asset.parts) {
+      for (const mesh of asset.parts) {
+        const material = mesh.material;
         if (material.name === 'v6-runtime-face') {
           material.map = thoughtLabel(this.kit);
           material.color.set('#fff');
           material.emissive.set('#fff');
           material.emissiveMap = material.map;
           material.emissiveIntensity = 0.55;
+        } else if (!material.map && !material.emissive.getHex() && !material.transparent) {
+          // Keep each Blender colour in linear vertex RGB. Tile batching can now draw
+          // dozens of differently painted pieces with the same opaque surface in one call.
+          const key = [material.roughness, material.metalness, material.side].join(':');
+          let paint = this.paint.get(key);
+          if (!paint) {
+            paint = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: material.roughness, metalness: material.metalness, side: material.side });
+            this.paint.set(key, paint);
+          }
+          const colors = new Float32Array(mesh.geometry.attributes.position.count * 3);
+          for (let i = 0; i < colors.length; i += 3) material.color.toArray(colors, i);
+          mesh.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+          mesh.material = paint;
+          material.dispose();
         }
       }
       this.kit.models.set(asset.id, asset.parts);
     }
+    if (!this.stop.signal.aborted) this.ready.add(place);
   }
 
   dispose() {
     this.stop.abort();
+    const materials = new Set<THREE.Material>();
     for (const parts of this.kit.models.values()) {
-      for (const mesh of parts) { mesh.geometry.dispose(); mesh.material.dispose(); }
+      for (const mesh of parts) { mesh.geometry.dispose(); materials.add(mesh.material); }
     }
+    for (const material of materials) material.dispose();
+    this.paint.clear();
     this.kit.models.clear();
   }
 }
