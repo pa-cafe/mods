@@ -1,0 +1,146 @@
+{
+  "version": "3.0-foreground-design-review",
+  "assets": [
+    {
+      "asset": "tpe3_corner_cafe_7m",
+      "glb": "assets/tpe3_corner_cafe_7m.glb",
+      "bytes": 237772,
+      "triangles": 4628,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.5250000953674316,
+          -2.643286943435669,
+          0.0
+        ],
+        "max": [
+          3.549999952316284,
+          1.5600000619888306,
+          9.649999618530273
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "bottom-center",
+      "units": "meters",
+      "runtime_role": "foreground_tile",
+      "apply_sight_transform_at_runtime": false
+    },
+    {
+      "asset": "tpe3_tea_balcony_7m",
+      "glb": "assets/tpe3_tea_balcony_7m.glb",
+      "bytes": 137748,
+      "triangles": 2611,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.5250000953674316,
+          -2.5799999237060547,
+          0.0
+        ],
+        "max": [
+          3.5250000953674316,
+          1.5000001192092896,
+          8.610000610351562
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "bottom-center",
+      "units": "meters",
+      "runtime_role": "foreground_tile",
+      "apply_sight_transform_at_runtime": false
+    },
+    {
+      "asset": "tpe3_arcade_apartment_7m",
+      "glb": "assets/tpe3_arcade_apartment_7m.glb",
+      "bytes": 190236,
+      "triangles": 3497,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.5250000953674316,
+          -2.238278865814209,
+          0.0
+        ],
+        "max": [
+          3.25,
+          1.5999999046325684,
+          12.15000057220459
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "bottom-center",
+      "units": "meters",
+      "runtime_role": "foreground_tile",
+      "apply_sight_transform_at_runtime": false
+    },
+    {
+      "asset": "tpe3_low_market_7m",
+      "glb": "assets/tpe3_low_market_7m.glb",
+      "bytes": 68204,
+      "triangles": 1122,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.0999999046325684,
+          -1.8300001621246338,
+          -6.193295121192932e-08
+        ],
+        "max": [
+          3.238187551498413,
+          1.3212062120437622,
+          3.1999998092651367
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "bottom-center",
+      "units": "meters",
+      "runtime_role": "foreground_tile",
+      "apply_sight_transform_at_runtime": false
+    },
+    {
+      "asset": "tpe3_101_jade_refined",
+      "glb": "assets/tpe3_101_jade_refined.glb",
+      "bytes": 173444,
+      "triangles": 3176,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -12.5,
+          -10.600000381469727,
+          0.0
+        ],
+        "max": [
+          12.5,
+          10.5,
+          93.70000457763672
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "bottom-center",
+      "units": "meters",
+      "runtime_role": "landmark",
+      "apply_sight_transform_at_runtime": true
+    }
+  ],
+  "units": "meters",
+  "axes": "Y up, +X street, +Z player",
+  "game_scale_preapplied": false,
+  "camera_validation": "camera-qa.json",
+  "new_asset_count": 5,
+  "preserved_not_new": "preserved-checksums.json"
+}
