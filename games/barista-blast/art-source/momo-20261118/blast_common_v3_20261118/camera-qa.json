@@ -1,0 +1,6 @@
+{
+  "camera": "Provided 960x540 stable aim camera; Blender preview, not gameplay",
+  "ground_y": 475.20008593797684,
+  "expected": 475.2,
+  "pass": true
+}
