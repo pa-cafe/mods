@@ -1,0 +1,37 @@
+{
+  "claude-deepseek": {
+    "file": "duos/claude-deepseek.6f1e21955f.webp",
+    "width": 960,
+    "height": 640,
+    "bytes": 199816,
+    "source": "5eb2298834d4037392999930b31c0b41f50c07a0bc9825b987e31b10936c572c"
+  },
+  "claude-dots": {
+    "file": "duos/claude-dots.3cfab2aaa8.webp",
+    "width": 960,
+    "height": 660,
+    "bytes": 210684,
+    "source": "f6372b6825ad8420a4eed93c735bb145f49f3265e4184447e54c094f1c307270"
+  },
+  "claude-qwen": {
+    "file": "duos/claude-qwen.ffe605dead.webp",
+    "width": 960,
+    "height": 620,
+    "bytes": 189784,
+    "source": "f623d576de573b6e289b4c32f88be6599d3b44373af342862e3567e92763b4ef"
+  },
+  "deepseek-qwen": {
+    "file": "duos/deepseek-qwen.c112d7664f.webp",
+    "width": 960,
+    "height": 642,
+    "bytes": 183456,
+    "source": "a15dbf66ec1c6289ad9cc7f6c743f23d5f120717ee582fe02ec042b76a13e0f2"
+  },
+  "gemini-grok": {
+    "file": "duos/gemini-grok.7705f33cfc.webp",
+    "width": 960,
+    "height": 616,
+    "bytes": 210330,
+    "source": "07f3d032ca590b5fb66e7e09e4393e6a1d19ff1f824369db51fecf22a2c9f3f6"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "claude": {
+    "file": "divine-cutins/claude.02043d7785.webp",
+    "width": 960,
+    "height": 694,
+    "bytes": 214932,
+    "source": "356f1e19bcbbf4c9f81e1980cd5d1c7bf2cc2e515c98a72e337c5542345dfa53"
+  },
+  "deepseek": {
+    "file": "divine-cutins/deepseek.e46cec281f.webp",
+    "width": 960,
+    "height": 690,
+    "bytes": 197728,
+    "source": "ca294913272727d5a13eca8e803795eff2747557871c26a5b549f138da7fca4e"
+  },
+  "dots": {
+    "file": "divine-cutins/dots.6f7cbc07b6.webp",
+    "width": 960,
+    "height": 643,
+    "bytes": 171228,
+    "source": "5cd4da6ec61fff1a3cd4bf327fe992089ae92f9dacface5c36cf3583688c5a37"
+  },
+  "doubao": {
+    "file": "divine-cutins/doubao.21ed9390b3.webp",
+    "width": 960,
+    "height": 670,
+    "bytes": 149356,
+    "source": "504f3a8fe53f73bced270b6ccaa8bcb9405f68854151624df45a290b8c18fffe"
+  },
+  "gemini": {
+    "file": "divine-cutins/gemini.2cb867f554.webp",
+    "width": 960,
+    "height": 662,
+    "bytes": 197874,
+    "source": "5241f4cd7a17df224f26a9cc6c71224e36cfba1e15e75b7d91176a74e5e0b7db"
+  },
+  "grok-bot": {
+    "file": "divine-cutins/grok-bot.8ec71bd73f.webp",
+    "width": 960,
+    "height": 701,
+    "bytes": 225630,
+    "source": "8366dc1f547a383d8837c278551efcea3d07ef871fdfb00540dd20b5697f74bb"
+  },
+  "muse": {
+    "file": "divine-cutins/muse.fe8622660b.webp",
+    "width": 960,
+    "height": 671,
+    "bytes": 176352,
+    "source": "ecfb1d81967c98f44d790d065b59d6d12e5c9540198b6cf6750250362a4656eb"
+  },
+  "qwen": {
+    "file": "divine-cutins/qwen.c999bce992.webp",
+    "width": 960,
+    "height": 630,
+    "bytes": 189674,
+    "source": "6d6f6ab3821191c6571c3ab2ee0e1cb6a72bf9c558edc61e5a155a5cc0825141"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "dots": {
+    "file": "void/dots.c0f1fd3e30.webp",
+    "width": 768,
+    "height": 768,
+    "bytes": 95956,
+    "source": "e53ece80d1241683c0e1182fda5ff9e9ce0f587e61802e38f28d0c5b05ac7afc"
+  },
+  "grok-bot": {
+    "file": "void/grok-bot.f0f7dfa7b4.webp",
+    "width": 768,
+    "height": 768,
+    "bytes": 85488,
+    "source": "e8a2cb8b04760ea924e9ac2e6fa5749191253a47ef3442e8be2568395b1c43b5"
+  },
+  "muse": {
+    "file": "void/muse.86322dfaac.webp",
+    "width": 768,
+    "height": 768,
+    "bytes": 77446,
+    "source": "356da03f6565f0a218534ffac9ad8c046d4916da166278ad5d486cc42b2f9212"
+  },
+  "claude": {
+    "file": "void/claude.379f344937.webp",
+    "width": 768,
+    "height": 768,
+    "bytes": 77976,
+    "source": "f79e6e044d3d7587e7cbfe643497a45cd7cf7562acc4ec2736a88235261961a5"
+  },
+  "gemini": {
+    "file": "void/gemini.d1eeb89a59.webp",
+    "width": 768,
+    "height": 768,
+    "bytes": 79746,
+    "source": "16c4699462ef1e9c71eadda09542b3c2e4fce943a41e67fb09ff41f5173b7130"
+  },
+  "deepseek": {
+    "file": "void/deepseek.956cd477ba.webp",
+    "width": 768,
+    "height": 768,
+    "bytes": 88872,
+    "source": "3d352bdb0bfbf3b78cfe0e3d804e7af50a24952313eaaa064cd12ff9ef5cd243"
+  },
+  "qwen": {
+    "file": "void/qwen.7c09792ab9.webp",
+    "width": 768,
+    "height": 768,
+    "bytes": 83848,
+    "source": "7b9c25e9e1852100a1dfd9cd306d444d579f5f4f412ea83400a8fe25963a8211"
+  },
+  "doubao": {
+    "file": "void/doubao.0847bc4ac2.webp",
+    "width": 768,
+    "height": 768,
+    "bytes": 76968,
+    "source": "785303abbbfd2d7b9e7e8bdbc806a2125176746c8bb9c52d863e6dd162067509"
+  }
+}

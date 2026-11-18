@@ -1,0 +1,13 @@
+The cafe serves these files at `/audio/blast/`; the game asks for them there.
+
+# BARISTA BLAST!! music
+
+Six tracks for BARISTA BLAST!!: `theme`, `taipei`, `hsinchu`, `sf`, `orbit` and `receipt`, each as Opus (`.ogg`) and AAC (`.m4a`). They are AI-generated with ACE-Step 1.5 (acestep-v15-turbo with the 5Hz LM 1.7B; MIT, and the model page allows commercial use of the output) on 2026-11-17. There are no human recordings in them. The prompts name only styles and instruments, never an existing song, artist or game; they are in the cafe's `docs/design/barista-blast-audio.md`, along with how the loops were cut and encoded.
+
+# BARISTA BLAST!! voices (`voice/`)
+
+The lines the residents say in BARISTA BLAST!!: Chinese (`-zh`), English (`-en`), Japanese (`-ja`) and Korean (`-ko`), each as Opus (`.ogg`) and AAC (`.m4a`). Which line each file says is in [`../page/voices.ts`](../page/voices.ts), and the cafe's `docs/design/barista-blast-audio.md` says which ones are left out and why.
+
+They are AI-generated speech. The first set (each resident's first boost line in Chinese and English, and the Chinese appeal) was made on 2026-11-17 with Qwen3-TTS (Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign to design each voice from a written description, then Qwen/Qwen3-TTS-12Hz-1.7B-Base to speak the lines in it). The rest (Japanese and Korean for those lines, and the new lines in all four languages) was generated in the owner's Google Drive (`voice-i18n` and `voice-bad-combo`) on 2026-11-17 with Qwen3-TTS-12Hz-1.7B-Base, cloning the same voices across languages (a lower reference for Claude); the Drive lists record the sentences and a Whisper spot check (Whisper is used only to check, no audio comes from it). No real person's voice or recording was used. Converted from the 24 kHz WAV files with ffmpeg (Opus 32 kbps, AAC 40 kbps, mono).
+
+The model licence was checked on the official model pages on 2026-11-17: both Qwen3-TTS models are Apache-2.0, and the pages set no limit on commercial use. Not confirmed: that the cloned voices do not sound like a particular real person (nobody has listened to them side by side with real voices), and the Drive notes' own quality marks for Japanese (several homophone mismatches) were not re-checked by ear.
