@@ -71,7 +71,7 @@ export class Build {
   private pictures = new Map<string, THREE.Texture>();
   private looks = new Map<string, { color: string; look: Look }>();
   private frame: THREE.Matrix4 | null = null;
-  constructor(private kit: Kit) {}
+  constructor(private kit: Kit, private readonly allowModels = true) {}
 
   /** Everything `make` builds comes out `size` times its own size, about the point on the ground at (x, z), and `lift` metres higher. */
   scaled(size: number, x: number, z: number, lift: number, make: () => void) {
@@ -91,6 +91,7 @@ export class Build {
 
   /** Places a trusted artist model into the same per-material batch as the procedural tile. */
   model(id: ModelId, x: number, y: number, z: number, scale: number | readonly [number, number, number] = 1, roll = 0, yaw = 0) {
+    if (!this.allowModels) return false;
     const parts = this.kit.models.get(id);
     if (!parts?.length) return false;
     const at = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, rad(yaw), rad(roll))).scale(typeof scale === 'number' ? new THREE.Vector3().setScalar(scale) : new THREE.Vector3(...scale));

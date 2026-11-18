@@ -172,11 +172,14 @@ export type ModelMesh = THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMater
 export class StreetModels {
   private readonly pending = new Map<number, Promise<void>>();
   private readonly paint = new Map<string, THREE.MeshStandardMaterial>();
+  private readonly active = new Set<number>();
   private readonly ready = new Set<number>();
   private readonly loader = new GLTFLoader();
   private readonly stop = new AbortController();
 
   constructor(private readonly kit: Kit) {}
+
+  hasStyle(place: number) { return this.active.has(place); }
 
   isReady(place: number) { return this.ready.has(place); }
 
@@ -190,6 +193,10 @@ export class StreetModels {
   }
 
   private async loadDistrict(place: number) {
+    if (place !== 6) {
+      await this.warm(6);
+      if (!this.active.has(6)) { this.ready.add(place); return; }
+    }
     const loaded = await Promise.all(Object.entries(districts[place]).map(async ([id, url]) => {
       try {
         const response = await fetch(url, { signal: AbortSignal.any([this.stop.signal, AbortSignal.timeout(8000)]) });
@@ -236,7 +243,10 @@ export class StreetModels {
       }
       this.kit.models.set(asset.id, asset.parts);
     }
-    if (!this.stop.signal.aborted) this.ready.add(place);
+    if (!this.stop.signal.aborted) {
+      if (!incomplete) this.active.add(place);
+      this.ready.add(place);
+    }
   }
 
   dispose() {

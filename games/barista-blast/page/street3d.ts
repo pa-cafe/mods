@@ -291,9 +291,9 @@ export class Street3d {
   }
 
 
-  private parts(key: string, shadow: boolean, make: (b: Build) => void) {
+  private parts(key: string, shadow: boolean, make: (b: Build) => void, styled = true) {
     let parts = this.made.get(key);
-    if (!parts) { const build = new Build(this.kit); make(build); parts = build.done().map(part => ({ ...part, shadow: part.shadow && shadow })); this.made.set(key, parts); }
+    if (!parts) { const build = new Build(this.kit, styled); make(build); parts = build.done().map(part => ({ ...part, shadow: part.shadow && shadow })); this.made.set(key, parts); }
     return meshes(parts);
   }
 
@@ -304,7 +304,7 @@ export class Street3d {
     const kind = index === 0 ? 0 : mod(index * 5 + Math.floor(hash(Math.floor(index / 6), 61 + place) * 6), 6), v = Math.floor(hash(index, 62 + place) * 4);
     const tint: Tint = { s: scene, wall: scene.walls[(kind + v) % scene.walls.length], accent: scene.accents[v % scene.accents.length], other: scene.accents[(v + 1) % scene.accents.length], glow: moods[place].glow, v };
     const piece = pieces[place][kind];
-    const styledFurniture = this.kit.models.has('tpe5_cafe_table');
+    const styledFurniture = this.models.hasStyle(place);
     const group = this.parts(`row:${place}:${kind}:${v}`, true, b => {
       b.windowLight = (0.76 + v * 0.14) * (scene.stars ? 1.18 : 1);
       piece.build(b, tint);
@@ -315,7 +315,7 @@ export class Street3d {
         b.model(pavementFurniture[id], x, 0, z, size, 0, yaw);
         if (id === 'signal__crate_stack') b.model('tpe5_crate', x + 0.05, size * 0.59, z, size, 0, yaw + 7);
       }
-    });
+    }, styledFurniture);
     group.position.x = index * TILE;
     if (styledFurniture) return group;
     for (const [id, x, z, turn, size = 1] of piece.models ?? []) {
@@ -332,7 +332,7 @@ export class Street3d {
   private far(world: World, index: number) {
     const at = (stretch: number) => sights[world.place].get(stretch) ?? -1, sight = at(index), train = mod(index, 4) === 2, v = mod(index, 4);
     const near = Array.from({ length: SIGHT_MARGIN * 2 + 1 }, (_, i) => i - SIGHT_MARGIN).flatMap(away => away && at(index + away) >= 0 ? [[away, at(index + away)] as const] : []);
-    const group = this.parts(`far:${world.place}:${v}:${sight}:${near.join(';')}`, false, b => skyline(b, world.place, v, sight, train, near));
+    const group = this.parts(`far:${world.place}:${v}:${sight}:${near.join(';')}`, false, b => skyline(b, world.place, v, sight, train, near), this.models.hasStyle(world.place));
     group.position.x = index * FAR_TILE;
     return group;
   }
