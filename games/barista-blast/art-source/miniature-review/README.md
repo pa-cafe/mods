@@ -1,5 +1,9 @@
 # BARISTA BLAST!! 場景審閱
 
+[台北 v3 最新畫面、尺寸與測試](taipei-v3.md)
+
+## 六關初版審閱紀錄
+
 [桌面前後對照](comparison.webp) · [手機六關](mobile.webp) · [22 個地標](landmarks.webp) · [相鄰關卡轉場](transitions.webp) · [明信片](postcards.webp) · [遊戲與重播](game.webp)
 
 場景圖來自 Chromium WebGL2，使用正式街道渲染器、家具載入器、飛行鏡頭與各區的實際地標座標。前後對照固定在各關第一個地標。六關手機圖的 CSS viewport 是 390×700，桌面為 960×540。地標與轉場圖為 800×450。明信片經過遊戲的獨立 postcard 相機。遊戲圖來自隔離 Worker 的虛構咖啡館。
