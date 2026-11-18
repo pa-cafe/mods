@@ -135,6 +135,38 @@ class World {
   }
 
 
+  groundLandmarks() {
+    // The authored city and lunar sights stand on a 5 m shelf. Carry the pavement up to
+    // their feet and fade the far side into the sky. One continuous strip spans all visible tiles.
+    const colors = [
+      ['#BAAF97', '#929A83', '#A9A692'], ['#B3A98D', '#939D87', '#A9AB97'],
+      ['#4E4E65', '#434D66', '#666A83'], ['#D6BF9D', '#DBCBB1', '#E7D6C6'],
+    ][this.place];
+    if (!colors) return;
+    const [near, middle, far] = colors;
+    const profile = [
+      [-14, -0.22, near, 1], [-32, 0, near, 1], [-54, 4.95, middle, 1],
+      [-82, 5.02, middle, 1], [-115, 2.8, far, 1], [-176, 1.2, far, 1], [-330, 0, far, 0],
+    ] as const;
+    const positions: number[] = [], paint: number[] = [], indices: number[] = [];
+    for (const [i, [z, y, tint, alpha]] of profile.entries()) {
+      const color = new THREE.Color(tint);
+      for (const x of [-600, 600]) {
+        positions.push(x, y, z);
+        paint.push(color.r, color.g, color.b, alpha);
+      }
+      if (i) { const k = i * 2; indices.push(k - 2, k - 1, k, k - 1, k + 1, k); }
+    }
+    const land = new THREE.BufferGeometry();
+    land.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    land.setAttribute('color', new THREE.Float32BufferAttribute(paint, 4));
+    land.setIndex(indices);
+    const surface = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true });
+    this.owned.push(land, surface);
+    this.ground.children[3].visible = false;
+    this.ground.add(new THREE.Mesh(land, surface));
+  }
+
   keep(layer: Map<number, THREE.Group>, first: number, last: number, make: (index: number) => THREE.Group) {
     for (const [index, group] of layer) if (index < first || index > last) { this.scene.remove(group); releaseInstances(group); layer.delete(index); }
     for (let index = first; index <= last; index++) if (!layer.has(index)) { const group = make(index); layer.set(index, group); this.scene.add(group); }
@@ -237,6 +269,7 @@ export class Street3d {
 
   private styleWorld(world: World) {
     if (!this.models.hasStyle(world.place)) return;
+    world.groundLandmarks();
     const cover = [null, [-4.65, 11.35], [-7, 10], [-6.4, 12], [-6, 6], [-6, 6]][world.place];
     if (cover) {
       // Keep only the extensions beyond the authored paving; overlapping surfaces flicker on the moving camera.

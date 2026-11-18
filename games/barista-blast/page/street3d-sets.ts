@@ -641,12 +641,13 @@ export function skyline(b: Build, place: number, v: number, sight: number, train
 
   const taken = [...near, ...sight >= 0 ? [[0, sight] as const] : []].map(([away, which]) => [(away + 0.5) * FAR_TILE - sights[which].reach * SIGHT.size, (away + 0.5) * FAR_TILE + sights[which].reach * SIGHT.size] as const);
   behind?.(b, FAR_TILE, train, lit);
+  // A 76 m hill crosses four 14 m tiles behind the skyline, including the temple's sight tile.
+  if (place === 0 && v === 2) b.model('tpe5_distant_hill', FAR_TILE / 2, 2, -106, [0.82, 1, 0.85]);
   const row = middleRows[place];
   if (row.length && !taken.some(([a, b]) => a < FAR_TILE && b > 0)) {
     const [id, size] = row[v % row.length];
     if (v !== 3 || place === 0) b.model(id, FAR_TILE / 2, 0, -29, size);
     if (v === 2 && place === 0) {
-      b.model('tpe5_distant_hill', FAR_TILE / 2, 0, -108, 0.7);
       b.model('tpe5_skyline_block', FAR_TILE / 2, 0, -99, 0.6);
     }
   }
