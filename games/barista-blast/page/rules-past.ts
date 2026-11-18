@@ -4,7 +4,10 @@ import * as current from '../rules.ts';
  * What a replay needs from one version of the rules. An older run is drawn as if it were a run of today's rules: the
  * screen ignores what it does not know, and the distance and the bill come from that version's own rules.
  */
-export type BlastRules = Pick<typeof current, 'startBlast' | 'stepBlast' | 'replayBlast' | 'blastTokens' | 'blastMeters'> & { BLAST_VERSION: number };
+export type BlastRules = Pick<typeof current,
+  'startBlast' | 'stepBlast' | 'replayBlast' | 'blastTokens' | 'blastMeters' |
+  'BLAST_HZ' | 'blastTuning' | 'blastTrait' | 'blastHitSpan' | 'blastAhead'
+> & { BLAST_VERSION: number };
 
 /** Runs from before rules version 8 have no link to watch them by. */
 export const REPLAY_FROM = 8;

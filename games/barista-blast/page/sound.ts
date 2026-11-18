@@ -104,6 +104,7 @@ export class BlastAudio {
   private ctx: AudioContext | null = null;
   private effects: GainNode | null = null; private music: GainNode | null = null; private speech: GainNode | null = null;
   private speaking: AudioBufferSourceNode | null = null;
+  private speechRequest = 0;
   private choice = storedSound();
   private log = new Map<string, number[]>();
   private noise: AudioBuffer | null = null;
@@ -180,9 +181,10 @@ export class BlastAudio {
   say(line: TextKey) {
     const a = this.ctx, asked = performance.now();
     if (!a || !this.speech || !this.choice.voice || this.closed) return;
+    const request = ++this.speechRequest;
     void this.line(line).then(buffer => {
       const now = this.ctx;
-      if (!buffer || now !== a || !this.speech || !this.choice.voice || this.closed || performance.now() - asked > LATE_MS) return;
+      if (!buffer || request !== this.speechRequest || now !== a || !this.speech || !this.choice.voice || this.closed || performance.now() - asked > LATE_MS) return;
       try {
         this.speaking?.stop();
         const source = now.createBufferSource(); source.buffer = buffer; source.connect(this.speech); source.start();

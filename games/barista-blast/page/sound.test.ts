@@ -227,7 +227,7 @@ function speaking() {
   };
   const audio = new BlastAudio(make, {});
   audio.wake();
-  return { audio, fetching, started, stopped };
+  return { audio, context, fetching, started, stopped };
 }
 const asked = (fetching: ReturnType<typeof speaking>['fetching']) => fetching.mock.calls.map(call => call[0]);
 
@@ -318,6 +318,21 @@ describe('the residents’ voices', () => {
     audio.say('This road? My dad’s');
     await vi.waitFor(() => expect(started).toHaveLength(2));
     expect(stopped).toEqual(['line 1']);
+    audio.close();
+  });
+
+  it('a slow older cue cannot jump ahead of a newer subtitle when it finishes loading', async () => {
+    const { audio, context, fetching, started, stopped } = speaking();
+    document.documentElement.lang = 'en';
+    let release = () => {};
+    fetching.mockImplementationOnce(async address => { await new Promise<void>(done => { release = done; }); return new Response(readFileSync(served(address))); });
+    audio.say('Next stop: Mars');
+    audio.say('This road? My dad’s');
+    await vi.waitFor(() => expect(started).toEqual(['line 1']));
+    release();
+    await vi.waitFor(() => expect(context.decodeAudioData).toHaveBeenCalledTimes(2));
+    expect(started).toEqual(['line 1']);
+    expect(stopped).toEqual([]);
     audio.close();
   });
 

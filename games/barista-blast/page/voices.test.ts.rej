@@ -1,0 +1,12 @@
+diff a/games/barista-blast/page/voices.test.ts b/games/barista-blast/page/voices.test.ts	(rejected hunks)
+@@ -1,8 +1,10 @@
+ // @vitest-environment happy-dom
+ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+ import { blastLooks, startBlast, type BlastHit, type BlastRun } from '../mods/games/barista-blast/rules';
++import { chooseCutins } from '../src/blast/cutin-policy';
+ import type { BlastEvent } from '../src/blast/events';
+ import { hitCopy } from '../src/blast/nodes';
++import type { BlastPhase } from '../src/blast/phase';
+ import { stageOf } from '../src/blast/stage';
+ import { blastVoices } from '../src/blast/voices';
+ import { BlastScene } from '../src/blast/view';

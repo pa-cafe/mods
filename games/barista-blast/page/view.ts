@@ -81,7 +81,7 @@ export class BlastScene {
   private card: Card | null = null;
   private talk: Talk | null = null;
   private intro: { kind: BlastKind; tone: ReturnType<typeof moodTone>; age: number; art: Drawn; slot: number } | null = null;
-  private cutin: { at: number; who: Who; partner?: Who; robed: boolean; line: string; card: Drawn; assist?: { then: string; hint: string }; rocket?: true } | null = null;
+  private cutin: { at: number; who: Who; partner?: Who; robed: boolean; line: string; card: Drawn; assist?: { speaker: string; hint: string }; rocket?: true } | null = null;
   private badCut: BadCut | null = null; private lost: Lost = { cups: 0, caffeine: 0 };
   private takeover: Takeover | null = null;
   private pictures = new Map<BlastKind, HTMLCanvasElement>();
@@ -343,8 +343,7 @@ export class BlastScene {
     const rocket = catchesGrok(hit) && orbitProps() !== null;
     const full = cutinPolicy(rocket ? 'boost:grok:rocket' : `boost:${hit.as}`) === 'full';
     if (hit.assist && line && !quiet && hit.as !== 'window' && full) {
-      const own = hitCopy({ ...hit, kind: hit.assist, as: hit.assist, mood: 'one', outcome: 'boost' }).lines;
-      this.cutin = { at: now, who: this.pilot, partner: this.resident(atlasLook[hit.as]), robed, line: this.words(own.length ? pick(own) : line), card: wordCard(this.words('Combo!'), clamp(this.view.width * 0.05, 24, 44), this.ratio, 'gold', -4), assist: { then: this.words(line), hint: this.words(assistCopy[hit.assist]) } };
+      this.cutin = { at: now, who: this.pilot, partner: this.resident(atlasLook[hit.as]), robed, line: this.words(line), card: wordCard(this.words('Combo!'), clamp(this.view.width * 0.05, 24, 44), this.ratio, 'gold', -4), assist: { speaker: this.nameOf(hit.as, cast), hint: this.words(assistCopy[hit.assist]) } };
       return;
     }
     if (line && !quiet && hit.as !== 'window' && full) this.cutin = { at: now, who: this.resident(atlasLook[hit.as]), robed, line: this.words(line), card: wordCard(this.words(card), clamp(this.view.width * 0.05, 24, 44), this.ratio, 'gold', -4), ...(rocket ? { rocket: true as const } : {}) };
@@ -770,8 +769,8 @@ export class BlastScene {
       else below += (drawToast(ctx, this.words(this.toast.line), formatTokens(this.toast.tokens), view.width / 2, below, k, t < 0.25 ? easeOut(t / 0.25) : t > 2.5 ? 1 - (t - 2.5) / 0.3 : 1) ?? 0) + 6;
     }
     if (phase.kind === 'result') { this.introduction(); return; }
-    const seen = run && phase.kind === 'flying' ? aheadOf(run, view.width <= 660 ? 2 : 3) : null;
-    const tap = phase.kind === 'flying' ? blastTap(run) : null;
+    const seen = run && phase.kind === 'flying' ? aheadOf(run, view.width <= 660 ? 2 : 3, phase.rules) : null;
+    const tap = phase.kind === 'flying' ? blastTap(run, phase.rules) : null;
     drawRefills(ctx, run, row, clamp(1 - (now - this.cups) / 300), seen && keep.runs < CUE_RUNS ? seen.cue : null, this.calm ? 1 : 0.5 + 0.5 * Math.sin(now / 110), tap);
     drawCaffeine(ctx, run, row, now, this.hud, sprites.glow);
     drawBoost(ctx, run, sprites.boost, view.width, view.height, k, now);
@@ -951,7 +950,7 @@ export class BlastScene {
       const fit = Math.min(1, (view.width - 24) / cutin.card.width), below = middle + band / 2 + 8 + size;
       ctx.drawImage(cutin.card.image, (view.width - cutin.card.width * fit) / 2, middle - band / 2 - cutin.card.height * fit * 0.7, cutin.card.width * fit, cutin.card.height * fit);
       ctx.fillStyle = 'rgba(38,63,53,.94)'; ctx.fillRect(0, below - size, view.width, size * 2);
-      const said = cutin.assist && t > long / 2 ? cutin.assist.then : cutin.line;
+      const said = cutin.assist ? `${cutin.assist.speaker} · ${cutin.line}` : cutin.line;
       ctx.fillStyle = CREAM; ctx.textAlign = 'center'; ctx.fillText(said, view.width / 2, below, view.width - 24);
       if (cutin.assist) {
         const small = Math.round(size * 0.78), under = below + size + 6 + small;

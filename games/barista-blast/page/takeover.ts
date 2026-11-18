@@ -69,7 +69,10 @@ export function drawTakeover(ctx: CanvasRenderingContext2D, view: { width: numbe
   const { age } = takeover, look = looks[takeover.kind], { width: w, height: h } = view;
   if (look.mail) { drawLetter(ctx, view, takeover, look.mail, calm); return; }
   const arrive = calm ? 1 : easeOut(clamp(age / 240)), leave = clamp((takeover.ms - age) / LEAVE_MS);
-  const band = clamp(h * 0.26, 132, 230), middle = h * 0.4;
+  const fullBand = clamp(h * 0.26, 132, 230), line = LOG_SIZE * 1.5, tall = takeover.log.length * line + 26;
+  const noteRoom = takeover.note.length ? 26 + (takeover.note.length - 1) * NOTE_SIZE * 1.45 + NOTE_SIZE / 2 : 0;
+  const top = Math.min(h * 0.4 + fullBand / 2 + 26, h - tall - noteRoom - 8);
+  const band = Math.min(fullBand, Math.max(1, top - 34)), middle = top - 26 - band / 2;
   ctx.save();
   ctx.globalAlpha = Math.min(1, arrive * 1.4) * leave;
   ctx.fillStyle = `rgba(${look.wash},.84)`; ctx.fillRect(0, 0, w, h);
@@ -89,11 +92,11 @@ export function drawTakeover(ctx: CanvasRenderingContext2D, view: { width: numbe
     const x = wide ? -w * 0.26 : 0, size = side * pop;
     ctx.save(); ctx.globalAlpha *= wide ? 1 : 0.38; ctx.drawImage(takeover.icon, x - size / 2, -size / 2, size, size); ctx.restore();
   }
-  const head = takeover.head, room = wide ? w * 0.56 : w - 28, fit = Math.min(1, room / head.width) * (calm ? 1 : 1 + 0.9 * clamp(1 - age / 200) ** 2);
+  const head = takeover.head, room = wide ? w * 0.56 : w - 28, fit = Math.min(1, room / head.width, band < fullBand ? band * 0.9 / head.height : 1) * (calm ? 1 : 1 + 0.9 * clamp(1 - age / 200) ** 2);
   ctx.drawImage(head.image, (wide && takeover.icon ? w * 0.13 : 0) - head.width * fit / 2, -head.height * fit / 2, head.width * fit, head.height * fit);
   ctx.restore();
 
-  const line = LOG_SIZE * 1.5, top = middle + band / 2 + 26, tall = takeover.log.length * line + 26, left = (w - takeover.box) / 2;
+  const left = (w - takeover.box) / 2;
   ctx.globalAlpha = clamp((age - 160) / 160) * leave;
   ctx.beginPath(); ctx.roundRect(left, top, takeover.box, tall, 12); ctx.fillStyle = 'rgba(10,12,20,.94)'; ctx.fill();
   ctx.lineWidth = 2; ctx.strokeStyle = look.edge; ctx.stroke();

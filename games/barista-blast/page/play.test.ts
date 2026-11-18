@@ -457,6 +457,23 @@ describe('the look-ahead (#1078)', () => {
     expect(checked).toBeGreaterThan(40);
   });
 
+  it.each([
+    { pilot: null, straight: 42, y: 1, vx: 80, vy: 8 },
+    { pilot: 'claude' as const, straight: 0, y: 10, vx: 70, vy: -1 },
+  ])('forecasts the actual first encounter during straight flight or with a pilot speed cap ($pilot)', async state => {
+    const { aheadOf } = await import('./ahead');
+    const run = startBlast(2, [], 0, 0, state.pilot);
+    run.cells = Array.from({ length: 30 }, () => null);
+    run.cells[8] = cell('qwen:one', T.firstCell + 8 * T.cell);
+    run.cells[11] = cell('claude:bad', T.firstCell + 11 * T.cell);
+    Object.assign(run, { ...state, x: T.firstCell - 2 });
+
+    const forecast = aheadOf(run);
+    for (let i = 0; i < 720 && !run.end && !run.hits.length; i++) stepBlast(run, false);
+    expect(run.hits[0]).toMatchObject({ kind: 'claude', mood: 'bad' });
+    expect(forecast.hit).toMatchObject({ kind: run.hits[0].kind, x: run.hits[0].x });
+  });
+
   it('a dive it cues lands on the takeaway window or a resident in a state that helps', async () => {
     const { aheadOf } = await import('./ahead');
     let dives = 0;
