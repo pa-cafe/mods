@@ -1,0 +1,258 @@
+{
+  "version": "2.0-taipei-style-review",
+  "assets": [
+    {
+      "asset": "tpe_101_refined",
+      "glb": "assets/tpe_101_refined.glb",
+      "bytes": 89068,
+      "triangles": 1568,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -12.620817184448242,
+          -10.632081985473633,
+          0.0
+        ],
+        "max": [
+          12.620817184448242,
+          10.326123237609863,
+          93.69999694824219
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README",
+      "unit": "meters",
+      "preapplied_game_scale": false,
+      "preapplied_game_lift": false
+    },
+    {
+      "asset": "tpe_cafe_front",
+      "glb": "assets/tpe_cafe_front.glb",
+      "bytes": 85188,
+      "triangles": 1464,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -20.461021423339844,
+          -21.17811393737793,
+          0.0
+        ],
+        "max": [
+          20.461021423339844,
+          10.421736717224121,
+          61.096229553222656
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README",
+      "unit": "meters",
+      "preapplied_game_scale": false,
+      "preapplied_game_lift": false
+    },
+    {
+      "asset": "tpe_tea_front",
+      "glb": "assets/tpe_tea_front.glb",
+      "bytes": 90648,
+      "triangles": 1566,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -20.461021423339844,
+          -21.17811393737793,
+          0.0
+        ],
+        "max": [
+          20.461021423339844,
+          10.421736717224121,
+          66.16368103027344
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README",
+      "unit": "meters",
+      "preapplied_game_scale": false,
+      "preapplied_game_lift": false
+    },
+    {
+      "asset": "tpe_arcade_front",
+      "glb": "assets/tpe_arcade_front.glb",
+      "bytes": 96284,
+      "triangles": 1710,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -20.461021423339844,
+          -21.17811393737793,
+          0.0
+        ],
+        "max": [
+          20.461021423339844,
+          10.421736717224121,
+          71.03990173339844
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README",
+      "unit": "meters",
+      "preapplied_game_scale": false,
+      "preapplied_game_lift": false
+    },
+    {
+      "asset": "tpe_coffee_kiosk",
+      "glb": "assets/tpe_coffee_kiosk.glb",
+      "bytes": 34064,
+      "triangles": 579,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -19.60051155090332,
+          -14.915510177612305,
+          0.0
+        ],
+        "max": [
+          19.60051155090332,
+          10.230510711669922,
+          26.5802059173584
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README",
+      "unit": "meters",
+      "preapplied_game_scale": false,
+      "preapplied_game_lift": false
+    },
+    {
+      "asset": "tpe_distant_skyline",
+      "glb": "assets/tpe_distant_skyline.glb",
+      "bytes": 84604,
+      "triangles": 1472,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -63.58214569091797,
+          -6.042694568634033,
+          0.0
+        ],
+        "max": [
+          65.01632690429688,
+          9.178776741027832,
+          58.13224792480469
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README",
+      "unit": "meters",
+      "preapplied_game_scale": false,
+      "preapplied_game_lift": false
+    },
+    {
+      "asset": "tpe_blue_roof_pavilion",
+      "glb": "assets/tpe_blue_roof_pavilion.glb",
+      "bytes": 21088,
+      "triangles": 314,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -18.16632652282715,
+          -16.225936889648438,
+          0.19122453033924103
+        ],
+        "max": [
+          18.16632652282715,
+          16.225936889648438,
+          44.268470764160156
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README",
+      "unit": "meters",
+      "preapplied_game_scale": false,
+      "preapplied_game_lift": false
+    },
+    {
+      "asset": "tpe_soft_cloud",
+      "glb": "assets/tpe_soft_cloud.glb",
+      "bytes": 5580,
+      "triangles": 240,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -18.607707977294922,
+          -7.266530513763428,
+          -3.8244900703430176
+        ],
+        "max": [
+          18.682579040527344,
+          7.266530513763428,
+          8.22265338897705
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README",
+      "unit": "meters",
+      "preapplied_game_scale": false,
+      "preapplied_game_lift": false
+    },
+    {
+      "asset": "tpe_street_details",
+      "glb": "assets/tpe_street_details.glb",
+      "bytes": 18372,
+      "triangles": 364,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -12.95115852355957,
+          -4.5893874168396,
+          0.0
+        ],
+        "max": [
+          12.843605041503906,
+          5.163061618804932,
+          34.229183197021484
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README",
+      "unit": "meters",
+      "preapplied_game_scale": false,
+      "preapplied_game_lift": false
+    }
+  ],
+  "metric_calibrated": true,
+  "meters_per_design_unit": 19.122448979591837,
+  "integration": {
+    "up": "+Y",
+    "along_street": "+X",
+    "toward_player": "+Z",
+    "game_scale_0_62_preapplied": false,
+    "game_lift_5m_preapplied": false,
+    "tower_height_m": 93.7
+  }
+}

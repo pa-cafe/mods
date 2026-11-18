@@ -1,0 +1,26 @@
+{
+  "assets": [
+    {
+      "name": "tpe_mrt_viaduct_tile14m",
+      "bytes": 53044,
+      "triangles": 900,
+      "meshes": 1,
+      "materials": 3
+    },
+    {
+      "name": "tpe_mrt_train_2car_tile14m",
+      "bytes": 116400,
+      "triangles": 2172,
+      "meshes": 1,
+      "materials": 5
+    }
+  ],
+  "units": "meters",
+  "glb_up": "+Y",
+  "along_rail": "+X",
+  "toward_player": "+Z",
+  "train_pivot": "bottom center",
+  "train_placement_y": 9.5,
+  "preapplied_game_scale": false,
+  "preapplied_game_lift": false
+}

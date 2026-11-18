@@ -1,0 +1,13 @@
+{
+  "bytes": 229916,
+  "triangles": 4347,
+  "primitives": 6,
+  "materials": 6,
+  "meshes": 1,
+  "textures": 0,
+  "extensionsUsed": [],
+  "units": "meters",
+  "axes": "Y up, +Z front, +X street",
+  "game_scale_preapplied": false,
+  "game_lift_preapplied": false
+}
