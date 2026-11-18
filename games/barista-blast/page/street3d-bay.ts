@@ -1,3 +1,4 @@
+import { Color } from 'three';
 
 
 import { CREAM, INK, RED } from './art';
@@ -261,7 +262,10 @@ function billboard(b: Build, ads: number, lit: number, x: number, y: number) {
 
 
 function car(b: Build, x: number, y: number, z: number, way: 1 | -1, color: string, lit: number, long = false) {
-  if (b.model(long ? 'sf3_delivery_truck' : 'sf3_sedan', x, y, z, 1, 0, way === 1 ? 0 : 180)) return;
+  b.finishes = { 'sf3-dusty-blue': new Color('#697788').lerp(new Color(color), 0.4).toArray() };
+  const styled = b.model(long ? 'sf3_delivery_truck' : 'sf3_sedan', x, y, z, 1, 0, way === 1 ? 0 : 180);
+  b.finishes = undefined;
+  if (styled) return;
   const length = long ? 6.2 : 2.9, height = long ? 1.9 : 0.95;
   b.box(color, length, height, 1.6, x, y + 0.2, z, { glow: lit * 0.12 }); b.box(shade(color, 0.7), length * 0.42, 0.18, 1.7, x - way * 0.1, y + 0.2, z);
   if (long) b.box(shade(color, 1.25), length * 0.7, 1.6, 1.7, x - way * length * 0.14, y + 1.2, z); else b.box(shade(color, 0.6), length * 0.5, 0.6, 1.4, x - way * 0.15, y + 1.15, z);

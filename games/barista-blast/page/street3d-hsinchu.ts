@@ -1,3 +1,5 @@
+import assembly from '../art-source/momo-20261118/blast_hsinchu_full_v3_20261118/runtime-interfaces.json';
+import type { ModelId } from './street3d-models';
 
 import { type Build, shade, type Skyline } from './street3d-kit';
 
@@ -15,13 +17,29 @@ function bar(b: Build, color: string, thick: number, x1: number, y1: number, x2:
 function plume(b: Build, color: string, x: number, y: number, z: number, n: number, start: number, swell: number, lean: number, glow = 0) {
   for (let i = 0; i < n; i++) {
     const r = start + i * swell, at = i * i * lean * 0.18 + i * lean * 0.5;
+    const id = color === SMOKE ? 'hsc3_smoke_cluster_unit' : 'hsc3_steam_cluster_unit';
+    if (b.model(id, x + at, y + r * 0.6 + i * start * 1.3, z + (i % 2 ? 1 : -1) * r * 0.25, r)) {
+      if (i > 1) b.model(id, x + at - r * 0.7, y + r * 0.9 + i * start * 1.3, z + r * 0.45, r * 0.62);
+      continue;
+    }
     b.ball(color, r, r * 0.88, r, x + at, y + r * 0.6 + i * start * 1.3, z + (i % 2 ? 1 : -1) * r * 0.25, { rough: 1, glow: glow });
     if (i > 1) b.ball(shade(color, 0.96), r * 0.62, r * 0.55, r * 0.62, x + at - r * 0.7, y + r * 0.9 + i * start * 1.3, z + r * 0.45, { rough: 1, glow: glow });
   }
 }
 
 
+function plant(b: Build, kind: keyof typeof assembly.assemblies, x: number, z: number) {
+  let available = false;
+  for (const part of assembly.assemblies[kind]) {
+    const [dx, y, dz] = part.position;
+    available = b.model(part.id as ModelId, x + dx, y, z + dz, 'scale' in part ? part.scale : 1, 'rotationZ' in part ? part.rotationZ : 0);
+    if (!available) break;
+  }
+  return available;
+}
+
 function fab(b: Build, x: number, z: number, lit: number) {
+  if (plant(b, 'fab', x, z)) return;
   if (b.model('hsinchu_wafer_fab_v2', x - 12, 0, z, 0.78)) {
     b.model('hsinchu_office_v2', x + 27, 0, z - 2, 0.66);
     return;
@@ -92,6 +110,10 @@ function coolingTower(b: Build, x: number, y: number, z: number, size: number) {
 
 
 function cooling(b: Build, x: number, z: number, lit: number) {
+  if (plant(b, 'cooling', x, z)) {
+    assembly.anchors['cooling.steam'].forEach(([dx, y, dz], i) => plume(b, STEAM, x + dx, y, z + dz, 5, i ? 3.6 : 4, 1.4, i ? 3.4 : 3.6, 0.3));
+    return;
+  }
   const deck = 10;
   b.box('#B8B2A6', 88, deck, 34, x, 0, z); b.box('#CFC9BC', 89, 0.8, 35, x, deck, z);
   for (let i = 0; i < 17; i++) b.box('#C6C0B3', 1.2, deck - 1, 0.5, x - 42 + i * 5.25, 0.2, z + 17.2);
@@ -106,6 +128,12 @@ function cooling(b: Build, x: number, z: number, lit: number) {
 
 
 function power(b: Build, x: number, z: number, lit: number) {
+  if (plant(b, 'power', x, z)) {
+    const [dx, y, dz] = assembly.anchors['power.steam'][0];
+    plume(b, STEAM, x + dx, y, z + dz, 3, 1.1, 0.7, 2.4);
+    assembly.anchors['power.smoke'].forEach(([sx, sy, sz], i) => plume(b, SMOKE, x + sx, sy, z + sz, i ? 4 : 5, i ? 1.7 : 2.4, i ? 0.9 : 1, i ? 3.6 : 4.4));
+    return;
+  }
   const hallX = x - 16, hallW = 38, hallH = 21, boilerX = x + 6, boilerH = 42, chimX = x + 36, rows = 9;
   b.box('#C5CDD2', hallW, hallH, 22, hallX, 0, z + 2);
   for (let i = 0; i < 4; i++) b.box(shade('#C5CDD2', 0.9), hallW + 0.3, 0.25, 22.3, hallX, 3 + i * 3.6, z + 2);
@@ -171,6 +199,7 @@ function turbine(b: Build, x: number, y: number, z: number, hub: number, blade: 
 
 
 function wind(b: Build, x: number, z: number) {
+  if (plant(b, 'wind', x, z)) return;
   b.dome(SAND, 34, 7, 20, x - 6, 0, z + 2, { rough: 1 }); b.dome(shade(SAND, 0.94), 22, 5, 14, x + 24, 0, z + 6, { rough: 1 }); b.dome(shade(SAND, 1.05), 16, 4, 12, x - 32, 0, z + 8, { rough: 1 });
   for (const [dx, dz, r] of [[-12, 12, 5], [6, 14, 6], [20, 10, 4.4], [-26, 14, 4]] as const) b.dome(GRASS, r, 1.2, r * 0.6, x + dx, 0, z + dz, { rough: 1 });
   turbine(b, x - 24, 4.6, z + 6, 31, 19, 14); turbine(b, x, 6.4, z - 2, 35, 23, 62); turbine(b, x + 26, 4, z + 9, 28, 17, 100);
@@ -180,16 +209,20 @@ function wind(b: Build, x: number, z: number) {
 
 export const hsinchu: Skyline = {
   sights: [
-    { reach: 44, build: fab },
+    { reach: 45, build: fab },
     { reach: 46, build: cooling },
-    { reach: 48, build: power },
-    { reach: 44, build: wind },
+    { reach: 59, build: power },
+    { reach: 48, build: wind },
   ],
   behind: (b, length, _train, lit) => pylons(b, length, lit),
 };
 
 
 function pylons(b: Build, length: number, lit: number) {
+  if (b.model('hsc3_pylon_14m', length / 2, 0, -24)) {
+    b.model('hsc3_cable_span_14m', length, 0, -24);
+    return;
+  }
   const x = length / 2, z = -24, height = 17, spread = 1.5, arms = [[9.5, 3.8], [12.5, 3.2], [15.5, 2.6]] as const, lean = (y: number) => spread * (1 - y / height * 0.74);
   for (const side of [-1, 1]) for (const depth of [-1, 1]) bar(b, PYLON, 0.3, x + side * spread, 0, x + side * lean(height), height, z + depth * 1.2);
   for (let i = 0; i < 5; i++) {

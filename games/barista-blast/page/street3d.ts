@@ -1,3 +1,5 @@
+import factoryStyle from '../art-source/momo-20261118/blast_hsinchu_full_v3_20261118/style-variants.json';
+import type { ModelId } from './street3d-models';
 
 
 
@@ -78,10 +80,15 @@ function releaseInstances(group: THREE.Object3D) {
   group.traverse(node => { if (node instanceof THREE.InstancedMesh) node.dispose(); });
 }
 
-const pavementFurniture: Record<string, 'tpe5_crate' | 'tpe5_menu_board' | 'tpe5_potted_plant' | 'tpe5_cafe_table' | 'tpe5_cafe_chair' | 'tpe5_street_bench'> = {
+const pavementFurniture: Record<string, ModelId> = {
   signal__crate_single: 'tpe5_crate', signal__crate_stack: 'tpe5_crate', signal__menuBoard: 'tpe5_menu_board', signal__signboard: 'tpe5_menu_board',
   signal__plant: 'tpe5_potted_plant', signal__potPlant: 'tpe5_potted_plant', signal__cafe_table: 'tpe5_cafe_table',
   signal__cafe_chair: 'tpe5_cafe_chair', signal__bench: 'tpe5_street_bench',
+};
+
+const factoryFurniture: Record<string, ModelId> = {
+  signal__crate_stack: 'hsc3_crate', signal__crate_single: 'hsc3_crate', signal__potPlant: 'hsc3_planter',
+  signal__cafe_table: 'hsc3_cafe_table', signal__cafe_chair: 'hsc3_cafe_chair',
 };
 
 class World {
@@ -105,7 +112,12 @@ class World {
     this.sun.castShadow = true; this.sun.shadow.bias = -0.0004; this.sun.shadow.normalBias = 0.04;
     Object.assign(this.sun.shadow.camera, { left: -32, right: 32, top: 26, bottom: -6, near: 1, far: 90 });
     this.fog.color.set(mood.sky[2]); this.scene.fog = this.fog;
-    this.ground.add(slab(scene.walk, 500, 0.3, -FACE + 8, -0.3, (FACE - 8) / 2 - 0.6), slab(scene.walkEdge, 500, 0.24, 0.3, -0.34, -0.6), slab(scene.road, 500, 0.3, 60, -0.48, 29.4), slab(scene.far.color, 500, 0.3, 120, -0.5, FACE - 68));
+    const surfaces = [
+      ['#DDCCB2', '#B8A58B', '#625B63'], ['#D6C9A7', '#BCA983', '#575953'],
+      ['#626478', '#41445C', '#282C40'], ['#EFE2C9', '#D8C8A6', '#BD9B78'],
+      ['#EDE5D0', '#D4C099', '#EBE0C9'], ['#E2DFD6', '#C9C7C1', '#DDDAD3'],
+    ][place];
+    this.ground.add(slab(surfaces[0], 500, 0.3, -FACE + 8, -0.3, (FACE - 8) / 2 - 0.6), slab(surfaces[1], 500, 0.24, 0.3, -0.34, -0.6), slab(surfaces[2], 500, 0.3, 60, -0.48, 29.4), slab(scene.far.color, 500, 0.3, 120, -0.5, FACE - 68));
     const own = <T extends { dispose(): void }>(item: T) => { this.owned.push(item); return item; };
     const flat = (map: THREE.Texture, see = false) => own(new THREE.MeshBasicMaterial({ map: own(map), fog: false, depthWrite: false, transparent: see }));
     this.sky = new THREE.Mesh(pane, flat(skyTexture(mood.sky))); this.sky.position.z = SKY; this.sky.renderOrder = -3;
@@ -221,11 +233,17 @@ export class Street3d {
   }
 
 
-  private styleSky(world: World) {
-    if ([2, 3, 4, 5].includes(world.place) && this.kit.models.has((['sf4_ground_7m', 'orb4_ground_7m', 'div3_causeway_7m', 'void3_ground_7m'] as const)[world.place - 2])) {
-      world.ground.position.y = -0.05;
+  private styleWorld(world: World) {
+    if (!this.models.hasStyle(world.place)) return;
+    const cover = [null, [-4.65, 11.35], [-7, 10], [-6.4, 12], [-6, 6], [-6, 6]][world.place];
+    if (cover) {
+      // Keep only the extensions beyond the authored paving; overlapping surfaces flicker on the moving camera.
+      const [walk, kerb, road] = world.ground.children, [backEdge, frontEdge] = cover;
+      walk.scale.z = backEdge + 15; walk.position.z = (backEdge - 15) / 2;
+      road.scale.z = 62 - frontEdge; road.position.z = (62 + frontEdge) / 2;
+      kerb.visible = false;
     }
-    const id = ([null, null, 'sf4_crescent_moon', 'orb4_sky_bean', 'div3_sun_disc'] as const)[world.place];
+    const id = (['div3_sun_disc', 'div3_sun_disc', 'sf4_crescent_moon', 'orb4_sky_bean', 'div3_sun_disc'] as const)[world.place];
     if (!id || !this.kit.models.has(id)) return;
     const body = this.parts(`body:${world.place}`, false, b => { b.model(id, 0, 0, 0); });
     const size = new THREE.Box3().setFromObject(body).getSize(new THREE.Vector3());
@@ -265,10 +283,10 @@ export class Street3d {
       this.worlds[place] = world;
       this.frame(world);
       const current = world;
-      if (this.models.isReady(place)) { this.styleSky(world); return world; }
+      if (this.models.isReady(place)) { this.styleWorld(world); return world; }
       void this.models.warm(place).then(() => {
         if (this.worlds[place] !== current) return;
-        this.styleSky(current);
+        this.styleWorld(current);
         if (place === ORBIT) {
           this.gags.group.removeFromParent();
           this.gags = new OrbitGags((key, make) => this.parts(key, false, make));
@@ -307,13 +325,18 @@ export class Street3d {
     const styledFurniture = this.models.hasStyle(place);
     const group = this.parts(`row:${place}:${kind}:${v}`, true, b => {
       b.windowLight = (0.76 + v * 0.14) * (scene.stars ? 1.18 : 1);
+      if (place === 1) {
+        b.finishes = factoryStyle.variants[v].materialColorOverrides;
+        b.polishedCopper = kind === 3 && v % 2 === 0;
+        b.roofLift = 0.4 * v;
+      }
       piece.build(b, tint);
       groundMarks(b, scene);
       if (styledFurniture) for (const [id, x, z, yaw, size = 1] of piece.models ?? []) {
         // Both pieces of furniture are already modeled into the SF vending alley and terrace.
         if (place === 2 && (kind === 1 || kind === 3)) continue;
-        b.model(pavementFurniture[id], x, 0, z, size, 0, yaw);
-        if (id === 'signal__crate_stack') b.model('tpe5_crate', x + 0.05, size * 0.59, z, size, 0, yaw + 7);
+        b.model(place === 1 ? factoryFurniture[id] : pavementFurniture[id], x, 0, z, size, 0, yaw);
+        if (id === 'signal__crate_stack') b.model(place === 1 ? 'hsc3_crate' : 'tpe5_crate', x + 0.05, size * 0.59, z, size, 0, yaw + 7);
       }
     }, styledFurniture);
     group.position.x = index * TILE;
@@ -345,7 +368,7 @@ export class Street3d {
 
       const x = index * CLOUD_TILE + hash(at, 42) * CLOUD_TILE;
       if (scene.floaters && [...sights[world.place].keys()].some(stretch => Math.abs(x - (stretch + 0.5) * FAR_TILE) < 24)) continue;
-      const cloud = scene.floaters ? this.parts(`floater:${world.place}:${kind}`, false, b => floater(b, kind, scene.floaters![kind % scene.floaters!.length])) : this.parts(`cloud:${world.place}`, false, b => { const asset = (['tpe5_cloud_lobe', null, 'sf4_cloud_bank', 'orb4_sky_cloud', 'div3_cloud_bank'] as const)[world.place];
+      const cloud = scene.floaters ? this.parts(`floater:${world.place}:${kind}`, false, b => floater(b, kind, scene.floaters![kind % scene.floaters!.length])) : this.parts(`cloud:${world.place}`, false, b => { const asset = (['tpe5_cloud_lobe', 'hsc3_steam_cluster_unit', 'sf4_cloud_bank', 'orb4_sky_cloud', 'div3_cloud_bank'] as const)[world.place];
         if (asset && b.model(asset, 0, 0, 0, [1, 1, 0.5, 0.65, 1.5][world.place])) return; b.ball(scene.cloud, 3, 1.1, 1.4, 0, 0, 0, { glow: 0.35, rough: 1 }); b.ball(scene.cloud, 1.9, 1.3, 1.3, -0.6, 0.7, 0.1, { glow: 0.35, rough: 1 }); b.ball(scene.cloud, 2.2, 0.9, 1.2, 2, -0.3, 0.2, { glow: 0.35, rough: 1 }); });
       if (scene.floaters) cloud.rotation.set(hash(at, 46) * 6.3, hash(at, 47) * 6.3, hash(at, 48) * 6.3);
       cloud.position.set(hash(at, 42) * CLOUD_TILE, 13 + hash(at, 44) ** 1.7 * 180, -30 - hash(at, 43) * 34); cloud.scale.setScalar(size);

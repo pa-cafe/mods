@@ -9,7 +9,7 @@ export const shade = (color: string, by: number) => `#${new THREE.Color(color).m
 /** `glow` lights a part from inside; `turn` is degrees about x, y, z; `flat` is an unlit see-through pool of light. */
 type Look = { cutout?: boolean; glow?: number; turn?: readonly [number, number, number]; rough?: number; flat?: number };
 export type Part = { geometry: THREE.BufferGeometry; material: THREE.Material; shadow: boolean; instances?: THREE.Matrix4[] };
-type Pending = { geometry: THREE.BufferGeometry; matrix: THREE.Matrix4; key: string };
+type Pending = { geometry: THREE.BufferGeometry; matrix: THREE.Matrix4; key: string; roofLift?: number };
 type Painter = (ctx: CanvasRenderingContext2D, size: number) => void;
 
 /** Geometries, materials and painted signs, made once and shared by every piece. */
@@ -47,13 +47,15 @@ export class Kit {
     return material;
   }
 
-  variant(material: THREE.MeshStandardMaterial, light: number) {
-    if (light === 1 || material.emissive.getHex() === 0) return material;
-    const key = `window:${material.uuid}:${light}`;
+  variant(material: THREE.MeshStandardMaterial, light: number, color?: number[], metal = false) {
+    if (!color && !metal && (light === 1 || material.emissive.getHex() === 0)) return material;
+    const key = `window:${material.uuid}:${light}:${color ?? ''}:${metal}`;
     let variant = this.materials.get(key);
     if (!variant) {
       const copy = material.clone();
       copy.emissiveIntensity *= light;
+      if (color) copy.color.fromArray(color);
+      if (metal) { copy.metalness = 0.45; copy.roughness = 0.48; }
       variant = copy;
       this.materials.set(key, copy);
     }
@@ -65,6 +67,9 @@ export class Kit {
 
 export class Build {
   windowLight = 1;
+  finishes?: Record<string, number[] | undefined>;
+  polishedCopper = false;
+  roofLift = 0;
   private instances: Part[] = [];
   private pending: Pending[] = [];
   private modelMaterials = new Map<string, THREE.Material>();
@@ -98,10 +103,10 @@ export class Build {
     at.setPosition(x, y, z);
     if (this.frame) at.premultiply(this.frame);
     for (const mesh of parts) {
-      const material = this.kit.variant(mesh.material, this.windowLight);
+      const material = this.kit.variant(mesh.material, this.windowLight, this.finishes?.[mesh.material.name], this.polishedCopper && mesh.material.name === 'hsc3-roasted-copper');
       const key = material.uuid;
       this.modelMaterials.set(key, material);
-      this.pending.push({ geometry: mesh.geometry, matrix: at.clone().multiply(mesh.matrixWorld), key });
+      this.pending.push({ geometry: mesh.geometry, matrix: at.clone().multiply(mesh.matrixWorld), key, roofLift: id === 'hsc3_sawtooth_roastery_7m' && mesh.material.name === 'hsc3-cream-enamel' ? this.roofLift : 0 });
     }
     return true;
   }
@@ -186,7 +191,19 @@ export class Build {
     const groups = new Map<string, Pending[]>();
     for (const item of this.pending) groups.set(item.key, [...groups.get(item.key) ?? [], item]);
     return this.instances.concat([...groups].map(([key, items]) => {
-      const copies = items.map(item => item.geometry.clone().applyMatrix4(item.matrix));
+      const copies = items.map(item => {
+        const geometry = item.geometry.clone();
+        if (item.roofLift) {
+          // Vary the three shed roof ridges only. The flue and its steam socket stay at their authored height.
+          const points = geometry.getAttribute('position');
+          for (let i = 0; i < points.count; i++) {
+            const y = points.getY(i);
+            if (y > 7.4 && y < 8.5) points.setY(i, y + item.roofLift * (y - 7.4));
+          }
+          geometry.computeVertexNormals();
+        }
+        return geometry.applyMatrix4(item.matrix);
+      });
       const geometry = mergeGeometries(copies)!;
       for (const copy of copies) copy.dispose();
       const model = this.modelMaterials.get(key);

@@ -73,8 +73,8 @@ function tree(b: Build, x: number, z: number, h = 4.4, leaf = LEAF) {
   b.ball(shade(leaf, 0.9), h * 0.2, h * 0.19, h * 0.2, x - h * 0.17, h * 0.55, z + 0.2);
   b.ball(shade(leaf, 1.08), h * 0.18, h * 0.17, h * 0.18, x + h * 0.16, h * 0.8, z - 0.1);
 }
-function puffs(b: Build, x: number, y: number, z: number, color: string, drift = 0.6, n = 4) {
-  for (let i = 0; i < n; i++) { const r = 0.32 + i * 0.16; if (b.model('tpe5_steam_puff', x + i * drift, y + i * 0.75, z, r)) continue; b.ball(color, r, r * 0.9, r, x + i * drift, y + i * 0.75, z, { rough: 1 }); }
+function puffs(b: Build, x: number, y: number, z: number, color: string, drift = 0.6, n = 4, model: ModelId = 'tpe5_steam_puff') {
+  for (let i = 0; i < n; i++) { const r = 0.32 + i * 0.16; if (b.model(model, x + i * drift, y + i * 0.75, z, r)) continue; b.ball(color, r, r * 0.9, r, x + i * drift, y + i * 0.75, z, { rough: 1 }); }
 }
 
 function cup(b: Build, x: number, y: number, z: number, r: number, h: number, color: string, band: string) {
@@ -288,8 +288,7 @@ const roastery: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('hsc3_sawtooth_roastery_7m', MID, 0, -8)) {
-        const h = 7 + c.v * 0.4;
-        puffs(b, 6, h + 6.2, F - 3.4, '#FFE2B0', 0.5);
+        puffs(b, MID + 2.35, 12.4, -8.65, '#FFE2B0', 0.5, 4, 'hsc3_steam_cluster_unit');
         return;
       }
       const h = 7 + c.v * 0.4;
@@ -307,7 +306,7 @@ const roastery: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('hsc3_drum_roaster_7m', MID, 0, -8)) {
-        puffs(b, 3.7, 8.6, -4.4, '#FFE2B0', 0.4, 3);
+        puffs(b, MID + 1, 7.4, -8.4, '#FFE2B0', 0.4, 3, 'hsc3_steam_cluster_unit');
         return;
       }
       for (const x of [0.6, 6.4]) for (const z of [-2.4, -5.8]) b.box(STEEL, 0.16, 6, 0.16, x, 0, z);
@@ -324,8 +323,8 @@ const roastery: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('hsc3_low_loading_yard_7m', MID, 0, -8)) {
-        poster(b, `bean:${c.accent}`, board('bean', ROAST, CREAM, '#9C6A45'), 1.2, 5.6, 1.5, F + 0.3, c.s.trim);
-        b.model('tpe5_street_tree_4p4m', 3.6, 0, F - 2, 6 / 4.4);
+        b.sign(`bean:${c.accent}`, board('bean', ROAST, CREAM, '#9C6A45'), 1.2, 1.2, MID + 2.1, 1.75, -8.53, { sharp: true });
+        b.model('hsc3_tree', 3.6, 0, F - 2);
         return;
       }
       b.box(c.wall, 6.8, 2.6, 0.5, MID, 0, F); b.box(c.s.trim, 7, 0.2, 0.7, MID, 2.6, F); bricks(b, c, MID, 6.4, 2.6, c.v + 8);
@@ -340,7 +339,8 @@ const roastery: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('hsc3_kettle_gantry_7m', MID, 0, -8)) {
-        b.model('tpe5_heritage_lamp', 0.5, 0, -2.2);
+        puffs(b, MID - 1.7, 7.2, -8, '#FFE2B0', 0.4, 3, 'hsc3_steam_cluster_unit');
+        b.model('hsc3_streetlamp', 0.5, 0, -2.2);
         return;
       }
       for (const [x, z] of [[2.2, -3.6], [4.8, -3.6], [2.2, -5.8], [4.8, -5.8]]) b.box(STEEL, 0.18, 5, 0.18, x, 0, z);
@@ -355,6 +355,9 @@ const roastery: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('hsc3_shift_canteen_7m', MID, 0, -8)) {
+        for (const [dx, on] of [[-1.6, true], [0.3, roll(4, c.v) > 0.4]] as const) {
+          if (on) b.pane('#D3B780', 0.96, 0.65, MID + dx, 4.45, -6.31, { glow: 0.18 + c.glow * 0.25 });
+        }
         b.sign('badge:roof', mark('badge', CREAM, board('bean', ROAST, CREAM, '#9C6A45'), 0.03), 1.9, 1.9, MID, 7.2, -7.96, { round: true, sharp: true });
         return;
       }
@@ -371,7 +374,7 @@ const roastery: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('hsc3_silo_pair_7m', MID, 0, -8)) {
-        poster(b, 'mascot:silo', mark('mascot', CREAM, board('cup', ROAST, CREAM, c.accent)), 1.3, 5.1, 3.4, F + 0.57, c.s.trim);
+        b.sign('mascot:silo', mark('mascot', CREAM, board('cup', ROAST, CREAM, c.accent)), 1.3, 1.3, MID + 1.6, 3.25, -6.06, { sharp: true });
         return;
       }
       [[1.9, 8.4], [5.1, 7]].forEach(([x, h]) => {
@@ -616,7 +619,7 @@ export function sightOn(b: Build, place: number, which: number) {
 // and keep the void empty. Scales fit these metre-sized modules to a 14 m tile.
 const middleRows: readonly (readonly (readonly [ModelId, number])[])[] = [
   [['tpe3_corner_cafe_7m', 0.78], ['tpe5_bubble_tea_shop_7m', 0.74], ['tpe5_gabled_cafe_7m', 0.76], ['tpe3_arcade_apartment_7m', 0.74]],
-  [['hsinchu_tank_pair_v2', 0.28], ['hsinchu_pipe_gantry_v2', 0.21], ['hsinchu_utility_hall_v2', 0.22]],
+  [['hsc3_silo_pair_7m', 0.75], ['hsc3_kettle_gantry_7m', 0.72], ['hsc3_sawtooth_roastery_7m', 0.72]],
   [['sf3_highrise_shop_7m', 0.66], ['sf3_neon_cafe_7m', 0.8]],
   [['orb3_cup_eyes_station_7m', 0.8], ['orb3_tripod_moka_robot_7m', 0.82], ['orb3_foam_bank', 0.9]],
   [['div3_near_00_7m', 0.8]],
@@ -652,6 +655,7 @@ export function skyline(b: Build, place: number, v: number, sight: number, train
       if (b.model(place === 3 ? 'orb4_far_foam_dome' : 'div3_cloud_bank', x, 0, z, r / 5)) continue;
       b.dome(back ? '#F3E3D3' : color, r * 1.3, r * 0.75, r, x, 0, z, { rough: 1 }); continue; }
     const h = (shape === 'towers' ? 12 + roll(i, v + 3) * 16 : 8 + roll(i, v + 3) * 14) * (1 + back * 0.6);
+    if (place === 1 && b.model('hsc3_far_factory_14m', x, 0, z, [w / 14, h / 39, 0.8])) continue;
     if (place === 0 && b.model((['tpe5_far_tower_0', 'tpe5_far_tower_1', 'tpe5_far_tower_2'] as const)[i % 3], x, 0, z, [w / 5, h / 20, 1])) continue;
     if (place === 2 && b.model((['sf4_far_block_0', 'sf4_far_block_1', 'sf4_far_block_2'] as const)[i % 3], x, 0, z, [w / (5 + i % 3), h / [18, 28, 37][i % 3], 1])) continue;
     b.box(tone, w, h, 6, x, 0, z);
@@ -670,10 +674,24 @@ export function skyline(b: Build, place: number, v: number, sight: number, train
 
 export function groundMarks(b: Build, s: Scene) {
   const place = scenes.indexOf(s);
+  if (place === 1 && b.model('hsc3_walk_tile_7m', MID, 0, -2.65)) {
+    b.model('hsc3_road_tile_7m', MID, -0.2, 5.35);
+    return;
+  }
   if (place === 2 && b.model('sf4_ground_7m', 0, 0, 0)) return;
   if (place === 3 && b.model('orb4_ground_7m', MID, 0, 0)) return;
   if (place === 4 && b.model('div3_causeway_7m', MID, 0, 0)) return;
   if (place === 5 && b.model('void3_ground_7m', MID, 0, 0)) return;
+  if (place === 0) {
+    // Staggered stone joints and a brass-edged drain meet the original kerb and lane.
+    for (let row = 0; row < 3; row++) {
+      b.box('#BCAB93', TILE, 0.014, 0.026, MID, 0, -1.3 - row * 1.8);
+      for (const x of [0.875, 4.375]) b.box('#BCAB93', 0.026, 0.014, 1.8, x + (row % 2) * 1.75, 0, -2.2 - row * 1.8);
+    }
+    b.box('#D7C7A5', 2.8, 0.018, 0.19, 2, -0.18, 5);
+    b.box('#6A665E', 0.85, 0.018, 0.34, 5.6, -0.18, 0.2);
+    return;
+  }
   const joint = shade(s.walk, 0.88);
   if (s.laneShape === 'bean') {
     for (const x of [1.4, 4.9]) { b.ball(s.lane, 0.5, 0.02, 0.3, x, -0.17, 5); b.ball(shade(s.lane, 0.6), 0.42, 0.025, 0.04, x, -0.17, 5); }
