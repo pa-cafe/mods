@@ -1,7 +1,7 @@
 // BARISTA BLAST!! (#1078): which lines a resident speaks aloud. Each row is a line the screen shows, named by its English text
 // (the same key the screen asks the catalogue for), and the file that says it: public/audio/blast/voice/<file>-<tongue>.ogg and
-// .m4a. A line with no row is only read. The wording of a row is exactly what the screen shows, so what is heard is what is
-// read; change a line's words and its row has to go until it is voiced again.
+// .m4a. A line with no row is only read. What is heard means what the screen shows; the voice may add an interjection or
+// stretch a sound for feeling. Change a line's meaning and its row has to go until it is voiced again.
 // Where these files came from, and the lines that are left out on purpose: docs/design/barista-blast-audio.md.
 import type { TextKey } from './i18n.ts';
 
@@ -25,14 +25,13 @@ export const blastVoices: Partial<Record<TextKey, Voiced>> = {
   // Her other boost lines, and the ones that come of a bad state or the orbit.
   'To celebrate, everyone’s limits are reset!': row('dots-boost-reset'),
   'Dad says money is no problem!': row('grok-boost-money'),
-  // Boost lines voiced only in Chinese for now; the other pages read them.
-  'This push is for reference only. No promises on distance!': row('dots-boost-reference', ['zh']),
-  'Disclaimer shield up. This is not a flight guarantee': row('dots-boost-shield', ['zh']),
-  'Let me write a plan first… OK, the plan is: fly!': row('claude-boost-plan', ['zh']),
-  'Thought for forty-seven seconds. Conclusion: charge!': row('claude-boost-thought', ['zh']),
-  'Fact-checked. Probably! Sure win!': row('grok-boost-checked', ['zh']),
-  'In the plainest words: charge ahead!': row('doubao-boost-plainest', ['zh']),
-  'Put plainly: no going round this time': row('doubao-boost-plainly', ['zh']),
+  'This push is for reference only. No promises on distance!': row('dots-boost-reference'),
+  'Disclaimer shield up. This is not a flight guarantee': row('dots-boost-shield'),
+  'Let me write a plan first… OK, the plan is: fly!': row('claude-boost-plan'),
+  'Thought for forty-seven seconds. Conclusion: charge!': row('claude-boost-thought'),
+  'Fact-checked. Probably! Sure win!': row('grok-boost-checked'),
+  'In the plainest words: charge ahead!': row('doubao-boost-plainest'),
+  'Put plainly: no going round this time': row('doubao-boost-plainly'),
   'Sorry for the outage. Everyone’s limits have been reset': row('dots-bad-limitsreset'),
   'We reviewed your account again. Sorry about that. Carry on': row('appeal'),
   'Dad booked this whole orbit': row('grok-orbit-booked'),
