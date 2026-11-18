@@ -25,6 +25,14 @@ export const blastVoices: Partial<Record<TextKey, Voiced>> = {
   // Her other boost lines, and the ones that come of a bad state or the orbit.
   'To celebrate, everyone’s limits are reset!': row('dots-boost-reset'),
   'Dad says money is no problem!': row('grok-boost-money'),
+  // Boost lines voiced only in Chinese for now; the other pages read them.
+  'This push is for reference only. No promises on distance!': row('dots-boost-reference', ['zh']),
+  'Disclaimer shield up. This is not a flight guarantee': row('dots-boost-shield', ['zh']),
+  'Let me write a plan first… OK, the plan is: fly!': row('claude-boost-plan', ['zh']),
+  'Thought for forty-seven seconds. Conclusion: charge!': row('claude-boost-thought', ['zh']),
+  'Fact-checked. Probably! Sure win!': row('grok-boost-checked', ['zh']),
+  'In the plainest words: charge ahead!': row('doubao-boost-plainest', ['zh']),
+  'Put plainly: no going round this time': row('doubao-boost-plainly', ['zh']),
   'Sorry for the outage. Everyone’s limits have been reset': row('dots-bad-limitsreset'),
   'We reviewed your account again. Sorry about that. Carry on': row('appeal'),
   'Dad booked this whole orbit': row('grok-orbit-booked'),

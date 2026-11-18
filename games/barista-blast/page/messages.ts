@@ -327,4 +327,11 @@ export const blastMessages = [
   ['I’m the Q8 build. Five percent off the push, and nobody can tell', '我是 Q8 版，效果打九五折，沒人看得出來', '我是 Q8 版，效果打九五折，没人看得出来', '私はQ8版。押す力は5%引き、気づく人はいません', '저는 Q8 버전이에요. 힘은 5% 깎였지만 아무도 몰라요'],
   ['I’m the Q4 build. A fifth off the push', '我是 Q4 版，效果打八折', '我是 Q4 版，效果打八折', '私はQ4版。押す力は2割引きです', '저는 Q4 버전이에요. 힘은 20% 깎였어요'],
   ['I’m the Q2 build. A third off the push, but it still counts', '我是 Q2 版，效果只剩六五折，湊合著用吧', '我是 Q2 版，效果只剩六五折，凑合着用吧', '私はQ2版。押す力は3割5分引き、でも一応効きます', '저는 Q2 버전이에요. 힘은 35% 깎였지만 그래도 쓸 만해요'],
+  ['This push is for reference only. No promises on distance!', '本次推進僅供參考，飛多遠概不負責！', '本次推进仅供参考，飞多远概不负责！', '今回の推進はあくまで参考です。飛距離は保証しません！', '이번 추진은 참고용입니다. 얼마나 날지는 책임 못 져요!'],
+  ['Disclaimer shield up. This is not a flight guarantee', '免責護盾展開，這不構成飛行保證喔', '免责护盾展开，这不构成飞行保证哦', '免責シールド展開。飛行を保証するものではありません', '면책 방패 전개. 비행을 보장하는 건 아니에요'],
+  ['Let me write a plan first… OK, the plan is: fly!', '讓我先寫個計畫……好，計畫就是：飛！', '让我先写个计划……好，计划就是：飞！', 'まず計画を書かせて……よし、計画は「飛べ」！', '먼저 계획부터 쓸게요… 좋아, 계획은: 날아!'],
+  ['Thought for forty-seven seconds. Conclusion: charge!', '思考了四十七秒，結論是：衝！', '思考了四十七秒，结论是：冲！', '四十七秒考えた結論：突っ込め！', '47초 동안 생각한 결론: 돌격!'],
+  ['Fact-checked. Probably! Sure win!', '查證完畢，大概吧！穩贏！', '查证完毕，大概吧！稳赢！', '事実確認完了。たぶんね！楽勝！', '팩트체크 완료. 아마도! 무조건 이겨!'],
+  ['In the plainest words: charge ahead!', '用最白的話說：往前衝！', '用最白的话说：往前冲！', '一番わかりやすく言うと、前へ突っ込め！', '가장 쉽게 말하면: 앞으로 돌격!'],
+  ['Put plainly: no going round this time', '說人話就是：這次不繞彎啦', '说人话就是：这次不绕弯啦', '要するに、今回は回り道なし', '쉽게 말해, 이번엔 안 돌아가요'],
 ] as const;

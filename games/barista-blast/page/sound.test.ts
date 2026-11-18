@@ -273,12 +273,12 @@ describe('the residents’ voices', () => {
     audio.heard([{ type: 'hit', hit: hit({ kind: 'dots', as: 'dots', mood: 'one' }), from: 1, to: 2 }]);
     audio.heard([{ type: 'hit', hit: hit({ kind: 'claude', as: 'claude', mood: 'bad' }), from: 1, to: 2 }]);
     audio.heard([{ type: 'hit', hit: hit({ kind: 'muse', as: 'muse', mood: 'one', waived: true }), from: 1, to: 2 }]);
-    await vi.waitFor(() => expect(asked(fetching)).toHaveLength(3));
-    expect(asked(fetching)).toEqual([url('dots', 'zh'), url('dots-boost-reset', 'zh'), url('appeal', 'zh')]);
+    await vi.waitFor(() => expect(asked(fetching)).toHaveLength(5));
+    expect(asked(fetching)).toEqual([url('dots', 'zh'), url('dots-boost-reset', 'zh'), url('dots-boost-reference', 'zh'), url('dots-boost-shield', 'zh'), url('appeal', 'zh')]);
     expect(started).toEqual([]);
     audio.say('To celebrate, everyone’s limits are reset!');
     await vi.waitFor(() => expect(started).toHaveLength(1));
-    expect(asked(fetching)).toHaveLength(3);
+    expect(asked(fetching)).toHaveLength(5);
     audio.close();
   });
 
