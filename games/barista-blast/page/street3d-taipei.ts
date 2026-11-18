@@ -24,7 +24,7 @@ function coin(b: Build, r: number, x: number, y: number, z: number, lit: number)
 
 
 function tower(b: Build, x: number, z: number, lit: number) {
-  if (b.model('tpe_101_refined', x, 0, z)) return;
+  if (b.model('tpe3_101_jade_refined', x, 0, z)) return;
   const dark = shade(GLASS, 0.7), frame = shade(GLASS, 0.55), mall = '#D9D2C2';
   b.box(mall, 34, 5, 20, x, 0, z + 2); b.box(shade(mall, 0.9), 35, 0.6, 21, x, 5, z + 2);
   for (let i = 0; i < 7; i++) b.pane(lit ? GOLD : '#7FB3B5', 3.2, 3, x - 13.5 + i * 4.5, 2.4, z + 12.02, { glow: lit * 0.6 });

@@ -7,7 +7,11 @@ import type { Kit } from './street3d-kit';
 // Only the district entering the camera is fetched. Missing pieces use their original builders.
 const districts = [
   {
-    'tpe_101_refined': new URL('../art-source/momo-20261118/blast_taipei_v2_20261118/assets/tpe_101_refined.glb', import.meta.url).href,
+    'tpe3_101_jade_refined': new URL('../art-source/momo-20261118/blast_taipei_v3_20261118/assets/tpe3_101_jade_refined.glb', import.meta.url).href,
+    'tpe3_corner_cafe_7m': new URL('../art-source/momo-20261118/blast_taipei_v3_20261118/assets/tpe3_corner_cafe_7m.glb', import.meta.url).href,
+    'tpe3_tea_balcony_7m': new URL('../art-source/momo-20261118/blast_taipei_v3_20261118/assets/tpe3_tea_balcony_7m.glb', import.meta.url).href,
+    'tpe3_arcade_apartment_7m': new URL('../art-source/momo-20261118/blast_taipei_v3_20261118/assets/tpe3_arcade_apartment_7m.glb', import.meta.url).href,
+    'tpe3_low_market_7m': new URL('../art-source/momo-20261118/blast_taipei_v3_20261118/assets/tpe3_low_market_7m.glb', import.meta.url).href,
     'cks-memorial-refined': new URL('../art-source/momo-20261118/blast_memorial_fix_20261118/cks-memorial-refined.glb', import.meta.url).href,
     'tpe_mrt_viaduct_tile14m': new URL('../art-source/momo-20261118/blast_taipei_metro_20261118/assets/tpe_mrt_viaduct_tile14m.glb', import.meta.url).href,
     'tpe_mrt_train_2car_tile14m': new URL('../art-source/momo-20261118/blast_taipei_metro_20261118/assets/tpe_mrt_train_2car_tile14m.glb', import.meta.url).href,

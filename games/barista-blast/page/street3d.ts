@@ -225,12 +225,14 @@ export class Street3d {
       void this.models.warm(place).then(() => {
         if (this.worlds[place] !== current) return;
         // Replace provisional tiles together on the next draw, including both sides of a wipe.
-        for (const layer of [current.far, current.clouds]) {
+        const provisional = [current.far, current.clouds];
+        if (place === 0) provisional.push(current.rows);
+        for (const layer of provisional) {
           for (const group of layer.values()) current.scene.remove(group);
           layer.clear();
         }
         for (const [key, parts] of this.made) {
-          if (!key.startsWith(`far:${place}:`) && key !== `cloud:${place}`) continue;
+          if (!key.startsWith(`far:${place}:`) && key !== `cloud:${place}` && !(place === 0 && key.startsWith('row:0:'))) continue;
           for (const part of parts) part.geometry.dispose();
           this.made.delete(key);
         }

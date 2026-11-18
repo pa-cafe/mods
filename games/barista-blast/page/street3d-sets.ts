@@ -132,26 +132,31 @@ const street: readonly Piece[] = [
   {
     build(b, c) {
       const h = 7.6 + c.v * 0.5;
-      walls(b, c, 6.2, h);
-      pane(b, c, 2.5, 0.9, 3.3, 2.1); door(b, c, 5.4);
-      awning(b, 3.5, 3.35, 5.9, [c.accent, CREAM]);
-      for (const x of [1.6, 5.4]) { pane(b, c, x, 4.9, 1.2, 1.6, roll(x, c.v) > 0.3); flowers(b, c, x, 4.5, 1.5); }
-
-      b.tube(INK, 0.96, 0.14, 3.5, 5.75 - 0.07, F + 0.12, { turn: [90, 0, 0], sides: 48 }); b.sign('badge:round', mark('badge', INK, board('cup', INK, CREAM, c.accent), 0), 1.8, 1.8, 3.5, 5.75, F + 0.2, { sharp: true, round: true });
-      b.box(c.s.trim, 0.7, 0.9, 0.7, 5.2, h + 0.3, F - 3); puffs(b, 5.3, h + 1.6, F - 3, WHITE, 0.3, 3);
+      const cafe = b.model('tpe3_corner_cafe_7m', MID, 0, -8);
+      if (!cafe) {
+        walls(b, c, 6.2, h);
+        pane(b, c, 2.5, 0.9, 3.3, 2.1); door(b, c, 5.4);
+        awning(b, 3.5, 3.35, 5.9, [c.accent, CREAM]);
+        for (const x of [1.6, 5.4]) { pane(b, c, x, 4.9, 1.2, 1.6, roll(x, c.v) > 0.3); flowers(b, c, x, 4.5, 1.5); }
+      }
+      const badgeZ = cafe ? F + 0.48 : F + 0.12, roof = cafe ? 9.21 : h;
+      b.tube(INK, 0.96, 0.14, 3.5, 5.75 - 0.07, badgeZ, { turn: [90, 0, 0], sides: 48 }); b.sign('badge:round', mark('badge', INK, board('cup', INK, CREAM, c.accent), 0), 1.8, 1.8, 3.5, 5.75, badgeZ + 0.08, { sharp: true, round: true });
+      b.box(c.s.trim, 0.7, 0.9, 0.7, 5.2, roof + 0.3, F - 3); puffs(b, 5.3, roof + 1.6, F - 3, WHITE, 0.3, 3);
     },
     models: [['signal__cafe_table', 2.2, -3, 0], ['signal__cafe_chair', 1.1, -3, 90], ['signal__cafe_chair', 3.3, -3, -90], ['signal__potPlant', 6.3, -5.6, 0, 1.3]],
   },
   {
     build(b, c) {
-      const h = 9 + c.v * 0.6;
-      walls(b, c, 4.6, h);
-      pane(b, c, 3.5, 1.5, 2.8, 1.5, true, false); b.box(c.s.trim, 3.3, 0.14, 0.8, 3.5, 1.2, F + 0.4);
-      for (const x of [2.7, 3.5, 4.3]) b.tube(CREAM, 0.13, 0.3, x, 1.34, F + 0.5, { top: 1.3 });
-      awning(b, 3.5, 3.4, 4.2, [c.accent, CREAM], 1.1);
-      for (const y of [4.6, 6.8]) for (const x of [2.5, 4.5]) pane(b, c, x, y, 1.1, 1.4, roll(x + y, c.v) > 0.35);
-      cup(b, 3.5, h + 0.5, F - 2.4, 1.2, 2, CREAM, c.accent); b.dome(WHITE, 1.16, 0.5, 1.16, 3.5, h + 2.5, F - 2.4); b.tube(PINK, 0.13, 2.2, 3.8, h + 1.9, F - 2.4, { turn: [0, 0, -12] });
-      for (let i = 0; i < 7; i++) b.ball(ROAST, 0.14, 0.14, 0.1, 2.9 + (i % 4) * 0.4, h + 0.75 + Math.floor(i / 4) * 0.28, F - 1.5);
+      if (!b.model('tpe3_tea_balcony_7m', MID, 0, -8)) {
+        const h = 9 + c.v * 0.6;
+        walls(b, c, 4.6, h);
+        pane(b, c, 3.5, 1.5, 2.8, 1.5, true, false); b.box(c.s.trim, 3.3, 0.14, 0.8, 3.5, 1.2, F + 0.4);
+        for (const x of [2.7, 3.5, 4.3]) b.tube(CREAM, 0.13, 0.3, x, 1.34, F + 0.5, { top: 1.3 });
+        awning(b, 3.5, 3.4, 4.2, [c.accent, CREAM], 1.1);
+        for (const y of [4.6, 6.8]) for (const x of [2.5, 4.5]) pane(b, c, x, y, 1.1, 1.4, roll(x + y, c.v) > 0.35);
+        cup(b, 3.5, h + 0.5, F - 2.4, 1.2, 2, CREAM, c.accent); b.dome(WHITE, 1.16, 0.5, 1.16, 3.5, h + 2.5, F - 2.4); b.tube(PINK, 0.13, 2.2, 3.8, h + 1.9, F - 2.4, { turn: [0, 0, -12] });
+        for (let i = 0; i < 7; i++) b.ball(ROAST, 0.14, 0.14, 0.1, 2.9 + (i % 4) * 0.4, h + 0.75 + Math.floor(i / 4) * 0.28, F - 1.5);
+      }
       b.box(c.other, 0.2, 2.6, 1, 5.6, 4.4, F + 0.7); b.sign(`plaque:珍奶:${c.other}`, plaque('珍奶', CREAM, c.other, 0.8, 2.4), 0.8, 2.4, 5.6, 5.7, F + 1.21, { glow: c.glow * 0.4 });
       lamp(b, c, 6.3, -2.2); tree(b, 0.6, -5.4, 3.6);
     },
@@ -174,27 +179,32 @@ const street: readonly Piece[] = [
   },
   {
     build(b, c) {
-      const h = 10.8 + c.v * 0.6, dim = shade(c.wall, 0.62), words = [['咖啡', '早餐'], ['豆花', '麵'], ['茶', '書店'], ['冰', '咖啡']][c.v];
-      b.box(c.wall, 6.2, h - 3.6, 5, MID, 3.6, F - 2.5); b.box(dim, 6.2, 3.6, 3, MID, 0, F - 3.5); b.box(shade(c.s.walk, 0.9), 6.2, 0.06, 2, MID, 0, F - 1);
-      for (const x of [0.65, 3.5, 6.35]) b.box(c.wall, 0.5, 3.6, 0.5, x, 0, F - 0.25);
-      b.box(c.s.trim, 6.5, 0.3, 5.3, MID, h, F - 2.5);
-      b.pane(c.s.window, 2.2, 2.4, 2.1, 1.5, F - 1.98, { glow: c.glow + 0.25, rough: 0.3 }); b.box(c.accent, 2.4, 0.5, 0.1, 2.1, 2.9, F - 1.95);
-      b.box(STEEL, 2.2, 2.9, 0.08, 5, 0, F - 1.96, { rough: 0.4 }); for (let y = 0.3; y < 2.8; y += 0.3) b.box(shade(STEEL, 0.75), 2.2, 0.04, 0.04, 5, y, F - 1.9);
-      b.box(c.other, 5.6, 0.9, 0.16, MID, 3.7, F + 0.1); b.sign(`plaque:${words[0]}:${c.other}:wide`, plaque(words[0] + '・' + words[1], CREAM, c.other, 5.3, 0.8), 5.3, 0.8, MID, 4.15, F + 0.19);
-      for (let floor = 0; floor * 2.3 + 7.6 < h; floor++) for (const x of [1.6, 3.5, 5.4]) {
-        const y = 5.2 + floor * 2.3, on = roll(x * 3 + floor, c.v) > 0.3;
-        pane(b, c, x, y, 1.1, 1.3, on, false);
-        for (const bar of [-0.36, 0, 0.36]) b.box(INK, 0.04, 1.3, 0.04, x + bar, y, F + 0.3); b.box(INK, 1.2, 0.04, 0.04, x, y + 0.65, F + 0.3);
-        if (roll(x + floor * 7, c.v + 2) > 0.5) b.box('#E8E8E0', 0.8, 0.5, 0.45, x, y - 0.85, F + 0.28);
+      const arcade = b.model('tpe3_arcade_apartment_7m', MID, 0, -8);
+      if (!arcade) {
+        const h = 10.8 + c.v * 0.6, dim = shade(c.wall, 0.62);
+        b.box(c.wall, 6.2, h - 3.6, 5, MID, 3.6, F - 2.5); b.box(dim, 6.2, 3.6, 3, MID, 0, F - 3.5); b.box(shade(c.s.walk, 0.9), 6.2, 0.06, 2, MID, 0, F - 1);
+        for (const x of [0.65, 3.5, 6.35]) b.box(c.wall, 0.5, 3.6, 0.5, x, 0, F - 0.25);
+        b.box(c.s.trim, 6.5, 0.3, 5.3, MID, h, F - 2.5);
+        b.pane(c.s.window, 2.2, 2.4, 2.1, 1.5, F - 1.98, { glow: c.glow + 0.25, rough: 0.3 }); b.box(c.accent, 2.4, 0.5, 0.1, 2.1, 2.9, F - 1.95);
+        b.box(STEEL, 2.2, 2.9, 0.08, 5, 0, F - 1.96, { rough: 0.4 }); for (let y = 0.3; y < 2.8; y += 0.3) b.box(shade(STEEL, 0.75), 2.2, 0.04, 0.04, 5, y, F - 1.9);
+        for (let floor = 0; floor * 2.3 + 7.6 < h; floor++) for (const x of [1.6, 3.5, 5.4]) {
+          const y = 5.2 + floor * 2.3, on = roll(x * 3 + floor, c.v) > 0.3;
+          pane(b, c, x, y, 1.1, 1.3, on, false);
+          for (const bar of [-0.36, 0, 0.36]) b.box(INK, 0.04, 1.3, 0.04, x + bar, y, F + 0.3); b.box(INK, 1.2, 0.04, 0.04, x, y + 0.65, F + 0.3);
+          if (roll(x + floor * 7, c.v + 2) > 0.5) b.box('#E8E8E0', 0.8, 0.5, 0.45, x, y - 0.85, F + 0.28);
+        }
+        b.box('#5FA8A0', 3.2, 2, 3.2, 2.2, h + 0.3, F - 2.6); b.ridge('#4B8F88', 3.6, 0.7, 3.6, 2.2, h + 2.3, F - 2.6);
+        for (const [x, z] of [[4.4, -1.6], [5.6, -1.6], [4.4, -2.8], [5.6, -2.8]]) b.box(INK, 0.1, 1, 0.1, x, h + 0.3, F + z);
+        b.tube(STEEL, 0.85, 1.5, 5, h + 1.3, F - 2.2, { rough: 0.2 }); b.dome(STEEL, 0.85, 0.3, 0.85, 5, h + 2.8, F - 2.2, { rough: 0.2 });
       }
+      const words = [['咖啡', '早餐'], ['豆花', '麵'], ['茶', '書店'], ['冰', '咖啡']][c.v];
+      const front = arcade ? F + 0.7 : F;
+      b.box(c.other, 5.6, 0.9, 0.16, MID, 3.7, front + 0.1); b.sign(`plaque:${words[0]}:${c.other}:wide`, plaque(words[0] + '・' + words[1], CREAM, c.other, 5.3, 0.8), 5.3, 0.8, MID, 4.15, front + 0.19);
       [[0.5, c.accent, words[0]], [6.5, RED, words[1]]].forEach(([x, color, word], i) => {
         const tall = 2.4 + i * 0.6;
-        b.box(color as string, 0.2, tall + 0.2, 1.1, x as number, 4.9, F + 0.75); b.sign(`plaque:${word}:${color}:${tall}`, plaque(word as string, CREAM, color as string, 0.9, tall), 0.9, tall, (x as number) + (i ? -0.11 : 0.11), 5 + tall / 2, F + 0.75, { turn: [0, i ? -90 : 90, 0], glow: c.glow * 0.4 });
-        b.sign(`plaque:${word}:${color}:${tall}:f`, plaque(word as string, CREAM, color as string, 0.9, tall), 0.9, tall, x as number, 5 + tall / 2, F + 1.31, { glow: c.glow * 0.4 });
+        b.box(color as string, 0.2, tall + 0.2, 1.1, x as number, 4.9, front + 0.75); b.sign(`plaque:${word}:${color}:${tall}`, plaque(word as string, CREAM, color as string, 0.9, tall), 0.9, tall, (x as number) + (i ? -0.11 : 0.11), 5 + tall / 2, front + 0.75, { turn: [0, i ? -90 : 90, 0], glow: c.glow * 0.4 });
+        b.sign(`plaque:${word}:${color}:${tall}:f`, plaque(word as string, CREAM, color as string, 0.9, tall), 0.9, tall, x as number, 5 + tall / 2, front + 1.31, { glow: c.glow * 0.4 });
       });
-      b.box('#5FA8A0', 3.2, 2, 3.2, 2.2, h + 0.3, F - 2.6); b.ridge('#4B8F88', 3.6, 0.7, 3.6, 2.2, h + 2.3, F - 2.6);
-      for (const [x, z] of [[4.4, -1.6], [5.6, -1.6], [4.4, -2.8], [5.6, -2.8]]) b.box(INK, 0.1, 1, 0.1, x, h + 0.3, F + z);
-      b.tube(STEEL, 0.85, 1.5, 5, h + 1.3, F - 2.2, { rough: 0.2 }); b.dome(STEEL, 0.85, 0.3, 0.85, 5, h + 2.8, F - 2.2, { rough: 0.2 });
       scooter(b, 1.5, -1.9, c.accent); scooter(b, 3.9, -1.9, WHITE);
     },
     models: [['signal__plant', 0.5, -5.4, 0, 1.3]],
@@ -213,6 +223,7 @@ const street: readonly Piece[] = [
   },
   {
     build(b, c) {
+      if (b.model('tpe3_low_market_7m', MID, 0, -8)) return;
       const roof = shade(c.accent, 0.85);
       walls(b, c, 5.8, 4.6);
       b.ridge(roof, 6.3, 2.2, 5.6, MID, 4.9, F - 2.5); b.box(c.s.trim, 0.8, 2.6, 0.8, 5.3, 4.9, F - 3.2); puffs(b, 5.4, 7.9, F - 3.2, WHITE, 0.35);
