@@ -1,5 +1,7 @@
 # 六關 3D 街景審閱
 
+[最新角色同框、v5 咖啡機、道具配色與遠景滾動實測](characters-and-ground.md)
+
 正常載入時，22 個地標與五個有街景關卡的 30 個近景選項使用 Momo 的模型。虛無的六個近景選項都留白。玩家、事件、HUD、招牌圖樣與文字沿用遊戲。對照左側是上一版草稿 `b6441c1`（已含台北 v3 與初版六關地標），右側是本輪組裝。
 
 [桌面前後對照](full-style-desktop.webp) · [手機六關](full-style-mobile.webp) · [桌面 22 個地標](full-style-landmarks.webp) · [手機 22 個地標](full-style-mobile-landmarks.webp) · [新竹 24 種街段實例](full-style-hsinchu.webp) · [遊戲重播與明信片](full-style-game.webp) · [六張明信片](full-style-postcards.webp) · [五組轉場](full-style-wipes.webp) · [六區各缺一件素材時的畫面](full-style-failure.webp)
