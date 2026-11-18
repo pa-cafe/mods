@@ -1,0 +1,15 @@
+{
+  "hopper_cups_separating_axis": "X",
+  "hopper_max_x": -1.96999990940094,
+  "cup_min_x": -1.8899999856948853,
+  "clearance": 0.07999992370605469,
+  "top_cups": 2,
+  "gauge_unchanged": [
+    -2.2385,
+    0.7590000000000001
+  ],
+  "pivot_unchanged": [
+    -0.8359999999999999,
+    1.2375
+  ]
+}
