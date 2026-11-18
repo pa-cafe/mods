@@ -11,6 +11,7 @@ const deg = (radians: number) => radians * 180 / Math.PI;
 type Make = (key: string, make: (b: Build) => void) => THREE.Group;
 
 function towerParts(b: Build) {
+  if (b.model('orb4_gag_launch_tower' , 0, 0, 0)) return;
   const bays = 10, bay = TOWER_H / bays, z = -3.2, brace = Math.hypot(6.4, bay), lean = deg(Math.atan2(bay, 6.4));
   for (const side of [-1, 1]) for (const face of [-1, 1]) b.box(RED, 0.5, TOWER_H, 0.5, side * 3.2, 0, z + face * 1.2, { rough: 0.6 });
   for (const face of [-1, 1]) for (let i = 0; i <= bays; i++) {
@@ -26,6 +27,7 @@ function towerParts(b: Build) {
 }
 
 function armParts(b: Build, side: number) {
+  if (b.model(side < 0 ? 'orb4_gag_arm_left' : 'orb4_gag_arm_right', 0, 0, 0)) return;
   const dir = -side;
   b.box(ARM, 2.8, 1, 1.6, dir * 1.4, -0.5, 0, { rough: 0.5 });
   b.box('#4B5563', 0.6, 2.4, 2.2, dir * 2.5, -1.2, 0);
@@ -34,6 +36,10 @@ function armParts(b: Build, side: number) {
 }
 
 function rocketParts(b: Build) {
+  if (b.model('orb4_gag_rocket', 0, 0, 0)) {
+    b.sign('rocket-bean', board('bean', BEAN, CREAM), 1.9, 1.9, 0, ROCKET.base + 4.4, ROCKET.r + 0.06, { round: true, sharp: true });
+    return;
+  }
   const { r, base, body } = ROCKET, top = base + body, steel = { rough: 0.22, glow: 0.3 };
   b.tube(STEEL, r, body, 0, base, 0, { ...steel, sides: 28 });
   b.tube(STEEL, r, 2.2, 0, top, 0, { ...steel, sides: 28, top: 0.62 });
@@ -53,10 +59,24 @@ function rocketParts(b: Build) {
 }
 
 function flameParts(b: Build) {
+  if (b.model('orb4_gag_flame' , 0, 0, 0)) return;
   for (const [r, h, color, glow] of [[1.3, 7, FIRE, 1.4], [0.86, 4.6, YELLOW, 2], [0.45, 2.4, '#FFFFFF', 2.4]] as const) b.tube(color, r, h, 0, -h, 0, { top: 0.001, turn: [180, 0, 0], glow, sides: 14 });
 }
 
+function dummyFace(b: Build, dir: number) {
+  b.sign('dummy-face', (ctx, s) => {
+    ctx.fillStyle = '#F2B134'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = INK; ctx.fillRect(0, 0, s / 2, s / 2); ctx.fillRect(s / 2, s / 2, s / 2, s / 2);
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(s / 2, s / 2, s * 0.13, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = INK; ctx.lineWidth = s * 0.05; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(s / 2, s * 0.52, s * 0.28, 0.35, Math.PI - 0.35); ctx.stroke();
+  }, 0.9, 0.9, -0.45 * dir, 3.0, 0.52, { round: true });
+}
+
 function carParts(b: Build, dir: number) {
+  if (b.model(dir < 0 ? 'orb4_gag_roadster_left' : 'orb4_gag_roadster_right', 0, 0, 0)) {
+    dummyFace(b, dir);
+    return;
+  }
   const x = (value: number) => value * dir, flip = (turn: number) => turn * dir, shine = { rough: 0.25 };
   b.box('#E8353F', 5.4, 0.8, 2.3, 0, 0.35, 0, shine);
   b.box('#E8353F', 1.7, 0.45, 2.15, x(1.85), 1.1, 0, { ...shine, turn: [0, 0, flip(-9)] });
@@ -68,12 +88,7 @@ function carParts(b: Build, dir: number) {
   b.box('#B3202B', 0.4, 0.18, 2.3, x(-2.85), 2.0, 0);
   b.box('#F2B134', 0.8, 1.1, 1.1, x(-0.55), 1.4, 0);
   b.ball('#F2B134', 0.52, 0.52, 0.52, x(-0.45), 3.0, 0, { rough: 0.4 });
-  b.sign('dummy-face', (ctx, s) => {
-    ctx.fillStyle = '#F2B134'; ctx.fillRect(0, 0, s, s);
-    ctx.fillStyle = INK; ctx.fillRect(0, 0, s / 2, s / 2); ctx.fillRect(s / 2, s / 2, s / 2, s / 2);
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(s / 2, s / 2, s * 0.13, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = INK; ctx.lineWidth = s * 0.05; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(s / 2, s * 0.52, s * 0.28, 0.35, Math.PI - 0.35); ctx.stroke();
-  }, 0.9, 0.9, x(-0.45), 3.0, 0.52, { round: true });
+  dummyFace(b, dir);
   b.box('#9EE7FF', 0.1, 1.1, 2.1, x(0.95), 1.15, 0, { glow: 0.4, turn: [0, 0, flip(-38)] });
   b.box('#F2B134', 1.1, 0.28, 0.3, x(0.15), 1.9, 0.55, { turn: [0, 0, flip(14)] });
   for (const wheel of [-1.8, 1.8]) for (const z of [-1.25, 1.25]) {
@@ -87,6 +102,7 @@ function carParts(b: Build, dir: number) {
 function trainParts(b: Build) {
   for (let i = 0; i < SAT_COUNT; i++) {
     const x = (i - (SAT_COUNT - 1) / 2) * SAT_GAP, y = -0.012 * x * x;
+    if (b.model('orb4_gag_train_satellite', x, y, 0)) continue;
     b.box('#DDE3EA', 1.1, 0.8, 0.8, x, y - 0.4, 0, { rough: 0.3, glow: 0.3 });
     b.box('#E8B03A', 1.14, 0.16, 0.84, x, y - 0.08, 0, { glow: 0.3 });
     for (const side of [-1, 1]) b.pane('#2A4DB0', 0.9, 0.6, x + side * 1.05, y, 0.1, { glow: 0.4 });
@@ -122,8 +138,8 @@ export class OrbitGags {
     root.add(make('gag:tower', towerParts));
     rocket.add(make('gag:rocket', rocketParts), at(flames, 0, ROCKET.base - 1.2, 0));
     const left = at(make('gag:arm:-1', b => armParts(b, -1)), -4.3, ARM_Y, -0.2), right = at(make('gag:arm:1', b => armParts(b, 1)), 4.3, ARM_Y, -0.2);
-    const puffs = Array.from({ length: 14 }, () => make('gag:puff', b => b.ball('#FFFFFF', 1, 1, 1, 0, 0, 0, { rough: 1, glow: 0.4 }))), shards = Array.from({ length: 9 }, (_, i) => make(`gag:shard:${i % 3 ? 0 : 1}`, b => b.box(i % 3 ? STEEL : ROCKET_RED, 1.3, 0.7, 0.5, 0, -0.35, 0, { rough: 0.4 })));
-    const fire = make('gag:fire', b => b.ball(FIRE, 1, 1, 1, 0, 0, 0, { glow: 2 })), flash = make('gag:flash', b => b.ball(YELLOW, 1, 1, 1, 0, 0, 0, { glow: 2.6 }));
+    const puffs = Array.from({ length: 14 }, () => make('gag:puff', b => b.model('orb4_gag_puff', 0, 0, 0) || b.ball('#FFFFFF', 1, 1, 1, 0, 0, 0, { rough: 1, glow: 0.4 }))), shards = Array.from({ length: 9 }, (_, i) => make(`gag:shard:${i % 3 ? 0 : 1}`, b => b.model(i % 3 ? 'orb4_gag_shard_ivory' : 'orb4_gag_shard_rose', 0, 0, 0) || b.box(i % 3 ? STEEL : ROCKET_RED, 1.3, 0.7, 0.5, 0, -0.35, 0, { rough: 0.4 })));
+    const fire = make('gag:fire', b => b.model('orb4_gag_fire', 0, 0, 0) || b.ball(FIRE, 1, 1, 1, 0, 0, 0, { glow: 2 })), flash = make('gag:flash', b => b.model('orb4_gag_flash', 0, 0, 0) || b.ball(YELLOW, 1, 1, 1, 0, 0, 0, { glow: 2.6 }));
     const lines = wrapWords(words), { w, h } = pillSize(lines), sign = make(`gag:words:${words}`, b => b.sign(`gag-words:${words}`, pill(lines, w, h), w, h, 0, 0, 0, { sharp: true, glow: 1 }));
     root.add(rocket, left, right, ...puffs, ...shards, fire, flash, sign);
     return { root, rocket, flame: flames, arms: [left, right], puffs, fire, flash, shards, words: sign };

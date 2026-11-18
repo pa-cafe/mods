@@ -1,0 +1,54 @@
+{
+  "variants": [
+    {
+      "materialColorOverrides": {}
+    },
+    {
+      "materialColorOverrides": {
+        "hsc3-deep-teal": [
+          0.16,
+          0.31,
+          0.25
+        ],
+        "hsc3-roasted-copper": [
+          0.43,
+          0.24,
+          0.13
+        ]
+      }
+    },
+    {
+      "materialColorOverrides": {
+        "hsc3-deep-teal": [
+          0.11,
+          0.22,
+          0.23
+        ],
+        "hsc3-roasted-copper": [
+          0.48,
+          0.16,
+          0.09
+        ],
+        "hsc3-cream-enamel": [
+          0.7,
+          0.59,
+          0.44
+        ]
+      }
+    },
+    {
+      "materialColorOverrides": {
+        "hsc3-deep-teal": [
+          0.15,
+          0.32,
+          0.34
+        ],
+        "hsc3-cream-enamel": [
+          0.84,
+          0.76,
+          0.59
+        ]
+      }
+    }
+  ]
+}

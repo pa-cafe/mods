@@ -1,3 +1,4 @@
+import { Color } from 'three';
 
 
 import { CREAM, INK, RED } from './art';
@@ -41,9 +42,11 @@ function tree(b: Build, x: number, y: number, z: number, size: number, round = f
 
 
 function bridge(b: Build, x: number, z: number, lit: number) {
+  if (b.model('sf4_golden_gate_complete', x, 0, z)) return;
   const glow = lit * 0.32, tower = 34, end = 60, deck = 17, top = 55, low = deck + 2.4, planes = [-4.4, 4.4], deckTop = deck + 1;
   b.dome(GREEN_HILL, 11, 20, 12, x - end - 4, 0, z - 1, { rough: 1 }); b.dome(shade(GREEN_HILL, 1.1), 11, 18.8, 11, x + end + 4, 0, z - 1, { rough: 1 });
   b.dome(GREEN_DEEP, 12, 13, 9, x - end + 4, 0, z - 8, { rough: 1 }); b.dome(GREEN_DEEP, 10, 11, 9, x + end - 2, 0, z - 9, { rough: 1 });
+  if (b.model('sfv2_golden_gate', x, 0, z)) return;
   b.box(DECK, end * 2 + 2, 1, 7.6, x, deck, z); b.box(ASPHALT, end * 2, 0.06, 5.8, x, deckTop, z);
   for (let i = 0; i < Math.floor(end * 2 / 3.1); i++) b.box(CREAM, 1.4, 0.04, 0.16, x - end + 1.5 + i * 3.1, deckTop + 0.04, z, { glow: lit * 0.3 });
   for (const plane of planes) {
@@ -92,12 +95,14 @@ function bridge(b: Build, x: number, z: number, lit: number) {
 
 
 function pyramid(b: Build, x: number, z: number, lit: number) {
+  if (b.model('sf4_transamerica_complete', x, 0, z)) return;
   const base = 17, top = 3.8, h = 48, k = (base - top) / 2 / h, lean = Math.atan(k), tilt = lean * DEG, half = (y: number) => base / 2 - k * y;
   for (const [dx, w, height, d, name] of [[-15.5, 8, 31, 8, 0], [14.5, 7, 22, 7, 1], [-22, 5, 17, 6, 2]] as const) {
     const colors = lit ? [LAMP, '#FFB5D0'] : ['#8FB4D8'];
     b.box(BLOCK, w, height, d, x + dx, 0, z - 3);
     b.sign(`bay:block:${name}:${lit ? 1 : 0}`, lights(colors, 6, 14, 0.55, '#3B4670', name + 3), w * 0.86, height * 0.9, x + dx, height * 0.5, z - 3 + d / 2 + 0.03, { glow: lit ? 1.1 : 0 });
   }
+  if (b.model('sfv2_transamerica_pyramid', x, 0, z)) return;
   b.taper(QUARTZ, base, h, base, x, 0, z, top / base, top / base, { glow: lit * 0.42 });
   const ys = [8, 13.5, 19, 24.5, 30, 35.5, 41], columns = [-7, -5.2, -3.4, -1.6, 0.2, 2, 3.8, 5.6, 7.4];
   for (const face of ['front', 'right', 'left'] as const) columns.forEach((u, i) => ys.forEach((y0, j) => {
@@ -120,6 +125,7 @@ function pyramid(b: Build, x: number, z: number, lit: number) {
 
 
 function coit(b: Build, x: number, z: number, lit: number) {
+  if (b.model('sf4_coit_hill_complete', x, 0, z)) return;
   const hill = { x: 20, y: 22, z: 17 }, peak = 20, white = '#EFEBE1', rib = '#FBF9F3', glow = lit * 0.14;
   b.dome(GREEN_HILL, hill.x, hill.y, hill.z, x, 0, z, { rough: 1 }); b.dome(GREEN_DEEP, 13, 12, 11, x - 14, 0, z + 5, { rough: 1 }); b.dome(shade(GREEN_HILL, 1.08), 12, 14, 10, x + 15, 0, z + 4, { rough: 1 });
   for (const [dx, dz, size, round] of [[-9, 8, 6, false], [-5, 10, 5, true], [7, 9, 6.5, false], [11, 6, 5, true], [-13, 5, 5.5, false], [14, 3, 5, false], [3, 11, 4.5, true], [-1, 12, 5, false], [-16, 1, 4.5, true], [16, 0, 4.5, true]] as const) {
@@ -133,6 +139,7 @@ function coit(b: Build, x: number, z: number, lit: number) {
     if (lit) b.pane(LAMP, 0.7, 0.8, x + dx - 0.7, y - 1, z + dz + 1.42, { glow: lit * 0.9 });
   }
   b.tube(STONE, 8.2, 0.8, x, peak - 0.4, z, { rough: 1 }); b.tube(shade(white, 0.92), 6.2, 1.2, x, peak + 0.4, z); b.tube(white, 5.5, 0.8, x, peak + 1.6, z, { glow });
+  if (b.model('sfv2_coit_tower', x, peak, z)) return;
   const foot = peak + 2.4, shaft = 24, r = 3.6, crest = foot + shaft;
   b.tube(shade(white, 0.96), r, shaft, x, foot, z, { sides: 28, glow });
   for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; b.tube(rib, 0.3, shaft, x + Math.cos(a) * r, foot, z + Math.sin(a) * r, { sides: 6, glow }); }
@@ -195,11 +202,14 @@ function house(b: Build, x: number, z: number, lit: number, id: number, front: {
 
 
 function ladies(b: Build, x: number, z: number, lit: number) {
+  if (b.model('sf4_painted_ladies_complete', x, 0, z)) return;
   const pitch = 9, terrace = 14, front = { y: terrace }, at = (i: number) => x + (i - 2) * pitch;
   b.dome(GREEN_HILL, 46, 46, 20, x, 0, z - 26, { rough: 1 }); b.dome(shade(GREEN_HILL, 1.12), 20, 33, 12, x - 28, 0, z - 20, { rough: 1 }); b.dome(shade(GREEN_HILL, 0.9), 18, 30, 12, x + 30, 0, z - 21, { rough: 1 });
   for (const [dx, y, size, round] of [[-30, 26, 7, false], [-14, 40, 6, true], [-4, 45, 7, false], [6, 46, 6.5, true], [16, 40, 7, false], [29, 24, 6, true]] as const) tree(b, x + dx, y, z - 24, size, round);
   b.box(STONE, pitch * 5 + 3.4, terrace, 13, x, 0, z + 0.5); b.box(shade(STONE, 1.12), pitch * 5 + 3.8, 0.5, 13.6, x, terrace - 0.5, z + 0.5);
-  for (let i = 0; i < 5; i++) house(b, at(i), z - 1, lit, i, front);
+  if (!b.model('sfv2_painted_ladies', x, terrace, z - 1, 1.15)) {
+    for (let i = 0; i < 5; i++) house(b, at(i), z - 1, lit, i, front);
+  }
   for (let i = 0; i <= 5; i++) {
     const lx = x + (i - 2.5) * pitch;
     b.tube(INK, 0.1, 4.6, lx, terrace, z + 6.6, { sides: 6 }); b.ball(LAMP, 0.32, 0.32, 0.32, lx, terrace + 4.9, z + 6.6, { glow: lit * 2.2 });
@@ -234,6 +244,12 @@ const ADS: readonly (Ad & { w: number; h: number })[] = [
 
 function billboard(b: Build, ads: number, lit: number, x: number, y: number) {
   const { w, h, ...paint } = ADS[ads], z = -26;
+  const frames = ['sf3_roadside_billboard', 'sf4_billboard_1', 'sf4_billboard_2', 'sf4_billboard_3'] as const;
+  const depth = ads === 3 ? -25 : z;
+  if (b.model(frames[ads], x, 0, depth)) {
+    b.sign(`bay:ad:${ads}`, ad(paint, w, h), w, h, x, y + h / 2 + 0.3, depth + 0.31, { glow: lit * 0.95, sharp: true });
+    return;
+  }
   for (const leg of [-1, 1]) b.box(shade(STEEL, 0.55), 0.5, y, 0.5, x + leg * w * 0.34, 0, z);
   b.box(shade(STEEL, 0.4), w + 0.6, h + 0.6, 0.5, x, y, z - 0.3); b.box(shade(STEEL, 0.62), w + 0.9, 0.3, 1.1, x, y - 0.4, z + 0.2);
   b.sign(`bay:ad:${ads}`, ad(paint, w, h), w, h, x, y + h / 2 + 0.3, z - 0.02, { glow: lit * 0.95, sharp: true });
@@ -246,6 +262,10 @@ function billboard(b: Build, ads: number, lit: number, x: number, y: number) {
 
 
 function car(b: Build, x: number, y: number, z: number, way: 1 | -1, color: string, lit: number, long = false) {
+  b.finishes = { 'sf3-dusty-blue': new Color('#697788').lerp(new Color(color), 0.4).toArray() };
+  const styled = b.model(long ? 'sf3_delivery_truck' : 'sf3_sedan', x, y, z, 1, 0, way === 1 ? 0 : 180);
+  b.finishes = undefined;
+  if (styled) return;
   const length = long ? 6.2 : 2.9, height = long ? 1.9 : 0.95;
   b.box(color, length, height, 1.6, x, y + 0.2, z, { glow: lit * 0.12 }); b.box(shade(color, 0.7), length * 0.42, 0.18, 1.7, x - way * 0.1, y + 0.2, z);
   if (long) b.box(shade(color, 1.25), length * 0.7, 1.6, 1.7, x - way * length * 0.14, y + 1.2, z); else b.box(shade(color, 0.6), length * 0.5, 0.6, 1.4, x - way * 0.15, y + 1.15, z);
@@ -257,20 +277,24 @@ function car(b: Build, x: number, y: number, z: number, way: 1 | -1, color: stri
 
 function freeway(b: Build, length: number, board: boolean, lit: number) {
   const deck = 8.6, z = -21, top = deck + 1.4;
-  b.box(CONCRETE, length, 1.4, 6.8, length / 2, deck, z); b.box(shade(CONCRETE, 0.78), length, 0.5, 6.2, length / 2, deck - 0.5, z);
-  b.box(ASPHALT, length, 0.05, 5.6, length / 2, top, z); b.box(shade(CONCRETE, 1.1), length, 0.5, 0.4, length / 2, top, z + 3.2); b.box(shade(CONCRETE, 1.1), length, 0.5, 0.4, length / 2, top, z - 3.2);
-  b.box(shade(CONCRETE, 1.25), length, 0.12, 0.5, length / 2, top + 0.5, z + 3.2);
-  for (const x of [length * 0.25, length * 0.75]) { b.box(shade(CONCRETE, 0.9), 1.7, deck - 0.8, 2.4, x, 0, z); b.box(CONCRETE, 5, 1.1, 5.4, x, deck - 1.8, z); }
-  for (let i = 0; i < 4; i++) b.box(shade(CONCRETE, 0.7), 0.1, 1.3, 0.1, i * length / 3.5 + 0.6, deck + 0.05, z + 3.42);
-  for (let i = 0; i < 4; i++) b.box(CREAM, 1.8, 0.04, 0.14, length * 0.12 + i * length * 0.25, top + 0.05, z + 0.9, { glow: lit * 0.3 });
-  for (let i = 0; i < 4; i++) b.box(LAMP, 1.8, 0.04, 0.14, length * 0.12 + i * length * 0.25, top + 0.05, z - 0.9, { glow: lit * 0.3 });
-  for (const x of [length * 0.05, length * 0.93]) {
-    b.tube(STEEL, 0.12, 4.4, x, top + 0.2, z + 3.2, { sides: 6 }); b.box(STEEL, 0.1, 0.1, 1.6, x, top + 4.5, z + 2.5); b.box(LAMP, 0.5, 0.2, 0.9, x, top + 4.36, z + 1.7, { glow: lit * 3.5 });
-    if (lit) b.ball('#FFC47A', 0.9, 2.2, 0.9, x, top + 2, z + 1.7, { flat: 0.1 });
+  const styled = b.model('sf3_freeway_14m', 0, 0, z);
+  if (!styled) {
+    b.box(CONCRETE, length, 1.4, 6.8, length / 2, deck, z); b.box(shade(CONCRETE, 0.78), length, 0.5, 6.2, length / 2, deck - 0.5, z);
+    b.box(ASPHALT, length, 0.05, 5.6, length / 2, top, z); b.box(shade(CONCRETE, 1.1), length, 0.5, 0.4, length / 2, top, z + 3.2); b.box(shade(CONCRETE, 1.1), length, 0.5, 0.4, length / 2, top, z - 3.2);
+    b.box(shade(CONCRETE, 1.25), length, 0.12, 0.5, length / 2, top + 0.5, z + 3.2);
+    for (const x of [length * 0.25, length * 0.75]) { b.box(shade(CONCRETE, 0.9), 1.7, deck - 0.8, 2.4, x, 0, z); b.box(CONCRETE, 5, 1.1, 5.4, x, deck - 1.8, z); }
+    for (let i = 0; i < 4; i++) b.box(shade(CONCRETE, 0.7), 0.1, 1.3, 0.1, i * length / 3.5 + 0.6, deck + 0.05, z + 3.42);
+    for (let i = 0; i < 4; i++) b.box(CREAM, 1.8, 0.04, 0.14, length * 0.12 + i * length * 0.25, top + 0.05, z + 0.9, { glow: lit * 0.3 });
+    for (let i = 0; i < 4; i++) b.box(LAMP, 1.8, 0.04, 0.14, length * 0.12 + i * length * 0.25, top + 0.05, z - 0.9, { glow: lit * 0.3 });
+    for (const x of [length * 0.05, length * 0.93]) {
+      b.tube(STEEL, 0.12, 4.4, x, top + 0.2, z + 3.2, { sides: 6 }); b.box(STEEL, 0.1, 0.1, 1.6, x, top + 4.5, z + 2.5); b.box(LAMP, 0.5, 0.2, 0.9, x, top + 4.36, z + 1.7, { glow: lit * 3.5 });
+      if (lit) b.ball('#FFC47A', 0.9, 2.2, 0.9, x, top + 2, z + 1.7, { flat: 0.1 });
+    }
   }
   const driving = [[1.8, 1, 0], [6.1, 1, 1], [10.6, 1, 2], [3.8, -1, 3], [9.4, -1, 4]] as const, paints = ['#5A72B8', '#C04467', '#D8DCE6', '#3F9A8E', '#8A66C8'];
   for (const [at, way, i] of driving) car(b, at, top, z + way * -1.55, way as 1 | -1, paints[i], lit, i === 4);
   if (board) { billboard(b, 0, lit, length * 0.19, 15.4); billboard(b, 1, lit, length * 0.56, 17.2); billboard(b, 2, lit, length * 0.86, 14.4); return; }
+  if (styled) { billboard(b, 3, lit, length / 2, 11.6); return; }
   const w = ADS[3].w, h = ADS[3].h, x = length * 0.5, sign = shade(STEEL, 0.5);
   for (const leg of [-1, 1]) b.box(sign, 0.28, 12.2, 0.28, x + leg * w * 0.4, 0, z - 4);
   b.box('#E9ECEF', w + 0.4, h + 0.4, 0.2, x, 11.6, z - 4.2); b.sign('bay:ad:3', ad(ADS[3], w, h), w, h, x, 11.8 + h / 2, z - 4.06, { glow: lit * 0.55, sharp: true });
@@ -279,7 +303,7 @@ function freeway(b: Build, length: number, board: boolean, lit: number) {
 
 export const bay: Skyline = {
   sights: [
-    { reach: 72, build: bridge },
+    { reach: 75, build: bridge },
     { reach: 22, build: pyramid },
     { reach: 18, build: coit },
     { reach: 22, build: ladies },

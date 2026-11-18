@@ -39,6 +39,12 @@ function column(b: Build, x: number, y: number, z: number, h: number, lit: numbe
 
 
 function serverTemple(b: Build, x: number, z: number, lit: number) {
+  if (b.model('div3_server_temple', x, 0, z)) return;
+  if (b.model('d5_server_temple', x, 0, z)) {
+    b.model('d5_celestial_halo', x, 56, z - 11, 0.85);
+    for (const dx of [-23, 0, 23]) cloud(b, x + dx, 1, z + 14, 2.2);
+    return;
+  }
   const tiers = 7, rise = 1.4, base = tiers * rise, cols = 8, gap = 5.4, span = gap * (cols - 1), front = z + 10, h = 24, floor = base + 0.5;
   for (let i = 0; i < tiers; i++) {
     const w = 58 - i * 1.9, d = 40 - i * 1.9, y = i * rise;
@@ -77,6 +83,7 @@ const slope = (rise: number, run: number, y0: number, z0: number) => (s: number,
 
 
 function stairway(b: Build, x: number, z: number, lit: number) {
+  if (b.model('div3_continuous_stairway', x, 0, z)) return;
   const width = 16, steps = 36, rise = 1.1, run = 0.95, y0 = 1, front = z + 19, on = slope(rise, run, y0, front);
   const angle = deg(Math.atan2(rise, run)), hyp = Math.hypot(rise, run), length = steps * hyp, [midY, midZ] = on(steps / 2, -4.6);
   for (let i = 0; i < steps; i++) {
@@ -134,6 +141,12 @@ function fan(b: Build, x: number, y: number, z: number, r: number, lit: number) 
 
 
 function graphicsCard(b: Build, x: number, z: number, lit: number) {
+  if (b.model('div3_gpu_body', x, 0, z)) return;
+  if (b.model('d5_divine_gpu', x, 31, z, 1.25)) {
+    b.model('d5_celestial_halo', x, 48, z - 5, 0.63);
+    for (const dx of [-18, 0, 18]) cloud(b, x + dx, 12, z + 3, 2);
+    return;
+  }
   const length = 56, h = 22, thick = 5, y0 = 17, front = z + thick / 2, centre = y0 + h / 2;
   b.box('#1E2748', length, h, thick, x, y0, z);
   b.box('#2C3C72', length - 1.4, h - 1.4, 0.5, x, y0 + 0.7, front + 0.05);
@@ -161,6 +174,7 @@ function graphicsCard(b: Build, x: number, z: number, lit: number) {
 
 
 function island(b: Build, x: number, z: number, top: number) {
+  if (b.model('d5_cloud_island', x, top - 5.5, z, 0.86)) return;
   b.tube(ROCK, 3.5, 15, x, top - 16, z, { top: 4.7, sides: 32 });
   for (const [dx, dz, r, len] of [[0, 0, 0.3, 10], [-6, 2, 0.3, 6.5], [5.5, 3, 0.3, 7], [-3, -6, 0.3, 6], [6, -4, 0.3, 5.5], [-9, -2, 0.3, 4]]) b.tube(shade(ROCK, 0.92), r, len, x + dx, top - 15 - len + 1.5, z + dz, { top: 11, sides: 10 });
   for (let i = 0; i < 12; i++) {
@@ -179,6 +193,11 @@ function tree(b: Build, x: number, y: number, z: number, tall: boolean) {
 
 
 function cloudIsland(b: Build, x: number, z: number, lit: number) {
+  if (b.model('div3_cloud_island_complete', x, 0, z)) {
+    b.model('div3_waterfall', x + 17, 0, z + 4);
+    for (let i = 0; i < 7; i++) b.model('div3_light_mote', x + 17 + Math.sin(i) * 1.4, 4 + i * 2.8, z + 4);
+    return;
+  }
   const top = 30, rx = x - 2, rz = z - 2, ground = top + 0.4, floor = ground + 1.1, ring = 7.6, pillar = 9.2;
   island(b, x, z, top);
   for (const [dx, y, dz, s] of [[-15, 13, 8, 1.8], [8, 11, 12, 1.9], [19, 15, 2, 1.7], [-3, 8, 16, 2], [-18, 12, -4, 1.7], [2, 12, -14, 1.9], [13, 11, -10, 1.7], [-8, 5, 4, 1.8], [-5, 2, 24, 2.2]]) cloud(b, x + dx, y, z + dz, s);

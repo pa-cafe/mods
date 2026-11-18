@@ -42,6 +42,8 @@ function foamBed(b: Build, x: number, z: number, spread: number) {
 }
 
 function datacentre(b: Build, x: number, z: number, lit: number) {
+  if (b.model('orb4_data_station_landmark', x, 0, z)) return;
+  if (b.model('orbital_data_station_v2', x, 30, z, 0.83)) return;
   const mid = 34, bayW = 17, bayH = 8.6, bayD = 7.4;
   foamBed(b, x, z, 20);
   for (const side of [-1, 1]) {
@@ -105,6 +107,8 @@ function module(b: Build, x: number, y: number, z: number, length: number, r: nu
 }
 
 function moonbase(b: Build, x: number, z: number, lit: number) {
+  if (b.model('orb4_moon_base_landmark', x, 0, z)) return;
+  if (b.model('lunar_base_v2', x, 8, z, 1.25)) return;
   const rx = 30, ry = 26, rz = 22, top = 23.5, surface = (at: number, y: number) => rz * sqrt(Math.max(0, 1 - (at / rx) ** 2 - (y / ry) ** 2));
   b.dome(MOON, rx, ry, rz, x, 0, z, { rough: 1, glow: 0.3 });
   b.dome(shade(MOON, 0.9), 13, 17, 14, x - 23, 0, z - 3, { rough: 1, glow: 0.3 }); b.dome(shade(MOON, 1.04), 12, 14, 12, x + 23, 0, z - 4, { rough: 1, glow: 0.3 });
@@ -140,6 +144,8 @@ function moonbase(b: Build, x: number, z: number, lit: number) {
 }
 
 function satellite(b: Build, cx: number, cy: number, z: number, size: number, tilt: number, lit: number) {
+  if (b.model('orb4_satellite_landmark_unit', cx, cy, z, size, tilt)) return;
+  if (b.model('solar_satellite_unit_v2', cx, cy, z, size * 0.43, tilt)) return;
   const a = tilt * PI / 180, turn = [0, 0, tilt] as const;
   const at = (lx: number, ly: number): [number, number] => [cx + (lx * cos(a) - ly * sin(a)) * size, cy + (lx * sin(a) + ly * cos(a)) * size];
   const body = at(0, 0), belt = at(0, -1.05);
@@ -175,6 +181,11 @@ function facing(out: THREE.Vector3) {
 }
 
 function ring(b: Build, x: number, z: number, lit: number) {
+  if (b.model('orb4_dyson_core', x, 0, z)) {
+    b.model('orb4_dyson_panel_shell', x, 0, z);
+    return;
+  }
+  if (b.model('dyson_sphere_v2', x, 27, z, 1.25)) return;
   const cy = 26, shell = 15, core = '#FFF3C0', centre = new THREE.Vector3(x, cy, z);
   b.ball(core, 9, 9, 9, x, cy, z, { glow: 3.2 });
   for (const [r, opacity, color] of [[17, 0.4, '#FFE9A0'], [22, 0.22, '#FFD070'], [28, 0.1, '#FFB070']] as const) b.disc(color, r, x, cy, z - 14, { flat: opacity });

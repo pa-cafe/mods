@@ -1,17 +1,20 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
+import type { ModelId, ModelMesh } from './street3d-models';
+
 const rad = (degrees: number) => degrees * Math.PI / 180;
 /** A colour made darker or lighter by a factor, as a hex string. */
 export const shade = (color: string, by: number) => `#${new THREE.Color(color).multiplyScalar(by).getHexString()}`;
 /** `glow` lights a part from inside; `turn` is degrees about x, y, z; `flat` is an unlit see-through pool of light. */
-type Look = { glow?: number; turn?: readonly [number, number, number]; rough?: number; flat?: number };
-export type Part = { geometry: THREE.BufferGeometry; material: THREE.Material; shadow: boolean };
-type Pending = { geometry: THREE.BufferGeometry; matrix: THREE.Matrix4; key: string };
+type Look = { cutout?: boolean; glow?: number; turn?: readonly [number, number, number]; rough?: number; flat?: number };
+export type Part = { geometry: THREE.BufferGeometry; material: THREE.Material; shadow: boolean; instances?: THREE.Matrix4[] };
+type Pending = { geometry: THREE.BufferGeometry; matrix: THREE.Matrix4; key: string; roofLift?: number };
 type Painter = (ctx: CanvasRenderingContext2D, size: number) => void;
 
 /** Geometries, materials and painted signs, made once and shared by every piece. */
 export class Kit {
+  readonly models = new Map<ModelId, ModelMesh[]>();
   private shapes = new Map<string, THREE.BufferGeometry>();
   private materials = new Map<string, THREE.Material>();
   private textures = new Map<string, THREE.CanvasTexture>();
@@ -38,21 +41,45 @@ export class Kit {
     if (!material) {
       material = look.flat
         ? new THREE.MeshBasicMaterial({ color, transparent: true, opacity: look.flat, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })
-        : new THREE.MeshStandardMaterial({ color: picture ? '#fff' : color, map: picture ?? null, roughness: look.rough ?? 0.85, emissive: look.glow ? picture ? '#fff' : color : '#000', emissiveMap: look.glow && picture ? picture : null, emissiveIntensity: look.glow ?? 0 });
+        : new THREE.MeshStandardMaterial({ color: picture ? '#fff' : color, map: picture ?? null, alphaTest: look.cutout ? 0.12 : 0, roughness: look.rough ?? 0.85, emissive: look.glow ? picture ? '#fff' : color : '#000', emissiveMap: look.glow && picture ? picture : null, emissiveIntensity: look.glow ?? 0 });
       this.materials.set(key, material);
     }
     return material;
+  }
+
+  variant(material: THREE.MeshStandardMaterial, light: number, color?: number[] | string, metal = false, tint?: readonly [number, number, number]) {
+    if (!tint && !color && !metal && (light === 1 || material.emissive.getHex() === 0)) return material;
+    const key = `window:${material.uuid}:${light}:${color ?? ''}:${metal}:${tint ?? ''}`;
+    let variant = this.materials.get(key);
+    if (!variant) {
+      const copy = material.clone();
+      copy.emissiveIntensity *= light;
+      if (typeof color === 'string') copy.color.set(color);
+      else if (color) copy.color.fromArray(color);
+      if (tint) copy.color.multiply(new THREE.Color(...tint));
+      if (metal) { copy.metalness = 0.45; copy.roughness = 0.48; }
+      variant = copy;
+      this.materials.set(key, copy);
+    }
+    return variant;
   }
 
   dispose() { for (const group of [this.shapes, this.materials, this.textures]) { for (const item of group.values()) item.dispose(); group.clear(); } }
 }
 
 export class Build {
+  windowLight = 1;
+  facadeTint?: readonly [number, number, number];
+  finishes?: Record<string, number[] | string | undefined>;
+  polishedCopper = false;
+  roofLift = 0;
+  private instances: Part[] = [];
   private pending: Pending[] = [];
+  private modelMaterials = new Map<string, THREE.Material>();
   private pictures = new Map<string, THREE.Texture>();
   private looks = new Map<string, { color: string; look: Look }>();
   private frame: THREE.Matrix4 | null = null;
-  constructor(private kit: Kit) {}
+  constructor(private kit: Kit, private readonly allowModels = true) {}
 
   /** Everything `make` builds comes out `size` times its own size, about the point on the ground at (x, z), and `lift` metres higher. */
   scaled(size: number, x: number, z: number, lift: number, make: () => void) {
@@ -68,6 +95,35 @@ export class Build {
     const [rx, ry, rz] = look.turn ?? [0, 0, 0];
     const matrix = new THREE.Matrix4().compose(new THREE.Vector3(...at), new THREE.Quaternion().setFromEuler(new THREE.Euler(rad(rx), rad(ry), rad(rz))), new THREE.Vector3(...size));
     this.pending.push({ geometry, matrix: this.frame ? matrix.premultiply(this.frame) : matrix, key });
+  }
+
+  /** Places a trusted artist model into the same per-material batch as the procedural tile. */
+  model(id: ModelId, x: number, y: number, z: number, scale: number | readonly [number, number, number] = 1, roll = 0, yaw = 0) {
+    if (!this.allowModels) return false;
+    const parts = this.kit.models.get(id);
+    if (!parts?.length) return false;
+    const at = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0, rad(yaw), rad(roll))).scale(typeof scale === 'number' ? new THREE.Vector3().setScalar(scale) : new THREE.Vector3(...scale));
+    at.setPosition(x, y, z);
+    if (this.frame) at.premultiply(this.frame);
+    // Only the authored 7 m facades share the row tint. Paving, signs and attached items keep their own paint.
+    const tint = /^(tpe[35]|sf3|orb3|div3)_.+_7m$/.test(id) && id !== 'div3_causeway_7m' ? this.facadeTint : undefined;
+    for (const mesh of parts) {
+      const material = this.kit.variant(mesh.material, this.windowLight, this.finishes?.[mesh.material.name], this.polishedCopper && mesh.material.name === 'hsc3-roasted-copper', tint);
+      const key = material.uuid;
+      this.modelMaterials.set(key, material);
+      this.pending.push({ geometry: mesh.geometry, matrix: at.clone().multiply(mesh.matrixWorld), key, roofLift: id === 'hsc3_sawtooth_roastery_7m' && mesh.material.name === 'hsc3-cream-enamel' ? this.roofLift : 0 });
+    }
+    return true;
+  }
+
+  repeat(id: ModelId, positions: readonly THREE.Vector3[]) {
+    for (const mesh of this.kit.models.get(id) ?? []) {
+      const instances = positions.map(position => {
+        const at = new THREE.Matrix4().makeTranslation(position).multiply(mesh.matrixWorld);
+        return this.frame ? at.premultiply(this.frame) : at;
+      });
+      this.instances.push({ geometry: mesh.geometry.clone(), material: mesh.material, shadow: true, instances });
+    }
   }
 
   /** A box standing on `y`, centred on `x` and `z`. */
@@ -139,12 +195,27 @@ export class Build {
   done(): Part[] {
     const groups = new Map<string, Pending[]>();
     for (const item of this.pending) groups.set(item.key, [...groups.get(item.key) ?? [], item]);
-    return [...groups].map(([key, items]) => {
-      const { color, look } = this.looks.get(key)!, copies = items.map(item => item.geometry.clone().applyMatrix4(item.matrix));
+    return this.instances.concat([...groups].map(([key, items]) => {
+      const copies = items.map(item => {
+        const geometry = item.geometry.clone();
+        if (item.roofLift) {
+          // Vary the three shed roof ridges only. The flue and its steam socket stay at their authored height.
+          const points = geometry.getAttribute('position');
+          for (let i = 0; i < points.count; i++) {
+            const y = points.getY(i);
+            if (y > 7.4 && y < 8.5) points.setY(i, y + item.roofLift * (y - 7.4));
+          }
+          geometry.computeVertexNormals();
+        }
+        return geometry.applyMatrix4(item.matrix);
+      });
       const geometry = mergeGeometries(copies)!;
       for (const copy of copies) copy.dispose();
+      const model = this.modelMaterials.get(key);
+      if (model) return { geometry, material: model, shadow: true };
+      const { color, look } = this.looks.get(key)!;
       return { geometry, material: this.kit.material(key, color, look, this.pictures.get(key)), shadow: !look.flat };
-    });
+    }));
   }
 }
 
@@ -159,7 +230,8 @@ export type Skyline = { sights: readonly Sight[]; behind?(b: Build, length: numb
 
 export function meshes(parts: readonly Part[]) {
   const group = new THREE.Group();
-  for (const part of parts) { const mesh = new THREE.Mesh(part.geometry, part.material); mesh.castShadow = mesh.receiveShadow = part.shadow; group.add(mesh); }
+  for (const part of parts) { const mesh = part.instances ? new THREE.InstancedMesh(part.geometry, part.material, part.instances.length) : new THREE.Mesh(part.geometry, part.material);
+    if (mesh instanceof THREE.InstancedMesh) part.instances!.forEach((matrix, i) => mesh.setMatrixAt(i, matrix)); mesh.castShadow = mesh.receiveShadow = part.shadow; group.add(mesh); }
   return group;
 }
 

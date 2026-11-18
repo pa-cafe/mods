@@ -32,10 +32,33 @@ export class Machine {
   private ball = new THREE.SphereGeometry(1, 14, 10);
   private box = new THREE.BoxGeometry(1, 1, 1);
   private jar = new THREE.CylinderGeometry(1, 0.8, 1, 20);
-  private puffs: THREE.Mesh[] = [];
+  private puffs: THREE.Object3D[] = [];
 
   constructor(kit: Kit) {
     const piece = (make: (b: Build) => void) => { const build = new Build(kit); make(build); const parts = build.done(); this.parts.push(...parts); return meshes(parts); };
+    if (kit.models.has('common_machine_body')) {
+      const body = piece(b => {
+        b.finishes = { 'common-sage': '#A26C47', 'common-dark-timber': '#594B46' };
+        b.model('common_machine_body', 0, 0, 0);
+        b.sign('machine-gauge', face, 0.7, 0.7, GAUGE[0], GAUGE[1], -0.115, { round: true, sharp: true });
+        b.sign('machine-lettering', (ctx, size) => {
+          ctx.fillStyle = '#FFF1D9'; ctx.font = `bold ${size * 0.8}px sans-serif`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('PA CAFE', size / 2, size / 2, size);
+        }, 1.1, 0.22, -1.80125, 1.51, -0.12, { cutout: true, sharp: true });
+      });
+      body.traverse(node => {
+        if (!(node instanceof THREE.Mesh)) return;
+        if (node.material.name === 'machine-power-lamp') { this.lamp.copy(node.material); node.material = this.lamp; }
+        if (node.material.name === 'machine-power-strip') { this.strip.copy(node.material); node.material = this.strip; }
+      });
+      this.needle.add(piece(b => { b.model('common_machine_needle', 0, 0, 0); }));
+      this.needle.position.set(-2.2385, 0.759, -0.09);
+      const puff = piece(b => { b.model('common_steam_puff', 0, 0, 0); });
+      puff.traverse(node => { if (node instanceof THREE.Mesh) node.material = this.steam; });
+      for (let i = 0; i < 6; i++) this.puffs.push(puff.clone());
+      this.group.add(body, this.needle, ...this.puffs);
+      return;
+    }
     this.group.add(piece(b => {
       b.box(BASE, 2.1, 0.18, 1.5, MID, 0, BACK);
       b.box(CREAM, 1.9, 1.1, 1.3, MID, 0.18, BACK, { rough: 0.5 }); b.box(GREEN, 1.9, 0.46, 1.3, MID, 1.28, BACK, { rough: 0.5 }); b.box(INK, 1.92, 0.04, 1.32, MID, 1.26, BACK);

@@ -1,3 +1,4 @@
+import { Vector3 } from 'three';
 
 
 import { CREAM, INK, PINK, RED } from './art';
@@ -24,6 +25,7 @@ function coin(b: Build, r: number, x: number, y: number, z: number, lit: number)
 
 
 function tower(b: Build, x: number, z: number, lit: number) {
+  if (b.model('tpe3_101_jade_refined', x, 0, z)) return;
   const dark = shade(GLASS, 0.7), frame = shade(GLASS, 0.55), mall = '#D9D2C2';
   b.box(mall, 34, 5, 20, x, 0, z + 2); b.box(shade(mall, 0.9), 35, 0.6, 21, x, 5, z + 2);
   for (let i = 0; i < 7; i++) b.pane(lit ? GOLD : '#7FB3B5', 3.2, 3, x - 13.5 + i * 4.5, 2.4, z + 12.02, { glow: lit * 0.6 });
@@ -61,6 +63,10 @@ function swallow(b: Build, w: number, d: number, x: number, y: number, z: number
 
 
 function temple(b: Build, x: number, z: number, lit: number) {
+  if (b.model('tpe4_longshan_low_courtyard', x, 0, z)) {
+    b.sign('temple:name', plaque('龍山寺', GOLD, '#25443B', 5, 1.25), 5, 1.25, x, 18.45, z + 2.74, { glow: lit * 0.5, sharp: true });
+    return;
+  }
   const red = '#B8322A', column = '#D2463A', stone = '#CFC6B4', foot = 14, lantern = '#FF5A3C';
   b.dome(HILL, 30, foot + 2, 22, x, 0, z - 6, { rough: 1 }); b.dome(shade(HILL, 0.9), 12, 10, 10, x - 20, 0, z + 4, { rough: 1 });
   b.box(stone, 30, 1.2, 16, x, foot, z);
@@ -89,6 +95,7 @@ function eaves(b: Build, color: string, w: number, d: number, h: number, x: numb
 
 
 function hotel(b: Build, x: number, z: number, lit: number) {
+  if (b.model('tpe5_grand_hotel_yuanshan', x, 0, z)) return;
   const red = '#C02A22', column = '#E8503C', roof = '#F2B632', top = 12, w = 30, floors = 7, h = floors * 2;
   b.dome(HILL, 26, top + 1.5, 20, x, 0, z - 4, { rough: 1 }); b.dome(shade(HILL, 0.9), 11, 9, 10, x - 15, 0, z + 5, { rough: 1 }); b.dome(shade(HILL, 0.94), 10, 8, 10, x + 16, 0, z + 4, { rough: 1 });
   b.box(WHITE, w + 4, 1.2, 13, x, top, z);
@@ -108,6 +115,7 @@ function hotel(b: Build, x: number, z: number, lit: number) {
 
 
 function hall(b: Build, x: number, z: number, lit: number) {
+  if (b.model('cks-memorial-refined', x, 0, z)) return;
   const eight = { sides: 8, turn: [0, 22.5, 0], rough: 0.5 } as const, stone = shade(WHITE, 0.95), foot = 7.8, h = 14, eave = foot + h;
   [[36, 0], [31, 2.6], [26, 5.2]].forEach(([w, y]) => b.box(stone, w, 2.6, 24, x, y, z));
   b.taper(WHITE, 22, h, 20, x, foot, z, 0.93, 0.93);
@@ -122,6 +130,15 @@ function hall(b: Build, x: number, z: number, lit: number) {
 
 
 function wheel(b: Build, x: number, z: number, lit: number) {
+  if (b.model('tpe5_miramar_mall_support', x, 0, z)) {
+    b.model('tpe5_miramar_wheel_rotor', x, 28.4, z - 1);
+    b.repeat('tpe5_miramar_gondola', Array.from({ length: 18 }, (_, i) => {
+      const angle = i * Math.PI / 9;
+      return new Vector3(x + 12.8 * Math.cos(angle), 28.4 + 12.8 * Math.sin(angle), z - 1);
+    }));
+    b.sign('badge:mall', mark('badge', INK, plaque('咖啡', CREAM, INK, 6, 6), 0), 4.7, 4.7, x - 13, 11.6, z + 7.15, { glow: lit * 0.5, sharp: true, round: true });
+    return;
+  }
   const r = 13, roof = 17, hub = roof + r + 0.6, at = z + 1, colors = [RED, GOLD, PINK, '#6BD8FF', '#6BD49A', CREAM], wall = '#EFE4D4', glass = '#6FB3C4';
   b.box(wall, 28, roof, 13, x + 2, 0, z); b.box(shade(wall, 0.9), 29, 0.8, 13.6, x + 2, roof, z);
   b.box(shade(wall, 0.86), 8, roof + 3, 13.4, x - 12, 0, z);
@@ -153,10 +170,12 @@ export const taipei: Skyline = {
 
 
 function viaduct(b: Build, length: number, train: boolean, lit: number) {
-  b.box(CONCRETE, length, 1, 3.2, length / 2, 8.4, -19); b.box(shade(CONCRETE, 0.9), length, 0.7, 0.2, length / 2, 9.4, -17.5);
-  for (const x of [length * 0.25, length * 0.75]) { b.box(shade(CONCRETE, 0.92), 1.8, 8.4, 1.8, x, 0, -19); b.box(CONCRETE, 3.4, 0.8, 3, x, 7.6, -19); }
+  if (!b.model('tpe_mrt_viaduct_tile14m', length / 2, 0, -19)) {
+    b.box(CONCRETE, length, 1, 3.2, length / 2, 8.4, -19); b.box(shade(CONCRETE, 0.9), length, 0.7, 0.2, length / 2, 9.4, -17.5);
+    for (const x of [length * 0.25, length * 0.75]) { b.box(shade(CONCRETE, 0.92), 1.8, 8.4, 1.8, x, 0, -19); b.box(CONCRETE, 3.4, 0.8, 3, x, 7.6, -19); }
+  }
   b.dome(shade(HILL, 0.95), 26, 15, 12, length / 2, 0, -128, { rough: 1 });
-  if (!train) return;
+  if (!train || b.model('tpe_mrt_train_2car_tile14m', length / 2, 9.5, -19)) return;
   for (const x of [length * 0.27, length * 0.77]) {
     b.box('#F2F2F2', length * 0.46, 2.5, 2.5, x, 9.5, -19); b.box('#2E6FD8', length * 0.46, 0.4, 0.04, x, 9.9, -17.73);
     for (let i = 0; i < 4; i++) b.pane(lit ? GOLD : '#3D4A66', 1.1, 0.9, x - length * 0.17 + i * length * 0.115, 11.1, -17.73, lit ? { glow: lit } : {});
@@ -165,6 +184,7 @@ function viaduct(b: Build, length: number, train: boolean, lit: number) {
 
 
 export function scooter(b: Build, x: number, z: number, color: string) {
+  if (b.model('tpe5_parked_scooter', x, 0, z)) return;
   for (const dx of [-0.8, 0.8]) { b.pipe(INK, 0.4, 0.2, x + dx, 0.4, z, 'z'); b.pipe(STEEL, 0.16, 0.22, x + dx, 0.4, z, 'z'); }
   b.box(color, 1.4, 0.4, 0.5, x - 0.1, 0.45, z); b.box(INK, 0.95, 0.16, 0.46, x - 0.3, 1.02, z); b.box(color, 0.8, 0.22, 0.5, x - 0.4, 0.82, z);
   b.box(color, 0.18, 1.1, 0.56, x + 0.72, 0.5, z, { turn: [0, 0, -14] }); b.box(INK, 0.08, 0.08, 0.9, x + 0.86, 1.62, z); b.ball(CREAM, 0.14, 0.14, 0.1, x + 0.98, 1.3, z, { glow: 0.3 });

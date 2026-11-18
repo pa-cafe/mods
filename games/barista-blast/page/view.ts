@@ -543,9 +543,11 @@ export class BlastScene {
       const who = this.resident(atlasLook[spec.art.look]), pose = poseAfter(reaction, since), mood = moodOf(node)!, tone = moodTone(node);
       const behind = node.kind === 'dots' && node.mood === 'bad' ? 'wall' : node.kind === 'claude' && node.mood === 'bad' ? 'mail' : null;
       const reset = behind === 'wall' && reaction?.boost === true;
-      if (behind && this.bare && this.seen) this.seen.props.push({ kind: behind, x: node.x + 0.5, squash: 1, sign: this.words(behind === 'wall' ? reset ? 'LIMITS RESET' : 'AT CAPACITY' : 'BANNED'), ...(reset ? { reset } : {}) });
+      // Give the letter its own space next to the resident's speech bubble. Hits still use node.x.
+      const propOffset = behind === 'mail' ? 4 : 0.5;
+      if (behind && this.bare && this.seen) this.seen.props.push({ kind: behind, x: node.x + propOffset, squash: 1, sign: this.words(behind === 'wall' ? reset ? 'LIMITS RESET' : 'AT CAPACITY' : 'BANNED'), ...(reset ? { reset } : {}) });
       else if (behind === 'wall') drawStamp(ctx, this.stampFor(reset ? 'wall-reset' : 'wall', () => wallArt(this.res, this.words(reset ? 'LIMITS RESET' : 'AT CAPACITY'), reset)), 0.5 * s, 0, s);
-      else if (behind === 'mail') drawStamp(ctx, this.stampFor('letter', () => mailArt(this.res, this.words('BANNED'))), 0.5 * s, 0, s);
+      else if (behind === 'mail') drawStamp(ctx, this.stampFor('letter', () => mailArt(this.res, this.words('BANNED'))), propOffset * s, 0, s);
       this.shadow(0, 0, 0.55 * s);
       const robed = blastTokens(node.x) >= DIVINE_FROM;
       // A copy that has a quantisation (a run of the current rules) is drawn smaller and blockier the lower it is.
