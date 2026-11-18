@@ -1,0 +1,78 @@
+{
+  "assets": [
+    {
+      "asset": "tpe5_bubble_tea_shop_7m",
+      "glb": "assets/tpe5_bubble_tea_shop_7m.glb",
+      "bytes": 137668,
+      "triangles": 2536,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.924999952316284,
+          -2.5799999237060547,
+          0.0
+        ],
+        "max": [
+          3.2750003337860107,
+          1.6500003337860107,
+          10.205000877380371
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_gabled_cafe_7m",
+      "glb": "assets/tpe5_gabled_cafe_7m.glb",
+      "bytes": 41908,
+      "triangles": 752,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.3072614669799805,
+          -2.375,
+          0.0
+        ],
+        "max": [
+          3.3072612285614014,
+          2.200000047683716,
+          7.081982612609863
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    }
+  ],
+  "runtime_anchors": {
+    "tpe5_bubble_tea_shop_7m": {
+      "roof_cup": [
+        0,
+        10.22,
+        -0.4
+      ],
+      "plaque:\u73cd\u5976": [
+        2.9,
+        5.7,
+        1.91
+      ]
+    },
+    "tpe5_gabled_cafe_7m": {
+      "chimney": [
+        1.9,
+        5.75,
+        -0.5
+      ],
+      "wide_sign": [
+        0,
+        4.3,
+        2.4
+      ]
+    }
+  }
+}

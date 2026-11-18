@@ -1,0 +1,77 @@
+{
+  "assets": [
+    {
+      "asset": "tpe5_miramar_mall_support",
+      "glb": "assets/tpe5_miramar_mall_support.glb",
+      "bytes": 79032,
+      "triangles": 1416,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -17.0,
+          -8.25,
+          0.0
+        ],
+        "max": [
+          15.800000190734863,
+          6.699999809265137,
+          29.899999618530273
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_miramar_wheel_rotor",
+      "glb": "assets/tpe5_miramar_wheel_rotor.glb",
+      "bytes": 189260,
+      "triangles": 3368,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -13.029999732971191,
+          -1.8100000619888306,
+          -13.029999732971191
+        ],
+        "max": [
+          13.029999732971191,
+          1.6000001430511475,
+          13.029999732971191
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_miramar_gondola",
+      "glb": "assets/tpe5_miramar_gondola.glb",
+      "bytes": 12044,
+      "triangles": 148,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.8500000834465027,
+          -0.6999999284744263,
+          -2.2200000286102295
+        ],
+        "max": [
+          0.8499999642372131,
+          0.7000000476837158,
+          1.07479500854879e-08
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    }
+  ],
+  "notes": "Assembly has 18 instanced gondolas; rotor pivot local hub. Original wheel was static; no new motion implied."
+}

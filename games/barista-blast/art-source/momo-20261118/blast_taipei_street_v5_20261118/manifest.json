@@ -1,0 +1,726 @@
+{
+  "assets": [
+    {
+      "asset": "tpe5_parked_scooter",
+      "glb": "assets/tpe5_parked_scooter.glb",
+      "bytes": 64260,
+      "triangles": 1112,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.2350000143051147,
+          -0.4787852168083191,
+          -0.004999995231628418
+        ],
+        "max": [
+          1.2350001335144043,
+          0.4787852168083191,
+          2.0300002098083496
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_parked_bicycle",
+      "glb": "assets/tpe5_parked_bicycle.glb",
+      "bytes": 83400,
+      "triangles": 1500,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.3050000667572021,
+          -0.30000001192092896,
+          0.02499997615814209
+        ],
+        "max": [
+          1.3050000667572021,
+          0.30000001192092896,
+          1.5499999523162842
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_heritage_lamp",
+      "glb": "assets/tpe5_heritage_lamp.glb",
+      "bytes": 12152,
+      "triangles": 188,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.2199999988079071,
+          -0.3199999928474426,
+          0.0
+        ],
+        "max": [
+          1.0399999618530273,
+          0.3199999928474426,
+          4.474999904632568
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_crossing_signal",
+      "glb": "assets/tpe5_crossing_signal.glb",
+      "bytes": 19144,
+      "triangles": 324,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.2750000059604645,
+          -0.4399999976158142,
+          0.0
+        ],
+        "max": [
+          0.2750000059604645,
+          0.1899999976158142,
+          4.244999885559082
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_street_tree_4p4m",
+      "glb": "assets/tpe5_street_tree_4p4m.glb",
+      "bytes": 10292,
+      "triangles": 308,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.4808464050292969,
+          -0.7999999523162842,
+          0.0
+        ],
+        "max": [
+          1.2632933855056763,
+          0.7999999523162842,
+          4.400000095367432
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_flower_planter",
+      "glb": "assets/tpe5_flower_planter.glb",
+      "bytes": 23860,
+      "triangles": 320,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.75,
+          -0.30000001192092896,
+          0.0
+        ],
+        "max": [
+          0.75,
+          0.30000001192092896,
+          1.1399999856948853
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_street_bench",
+      "glb": "assets/tpe5_street_bench.glb",
+      "bytes": 37040,
+      "triangles": 660,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.0,
+          -0.3100000023841858,
+          0.0
+        ],
+        "max": [
+          1.0,
+          0.3497181534767151,
+          1.255303144454956
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_cafe_table",
+      "glb": "assets/tpe5_cafe_table.glb",
+      "bytes": 10328,
+      "triangles": 188,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.5600000023841858,
+          -0.5600000023841858,
+          0.0
+        ],
+        "max": [
+          0.5600000023841858,
+          0.5600000023841858,
+          0.8299999833106995
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_cafe_chair",
+      "glb": "assets/tpe5_cafe_chair.glb",
+      "bytes": 19564,
+      "triangles": 336,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.25999999046325684,
+          -0.23999999463558197,
+          0.0
+        ],
+        "max": [
+          0.25999999046325684,
+          0.25,
+          0.9700000286102295
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_menu_board",
+      "glb": "assets/tpe5_menu_board.glb",
+      "bytes": 12436,
+      "triangles": 200,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.4999999403953552,
+          -0.28437042236328125,
+          -0.006609741598367691
+        ],
+        "max": [
+          0.5000001192092896,
+          0.2843700647354126,
+          1.3599998950958252
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_crate",
+      "glb": "assets/tpe5_crate.glb",
+      "bytes": 12344,
+      "triangles": 192,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.44999998807907104,
+          -0.4399999976158142,
+          0.0
+        ],
+        "max": [
+          0.44999998807907104,
+          0.4400000274181366,
+          0.800000011920929
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_park_fence_7m",
+      "glb": "assets/tpe5_park_fence_7m.glb",
+      "bytes": 26336,
+      "triangles": 408,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.299999952316284,
+          -0.07230439782142639,
+          0.0
+        ],
+        "max": [
+          3.299999713897705,
+          0.07230439782142639,
+          1.215000033378601
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_coffee_cart",
+      "glb": "assets/tpe5_coffee_cart.glb",
+      "bytes": 52720,
+      "triangles": 928,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.5,
+          -0.8500000238418579,
+          0.00999997928738594
+        ],
+        "max": [
+          1.5000001192092896,
+          0.8500000834465027,
+          3.169999837875366
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_roof_bubble_tea",
+      "glb": "assets/tpe5_roof_bubble_tea.glb",
+      "bytes": 21464,
+      "triangles": 356,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.1399999856948853,
+          -1.1399999856948853,
+          0.0
+        ],
+        "max": [
+          1.1399999856948853,
+          1.1399999856948853,
+          3.724478006362915
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_roof_chimney",
+      "glb": "assets/tpe5_roof_chimney.glb",
+      "bytes": 9740,
+      "triangles": 132,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.42500001192092896,
+          -0.42500001192092896,
+          0.0
+        ],
+        "max": [
+          0.42500001192092896,
+          0.42500001192092896,
+          1.25
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_steam_puff",
+      "glb": "assets/tpe5_steam_puff.glb",
+      "bytes": 2624,
+      "triangles": 80,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.47552892565727234,
+          -0.41999995708465576,
+          -0.44999998807907104
+        ],
+        "max": [
+          0.47552892565727234,
+          0.41999995708465576,
+          0.44999998807907104
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_distant_hill",
+      "glb": "assets/tpe5_distant_hill.glb",
+      "bytes": 28628,
+      "triangles": 672,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -33.0,
+          -6.0,
+          0.0
+        ],
+        "max": [
+          43.0,
+          13.0,
+          9.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_skyline_block",
+      "glb": "assets/tpe5_skyline_block.glb",
+      "bytes": 59872,
+      "triangles": 1044,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -15.5,
+          -3.0500001907348633,
+          0.0
+        ],
+        "max": [
+          18.5,
+          3.0,
+          27.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_potted_plant",
+      "glb": "assets/tpe5_potted_plant.glb",
+      "bytes": 13880,
+      "triangles": 372,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.5543385148048401,
+          -0.46000000834465027,
+          0.0
+        ],
+        "max": [
+          0.4853173494338989,
+          0.46000000834465027,
+          1.96999990940094
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_cafe_parasol",
+      "glb": "assets/tpe5_cafe_parasol.glb",
+      "bytes": 7948,
+      "triangles": 90,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.5,
+          -1.4265847206115723,
+          0.0
+        ],
+        "max": [
+          1.5,
+          1.4265847206115723,
+          3.3499999046325684
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_cloud_lobe",
+      "glb": "assets/tpe5_cloud_lobe.glb",
+      "bytes": 5600,
+      "triangles": 240,
+      "meshes": 1,
+      "materials": 1,
+      "primitives": 1,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.408399224281311,
+          -0.6499999165534973,
+          -0.44999998807907104
+        ],
+        "max": [
+          1.5632933378219604,
+          0.6499999165534973,
+          0.800000011920929
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_air_conditioner",
+      "glb": "assets/tpe5_air_conditioner.glb",
+      "bytes": 21540,
+      "triangles": 356,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.4000000059604645,
+          -0.2403923124074936,
+          0.0
+        ],
+        "max": [
+          0.4000000059604645,
+          0.20000000298023224,
+          0.5600000023841858
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_roof_water_tank",
+      "glb": "assets/tpe5_roof_water_tank.glb",
+      "bytes": 25968,
+      "triangles": 456,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.8999999761581421,
+          -0.8999999761581421,
+          0.0
+        ],
+        "max": [
+          0.8999999761581421,
+          0.8999999761581421,
+          2.3499999046325684
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_hedge_7m",
+      "glb": "assets/tpe5_hedge_7m.glb",
+      "bytes": 16068,
+      "triangles": 588,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.368187665939331,
+          -0.4699999690055847,
+          0.0
+        ],
+        "max": [
+          3.368187427520752,
+          0.4699999690055847,
+          1.649999976158142
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_bakery_loaf",
+      "glb": "assets/tpe5_bakery_loaf.glb",
+      "bytes": 5440,
+      "triangles": 116,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.24727503955364227,
+          -0.15999998152256012,
+          0.0
+        ],
+        "max": [
+          0.24727503955364227,
+          0.15999998152256012,
+          0.3199999928474426
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_runtime_plaque_wide",
+      "glb": "assets/tpe5_runtime_plaque_wide.glb",
+      "bytes": 8496,
+      "triangles": 120,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.799999952316284,
+          -0.11249999701976776,
+          0.0
+        ],
+        "max": [
+          2.799999952316284,
+          0.07999999821186066,
+          0.9599999785423279
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_runtime_plaque_tall",
+      "glb": "assets/tpe5_runtime_plaque_tall.glb",
+      "bytes": 8484,
+      "triangles": 120,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -0.4699999988079071,
+          -0.13250000774860382,
+          0.0
+        ],
+        "max": [
+          0.4699999988079071,
+          0.10000000149011612,
+          2.5999999046325684
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_far_tower_0",
+      "glb": "assets/tpe5_far_tower_0.glb",
+      "bytes": 17456,
+      "triangles": 288,
+      "meshes": 2,
+      "materials": 2,
+      "primitives": 2,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.5,
+          -3.059999942779541,
+          0.0
+        ],
+        "max": [
+          2.5,
+          3.0,
+          20.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_far_tower_1",
+      "glb": "assets/tpe5_far_tower_1.glb",
+      "bytes": 20288,
+      "triangles": 324,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.5999999046325684,
+          -3.0999999046325684,
+          0.0
+        ],
+        "max": [
+          2.5999999046325684,
+          3.0999999046325684,
+          20.100000381469727
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "tpe5_far_tower_2",
+      "glb": "assets/tpe5_far_tower_2.glb",
+      "bytes": 23332,
+      "triangles": 396,
+      "meshes": 3,
+      "materials": 3,
+      "primitives": 3,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.5,
+          -3.059999942779541,
+          0.0
+        ],
+        "max": [
+          2.5,
+          3.0,
+          21.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    }
+  ],
+  "directMeterAssets": true,
+  "landmarkScaleNotApplicable": true
+}
