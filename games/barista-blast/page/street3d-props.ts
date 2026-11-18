@@ -74,7 +74,20 @@ function banLetter(b: Build, word: string) {
   b.sign(`tag:${word}:${w}`, tag(word, w, 0.42), w, 0.42, 0, 5.59, z + 0.06, { sharp: true, glow: 0.35 });
 }
 
-export function buildProp(b: Build, prop: StreetProp) {
+// Only the enamel and structural trim vary. The seal, paper, status LEDs, brass and lit counter
+// retain their authored materials and the two quota states use exactly the same cabinet paint.
+const finishes = [
+  { window: '#B45C44', wall: '#627789', mail: '#874C49', trim: '#574B44' },
+  { window: '#458580', wall: '#647782', mail: '#A1634B', trim: '#464D50' },
+  { window: '#B86E77', wall: '#8297B2', mail: '#BA796C', trim: '#575268' },
+  { window: '#BE8965', wall: '#7F92A4', mail: '#A46C83', trim: '#55536A' },
+  { window: '#B59C64', wall: '#808D99', mail: '#AB7672', trim: '#736353' },
+  { window: '#8E8986', wall: '#737981', mail: '#9B696B', trim: '#545257' },
+] as const;
+
+export function buildProp(b: Build, prop: StreetProp, place: number) {
+  const palette = finishes[place];
+  b.finishes = { 'common-sage': palette[prop.kind], 'common-dark-timber': palette.trim };
   const model = prop.kind === 'window' ? 'common_takeaway_window' : prop.kind === 'mail' ? 'common_ban_letter'
     : prop.reset ? 'common_quota_wall_reset' : 'common_quota_wall_blocked';
   if (b.model(model, 0, 0, 0)) {

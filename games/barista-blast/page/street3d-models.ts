@@ -241,6 +241,7 @@ export class StreetModels {
       const nearHsinchu = asset.id.startsWith('hsc3_') && asset.id.endsWith('_7m') && !asset.id.includes('_tile_');
       for (const mesh of asset.parts) {
         const material = mesh.material;
+        const propFinish = asset.id.startsWith('common_') && (material.name === 'common-sage' || material.name === 'common-dark-timber');
         const vehiclePaint = (asset.id === 'sf3_sedan' || asset.id === 'sf3_delivery_truck') && material.name === 'sf3-dusty-blue';
         if (material.name === 'v6-runtime-face') {
           material.map = thoughtLabel(this.kit);
@@ -248,7 +249,7 @@ export class StreetModels {
           material.emissive.set('#fff');
           material.emissiveMap = material.map;
           material.emissiveIntensity = 0.55;
-        } else if (!material.map && !material.emissive.getHex() && !material.transparent && !material.vertexColors && !material.name.startsWith('machine-power-') && !nearHsinchu && !vehiclePaint) {
+        } else if (!material.map && !material.emissive.getHex() && !material.transparent && !material.vertexColors && !material.name.startsWith('machine-power-') && !nearHsinchu && !vehiclePaint && !propFinish) {
           // Keep each Blender colour in linear vertex RGB. Tile batching can now draw
           // dozens of differently painted pieces with the same opaque surface in one call.
           const key = [material.roughness, material.metalness, material.side].join(':');

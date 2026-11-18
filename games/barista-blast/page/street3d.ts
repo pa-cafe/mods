@@ -431,7 +431,7 @@ export class Street3d {
     camera.updateMatrixWorld();
     const near = Math.abs(x) < 80;
     if (near) this.machine.pose(machine, performance.now());
-    this.place(props, performance.now());
+    const propTime = performance.now();
     const show = (place: number) => {
       const world = this.world(place), [dx, dy, dz] = moods[place].angle;
       world.fog.near = distance + 18; world.fog.far = distance + 130;
@@ -449,6 +449,7 @@ export class Street3d {
       }
 
       if (near) world.scene.add(this.machine.group);
+      this.place(props, propTime, place);
       world.scene.add(this.props);
       renderer.render(world.scene, camera);
     };
@@ -465,13 +466,13 @@ export class Street3d {
   }
 
 
-  private place(props: readonly StreetProp[], now: number) {
+  private place(props: readonly StreetProp[], now: number, place: number) {
     const taken = new Map<string, number>();
     this.props.clear();
     for (const prop of props) {
-      const key = propKey(prop), copies = this.spare.get(key) ?? [], index = taken.get(key) ?? 0;
+      const key = `${propKey(prop)}:${place}`, copies = this.spare.get(key) ?? [], index = taken.get(key) ?? 0;
       if (!this.spare.has(key)) this.spare.set(key, copies);
-      if (!copies[index]) copies[index] = this.parts(key, true, b => buildProp(b, prop));
+      if (!copies[index]) copies[index] = this.parts(key, true, b => buildProp(b, prop, place));
       const group = copies[index];
       taken.set(key, index + 1);
       group.position.set(prop.x, prop.kind === 'mail' ? Math.sin(now / 520 + prop.x) * 0.08 : 0, 0);

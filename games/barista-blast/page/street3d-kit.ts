@@ -47,14 +47,15 @@ export class Kit {
     return material;
   }
 
-  variant(material: THREE.MeshStandardMaterial, light: number, color?: number[], metal = false, tint?: readonly [number, number, number]) {
+  variant(material: THREE.MeshStandardMaterial, light: number, color?: number[] | string, metal = false, tint?: readonly [number, number, number]) {
     if (!tint && !color && !metal && (light === 1 || material.emissive.getHex() === 0)) return material;
     const key = `window:${material.uuid}:${light}:${color ?? ''}:${metal}:${tint ?? ''}`;
     let variant = this.materials.get(key);
     if (!variant) {
       const copy = material.clone();
       copy.emissiveIntensity *= light;
-      if (color) copy.color.fromArray(color);
+      if (typeof color === 'string') copy.color.set(color);
+      else if (color) copy.color.fromArray(color);
       if (tint) copy.color.multiply(new THREE.Color(...tint));
       if (metal) { copy.metalness = 0.45; copy.roughness = 0.48; }
       variant = copy;
@@ -69,7 +70,7 @@ export class Kit {
 export class Build {
   windowLight = 1;
   facadeTint?: readonly [number, number, number];
-  finishes?: Record<string, number[] | undefined>;
+  finishes?: Record<string, number[] | string | undefined>;
   polishedCopper = false;
   roofLift = 0;
   private instances: Part[] = [];

@@ -38,6 +38,7 @@ export class Machine {
     const piece = (make: (b: Build) => void) => { const build = new Build(kit); make(build); const parts = build.done(); this.parts.push(...parts); return meshes(parts); };
     if (kit.models.has('common_machine_body')) {
       const body = piece(b => {
+        b.finishes = { 'common-sage': '#A26C47', 'common-dark-timber': '#594B46' };
         b.model('common_machine_body', 0, 0, 0);
         b.sign('machine-gauge', face, 0.7, 0.7, GAUGE[0], GAUGE[1], -0.115, { round: true, sharp: true });
         b.sign('machine-lettering', (ctx, size) => {
