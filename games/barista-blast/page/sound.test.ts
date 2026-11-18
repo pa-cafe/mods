@@ -247,7 +247,7 @@ describe('the residents’ voices', () => {
   });
 
   it('a page hears its own language when the line has it, English when it does not, and a Chinese page never hears English', () => {
-    const line = blastVoices['Reasoning complete. Launch']!, only = blastVoices['This link can’t be opened here. Copy the code instead']!;
+    const line = { file: 'line', tongues: ['zh', 'en', 'ko'] as const }, only = { file: 'only', tongues: ['en', 'ja', 'ko'] as const };
     expect(['zh-TW', 'zh-CN', 'ja', 'ko', 'en', 'fr'].map(lang => tongueFor(line, lang))).toEqual(['zh', 'zh', 'en', 'ko', 'en', 'en']);
     expect(['zh-TW', 'zh-CN', 'ja', 'ko', 'en', 'fr'].map(lang => tongueFor(only, lang))).toEqual([null, null, 'ja', 'ko', 'en', 'en']);
   });
@@ -263,7 +263,7 @@ describe('the residents’ voices', () => {
     document.documentElement.lang = 'ja';
     audio.say('Reasoning complete. Launch');
     await vi.waitFor(() => expect(started).toHaveLength(3));
-    expect(asked(fetching)).toEqual([url('grok-boost-money', 'ja'), url('grok-boost-money', 'ko'), url('deepseek', 'en')]);
+    expect(asked(fetching)).toEqual([url('grok-boost-money', 'ja'), url('grok-boost-money', 'ko'), url('deepseek', 'ja')]);
     audio.close();
   });
 

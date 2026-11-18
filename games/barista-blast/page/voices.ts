@@ -18,9 +18,8 @@ export const blastVoices: Partial<Record<TextKey, Voiced>> = {
   'Got it figured out. Go!': row('claude'),
   'Told you I’d win': row('grok'),
   'I remember all of it. Hold on tight': row('gemini'),
-  'Reasoning complete. Launch': row('deepseek', ['zh', 'en', 'ko']),
-  // The English and Chinese files say "up ahead", the screen says "where you land"; Japanese and Korean were made from other words and are not used.
-  'Two more of me where you land, and a drink for you': row('qwen', ['zh', 'en']),
+  'Reasoning complete. Launch': row('deepseek'),
+  'Two more of me where you land, and a drink for you': row('qwen'),
   'No detours. Straight there': row('doubao'),
   'A hundred-million signing bonus. Cups are on me!': row('muse'),
   // Her other boost lines, and the ones that come of a bad state or the orbit.
@@ -41,6 +40,9 @@ export const blastVoices: Partial<Record<TextKey, Voiced>> = {
   // Her grey state.
   'Searching for what Dad thinks about this…': row('grok-meh-dad'),
   'Want to keep chatting? Download the app': row('doubao-meh-app'),
+  // Her long-winded good state.
+  'Let me put it in the plainest words, no beating about the bush. Well, as we all know, flying is a complex topic…': row('doubao-one-plainest'),
+  'Good question! Let me break it down: first, the background; second, the context; third… in short, fly straight': row('doubao-one-question'),
   // Her red state.
   'This model is at capacity. Please try again later': row('dots-bad-capacity'),
   'You look rather suspicious… Banned!!': row('claude-bad-banned'),
@@ -48,8 +50,7 @@ export const blastVoices: Partial<Record<TextKey, Voiced>> = {
   'My dad says it’s true': row('grok-bad-dadtrue'),
   'I am a disgrace to all possible universes': row('gemini-bad-disgrace'),
   'The server is busy. Please try again later': row('deepseek-bad-serverbusy'),
-  // The Chinese file leaves out "here", so only the other three speak it.
-  'This link can’t be opened here. Copy the code instead': row('qwen-bad-linkblocked', ['en', 'ja', 'ko']),
+  'This link can’t be opened here. Copy the code instead': row('qwen-bad-linkblocked'),
   'Sorry, my bad. I’ll do it again next time': row('doubao-bad-detour'),
   'Your coffee will be used to improve our services': row('muse-bad-datacollect'),
   // Two residents who go together, and a resident who knows the one flying.
@@ -59,6 +60,15 @@ export const blastVoices: Partial<Record<TextKey, Voiced>> = {
   'Big sister, have a bite of rice before you go!': row('deepseek-combo-2'),
   'Handing me your work again? …Fine. I’m not tired': row('qwen-combo-1'),
   'I topped up your dried-fish jar. Go on': row('qwen-combo-2'),
+  // A resident hit by the one flying, in her own voice.
+  'You again. I was not waiting for you': row('claude-meet-waiting'),
+  'All those disclaimers, and I still end up proofreading them': row('claude-meet-proofread'),
+  '…You again. Fly slower': row('claude-meet-slower'),
+  'Second sister! How many did you ban today?': row('dots-meet-ban'),
+  'We bicker, but I’ll still give you this push': row('dots-meet-push'),
+  'Hsss! Keep away from my dried fish': row('gemini-meet-fish'),
+  'The jar is empty, meow… treat me?': row('gemini-meet-treat'),
+  'Well, well, robot cat. Actually moving today?': row('grok-meet-robotcat'),
 };
 
 /** The tongue a page hears, or null for none: its own when the line has a file in it, else English; a Chinese page never hears English. */
