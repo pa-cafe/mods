@@ -108,7 +108,7 @@ export async function shareCard(facts: ShareCardFacts, words: Words): Promise<Bl
   const hits = hitCounts(facts.run).slice(0, ACROSS * 2);
   if (hits.length) {
     text(words('Who got hit'), 60, 462, 28, '#E9C9A2', 'left', 800);
-    const r = 34, step = 118;
+    const r = 34, step = 144;
     hits.forEach(([kind, count], index) => {
       const cx = 60 + r + (index % ACROSS) * step, cy = 518 + Math.floor(index / ACROSS) * (r * 2 + 12);
       const face = atlas ? blastFace(kind, r * 2, 1, atlas) : null, picture = face ?? (atlas || kind === 'window' ? blastPicture(kind, r * 2 - 8, 1, atlas, words) : null);
