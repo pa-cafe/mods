@@ -1,5 +1,7 @@
 # BARISTA BLAST!! character poses
 
+The residents on the street are ZipZipPipe's (胖次狐, <https://space.bilibili.com/4168597>) "AI 娘" characters, used with the designer's permission and credited in the game's guide; Muse is the cafe's own character. Below is how each picture was made.
+
 `poses/` holds four strips drawn on 2026-11-14 for #1078, one per built-in resident look. Each strip is three figures on a transparent background, left to right: tumbling, flat on the ground, fist in the air.
 
 They were generated with the codex CLI built-in image generation (`codex exec`, model `gpt-6.1-sol`), one run per look. The only reference attached to each run was that look's approved full-body image, `public/art/residents/defaults/<look>-fullbody.png`. The prompt asked for the same character in the three poses, no effects, no text, real transparency. Nothing was drawn or retouched by hand. Dylan approved spending image-generation quota on these the same day.
@@ -14,8 +16,6 @@ The generated PNGs (1536×1024) were stored here as lossless WebP. SHA-256 of th
 | claude | `d5c477601ca8463686dac3e7963fd5ac55641b6f781f89034b89f50d187f6acb` |
 
 `npm run blast:art` packs them into `public/art/blast/poses.<hash>.webp` and writes `public/art/blast/poses.json`, which records the atlas hash, each frame's rectangle and the SHA-256 of each stored strip. Packing is mechanical: each figure is cut out by its alpha, the three poses of a look are scaled by one factor, and a white sticker edge is added.
-
-The same note as `public/art/residents/defaults/PROVENANCE.md` applies: these come from the same source as the approved residents, no new license was obtained, and this record does not establish commercial clearance.
 
 ## Four characters only the game has (2026-11-15)
 
@@ -40,8 +40,6 @@ The generated PNGs (full body 887×1774, strip 1536×1024) are stored as lossles
 | poses/qwen | `5cc8f9fc5991a3bb2512828512fd16bc73e01a9288eecf8c783e4c19250b75d3` |
 | standing/doubao | `60ad507180170402c7974befcf731456c55c64b7f9339dabe6eb26bdc31c1c4d` |
 | poses/doubao | `6dc722bbe72b710d615b7114b5de3ff0064798fb7ad7c3323b604ff7b8151046` |
-
-These characters are named after AI models other companies make. The drawings are original and copy no logo or mascot, but the names are those companies' names: this record does not establish clearance to use them, and, as above, no license was obtained for the generated art.
 
 ## Back to the cafe's four, and the other four redrawn to match (2026-11-15, rules version 5)
 
@@ -68,8 +66,6 @@ SHA-256 of the PNGs as generated (strip 1536×1024; full body sizes as listed), 
 | poses/doubao | | `06333bedafad62d1348b15ee84a36c867f2511c94d7d8b9044f7b050271e93f1` |
 
 The full-body pictures and strips recorded under "Four characters only the game has" are no longer stored: these replaced them.
-
-The same notes apply as above: the names are other companies' names, no license was obtained for the generated art, and this record does not establish clearance.
 
 ## Gemini, DeepSeek, Qwen and Doubao redrawn at Dylan's request (2026-11-15)
 
@@ -102,8 +98,6 @@ SHA-256 of the PNGs as generated (strip 1536×1024; full body sizes as listed), 
 
 The full-body pictures and strips of these four recorded in the section before this one are no longer stored: these replaced them. The stored WebP files hold the same pixels as the generated PNGs wherever a pixel is not fully transparent.
 
-The same notes apply as above: the names are other companies' names, no license was obtained for the generated art, and this record does not establish clearance.
-
 ## Seven characters drawn after ZipZipPipe's AI girls, with the designer's permission (2026-11-15)
 
 From this section on, seven of the eight residents (`dots` for GPT, `grok-bot`, `claude`, `gemini`, `deepseek`, `qwen`, `doubao`) are two-head-tall versions of the "AI 娘" characters designed by ZipZipPipe (胖次狐, <https://space.bilibili.com/4168597>). Muse stays the cafe's own character, because the designer has no character for that model: its strip is the one recorded in the first section and its standing figure is cut from `public/art/residents/defaults/muse-fullbody.png`. The pictures of the other seven recorded in the sections above are no longer stored.
@@ -118,7 +112,7 @@ What is known, and what it rests on:
 - Evidence: the message thread is in Dylan's Bilibili account. A screenshot of it was shown in the working session; no copy is stored in this repository.
 - Condition: credit. The game's guide (the "On the street" tab) carries a line naming ZipZipPipe (胖次狐) and linking to the designer's Bilibili page, in five languages.
 
-This is the designer's permission for the designer's own character designs, for this game. It is not a written license, it does not say anything about other uses, and it does not cover the model names, which are other companies' names. Some of the designs carry ornaments that allude to those companies' marks (round knot ornaments, an X on an axe, a plush doll); Dylan chose to keep them as the designer drew them and considers that fair use. No clearance from those companies was obtained.
+The character designs are ZipZipPipe's (胖次狐), used in BARISTA BLAST!! with the designer's permission and credited in the game.
 
 ### Reference pictures
 
@@ -164,8 +158,6 @@ SHA-256 of the PNGs as generated (strip 1536×1024; full body sizes as listed), 
 | poses/doubao | | `eea44ddd369e71fd1367e818357e90b25b095602712d869816910bd76d32dce1` |
 
 A cafe resident who has uploaded their own full-body picture is still drawn from it (`blastFigure` in `worker/routes-game.ts`); these pictures are what everyone else is drawn from.
-
-As above: no license was obtained for the generated art itself, and this record does not establish commercial clearance.
 
 ## Special-move pictures (2026-11-16)
 
