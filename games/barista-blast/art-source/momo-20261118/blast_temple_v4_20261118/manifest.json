@@ -1,0 +1,42 @@
+{
+  "assets": [
+    {
+      "asset": "tpe4_longshan_low_courtyard",
+      "glb": "assets/tpe4_longshan_low_courtyard.glb",
+      "bytes": 243484,
+      "triangles": 4236,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -21.210540771484375,
+          -16.809999465942383,
+          0.0
+        ],
+        "max": [
+          21.210540771484375,
+          12.5,
+          25.3823184967041
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README",
+      "budget_pass": true
+    }
+  ],
+  "reference_old_height": 36.7,
+  "reference_old_hill_foot": 14,
+  "note": "Not a survey replica. New scene prop; same game anchor and scale.",
+  "height_comparison": {
+    "original_approx_m": 36.7,
+    "new_m": 25.3823184967041,
+    "reduction_percent": 30.838369218789918,
+    "old_foot_m": 14,
+    "new_foot_m": 5.4,
+    "game_scale": 0.62,
+    "game_lift_m": 5,
+    "new_world_top_m": 20.737037467956544
+  }
+}

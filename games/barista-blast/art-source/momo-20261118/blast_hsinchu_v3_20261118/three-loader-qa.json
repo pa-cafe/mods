@@ -1,0 +1,102 @@
+{
+  "threeRevision": "187",
+  "verification": "Node GLTFLoader parse + bounds; no browser rendering",
+  "assets": [
+    {
+      "file": "hsc3_drum_roaster_7m.glb",
+      "parse": "PASS",
+      "meshes": 6,
+      "triangles": 1112,
+      "min": [
+        -3.450000047683716,
+        0,
+        -1.625
+      ],
+      "max": [
+        3.450000047683716,
+        7.300000190734863,
+        1.625
+      ]
+    },
+    {
+      "file": "hsc3_kettle_gantry_7m.glb",
+      "parse": "PASS",
+      "meshes": 5,
+      "triangles": 1280,
+      "min": [
+        -3.1813759803771973,
+        0,
+        -1.2000000476837158
+      ],
+      "max": [
+        2.93999981880188,
+        8.114999771118164,
+        1.2149999141693115
+      ]
+    },
+    {
+      "file": "hsc3_low_loading_yard_7m.glb",
+      "parse": "PASS",
+      "meshes": 5,
+      "triangles": 760,
+      "min": [
+        -3.450000047683716,
+        0,
+        -1.2000000476837158
+      ],
+      "max": [
+        3.450000047683716,
+        2.4499998092651367,
+        1.28000009059906
+      ]
+    },
+    {
+      "file": "hsc3_sawtooth_roastery_7m.glb",
+      "parse": "PASS",
+      "meshes": 4,
+      "triangles": 1312,
+      "min": [
+        -3.375,
+        0,
+        -1.559999942779541
+      ],
+      "max": [
+        3.375,
+        12.300000190734863,
+        1.902500033378601
+      ]
+    },
+    {
+      "file": "hsc3_shift_canteen_7m.glb",
+      "parse": "PASS",
+      "meshes": 5,
+      "triangles": 1376,
+      "min": [
+        -3.450000047683716,
+        0,
+        -1.625
+      ],
+      "max": [
+        3.450000047683716,
+        8.25,
+        2.549999952316284
+      ]
+    },
+    {
+      "file": "hsc3_silo_pair_7m.glb",
+      "parse": "PASS",
+      "meshes": 5,
+      "triangles": 1664,
+      "min": [
+        -3,
+        0,
+        -1.2999999523162842
+      ],
+      "max": [
+        3,
+        10.5,
+        1.902500033378601
+      ]
+    }
+  ]
+}

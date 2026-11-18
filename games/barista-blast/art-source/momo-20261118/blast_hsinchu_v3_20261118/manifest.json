@@ -1,0 +1,151 @@
+{
+  "version": "hsinchu-v3-near-six-slots-review",
+  "units": "meters",
+  "placement": "GLB +X street,+Y up,+Z player; local bottom center; scale 1; root (7i+3.5,0,-8)",
+  "assets": [
+    {
+      "asset": "hsc3_sawtooth_roastery_7m",
+      "glb": "assets/hsc3_sawtooth_roastery_7m.glb",
+      "bytes": 75508,
+      "triangles": 1312,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.375,
+          -1.902500033378601,
+          0.0
+        ],
+        "max": [
+          3.375,
+          1.559999942779541,
+          12.300000190734863
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "hsc3_drum_roaster_7m",
+      "glb": "assets/hsc3_drum_roaster_7m.glb",
+      "bytes": 63056,
+      "triangles": 1112,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.450000047683716,
+          -1.625,
+          0.0
+        ],
+        "max": [
+          3.450000047683716,
+          1.625,
+          7.300000190734863
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "hsc3_low_loading_yard_7m",
+      "glb": "assets/hsc3_low_loading_yard_7m.glb",
+      "bytes": 45192,
+      "triangles": 760,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.450000047683716,
+          -1.28000009059906,
+          0.0
+        ],
+        "max": [
+          3.450000047683716,
+          1.2000000476837158,
+          2.4499998092651367
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "hsc3_kettle_gantry_7m",
+      "glb": "assets/hsc3_kettle_gantry_7m.glb",
+      "bytes": 71180,
+      "triangles": 1280,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.1813759803771973,
+          -1.2149999141693115,
+          0.0
+        ],
+        "max": [
+          2.93999981880188,
+          1.2000000476837158,
+          8.114999771118164
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "hsc3_shift_canteen_7m",
+      "glb": "assets/hsc3_shift_canteen_7m.glb",
+      "bytes": 78272,
+      "triangles": 1376,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.450000047683716,
+          -2.549999952316284,
+          0.0
+        ],
+        "max": [
+          3.450000047683716,
+          1.625,
+          8.25
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "hsc3_silo_pair_7m",
+      "glb": "assets/hsc3_silo_pair_7m.glb",
+      "bytes": 86348,
+      "triangles": 1664,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.0,
+          -1.902500033378601,
+          0.0
+        ],
+        "max": [
+          3.0,
+          1.2999999523162842,
+          10.5
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    }
+  ]
+}

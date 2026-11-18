@@ -1,0 +1,22 @@
+{
+  "threeRevision": "187",
+  "verification": "Node GLTFLoader parse + bounds; no browser rendering",
+  "assets": [
+    {
+      "file": "tpe4_longshan_low_courtyard.glb",
+      "parse": "PASS",
+      "meshes": 6,
+      "triangles": 4236,
+      "min": [
+        -21.210540771484375,
+        0,
+        -12.5
+      ],
+      "max": [
+        21.210540771484375,
+        25.3823184967041,
+        16.809999465942383
+      ]
+    }
+  ]
+}
