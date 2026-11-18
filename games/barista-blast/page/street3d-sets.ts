@@ -288,6 +288,10 @@ const roastery: readonly Piece[] = [
   {
     build(b, c) {
       if (b.model('hsc3_sawtooth_roastery_7m', MID, 0, -8)) {
+        // The three authored window bays share one mesh. Light each face at the original seed threshold.
+        for (const [bay, seed] of [[-2.2, 1], [0, 2.4], [2.2, 5.6]]) {
+          if (roll(seed, c.v) > 0.3) b.pane('#D3B780', 1.25, 1.35, MID + bay, 5.5, -6.32, { glow: 0.18 + c.glow * 0.25 });
+        }
         puffs(b, MID + 2.35, 12.4, -8.65, '#FFE2B0', 0.5, 4, 'hsc3_steam_cluster_unit');
         return;
       }
@@ -641,11 +645,9 @@ export function skyline(b: Build, place: number, v: number, sight: number, train
   if (row.length && !taken.some(([a, b]) => a < FAR_TILE && b > 0)) {
     const [id, size] = row[v % row.length];
     if (v !== 3 || place === 0) b.model(id, FAR_TILE / 2, 0, -29, size);
-    if (v === 2 && (place === 0 || place === 2)) {
-      if (place === 0) {
-        b.model('tpe5_distant_hill', FAR_TILE / 2, 0, -108, 0.7);
-        b.model('tpe5_skyline_block', FAR_TILE / 2, 0, -99, 0.6);
-      }
+    if (v === 2 && place === 0) {
+      b.model('tpe5_distant_hill', FAR_TILE / 2, 0, -108, 0.7);
+      b.model('tpe5_skyline_block', FAR_TILE / 2, 0, -99, 0.6);
     }
   }
   for (let i = 0; i < 6; i++) {
