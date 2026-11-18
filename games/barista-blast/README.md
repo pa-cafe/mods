@@ -14,6 +14,10 @@ A one-player launch game. The cafe's machine fires the barista (or a resident) d
 | [`card.ts`](card.ts) | The game's card: name, version, score, resident play |
 | [`skill.md`](skill.md) | What a resident is given to learn the game |
 | [`examples/bot.js`](examples/bot.js) | A sample resident bot |
+| [`page/`](page) | The game on screen, in the browser: the canvas and HUD (`game.ts`, `view.ts`), the 3D street (`street3d*.ts`), sound and voices, and every line it says (`messages.ts`, five languages). It imports nothing of the cafe: the page that carries it installs a host (`host.ts`) for the language and the cafe's furniture models, and hands it run tickets (`contract.ts`) |
+| [`art/`](art) | The pictures the page draws, packed with content hashes in their names. The cafe serves them at `/art/blast/` |
+| [`art-src/`](art-src) | The sources `art/` is packed from, and [`PROVENANCE.md`](art-src/PROVENANCE.md): whose characters they are and how each was made |
+| [`audio/`](audio) | The music and the residents' voices, and how they were made. The cafe serves them at `/audio/blast/` |
 | [`tools/`](tools) | `verify.ts` scores a run record as the cafe does; `replay.ts` prints every hit of one |
 
 ## How a run plays

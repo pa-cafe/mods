@@ -1,0 +1,34 @@
+diff a/games/barista-blast/page/ahead.ts b/games/barista-blast/page/ahead.ts	(rejected hunks)
+@@ -1,21 +1,26 @@
+-import { BLAST_HZ, blastAhead, blastHitSpan, blastTuning as T, type BlastNode, type BlastRun } from '../../mods/games/barista-blast/rules';
++import * as current from '../../mods/games/barista-blast/rules';
++import type { BlastNode, BlastRun } from '../../mods/games/barista-blast/rules';
+ import { moodTone } from './nodes';
++import type { BlastRules } from './rules-past';
+ 
+ const REACH_SECONDS = 2.5, REACH_LEAST = 80, DANGER_SECONDS = 1.5, DANGER_LEAST = 40;
+ type Tone = ReturnType<typeof moodTone>;
+ const target = (node: BlastNode) => moodTone(node) === 'good';
+ const grave = (node: BlastNode) => node.mood === 'bad' && (node.kind === 'claude' || node.kind === 'dots');
+ 
+-type Flight = Pick<BlastRun, 'x' | 'y' | 'vx' | 'vy' | 'sliding'>;
+-function fly(run: Flight, steps: number, each: (x: number, y: number) => boolean) {
+-  let { x, y, vx, vy, sliding } = run;
+-  const dt = 1 / BLAST_HZ;
++type Flight = Pick<BlastRun, 'x' | 'y' | 'vx' | 'vy' | 'sliding'> & Partial<Pick<BlastRun, 'pilot' | 'glide' | 'straight'>>;
++function fly(run: Flight, steps: number, rules: BlastRules, each: (x: number, y: number) => boolean) {
++  let { x, y, vx, vy, sliding, glide = 0, straight = 0 } = run;
++  const { blastTuning: T, BLAST_HZ, blastTrait } = rules;
++  const dt = 1 / BLAST_HZ, top = T.maxSpeed * (blastTrait(run.pilot ?? null).cap ?? 1);
+   for (let step = 0; step < steps; step++) {
+     if (sliding) { vx -= T.friction * dt; if (vx < T.stopBelow) return; x += vx * dt; }
++    else if (glide) { glide--; x += vx * dt; }
++    else if (straight) { straight--; x += vx * dt; y += vy * dt; }
+     else {
+       vy -= T.gravity * dt; vx -= vx * T.drag * dt;
+       const square = vx * vx + vy * vy;
+-      if (square > T.maxSpeed * T.maxSpeed) { const slow = T.maxSpeed / Math.sqrt(square); vx *= slow; vy *= slow; }
++      if (square > top * top) { const slow = top / Math.sqrt(square); vx *= slow; vy *= slow; }
+       x += vx * dt; y += vy * dt;
+       if (y <= 0 && vy < 0) {
+         y = 0; vy *= -T.bounceUp; vx *= T.bounceAlong;

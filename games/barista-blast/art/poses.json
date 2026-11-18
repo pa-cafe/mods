@@ -1,0 +1,358 @@
+{
+  "file": "poses.ea819ed9c2.webp",
+  "bytes": 833490,
+  "sha256": "ea819ed9c2ecaaf84bdb790bc1e6c16ee7f02a71d39cd0ff5e5b72f7a8a29df1",
+  "avif": "poses.924aa44d3e.avif",
+  "avifBytes": 504317,
+  "cell": 288,
+  "frames": {
+    "dots/tumble": [
+      30,
+      29,
+      228,
+      231
+    ],
+    "dots/splat": [
+      289,
+      69,
+      286,
+      151
+    ],
+    "dots/cheer": [
+      623,
+      1,
+      195,
+      286
+    ],
+    "dots/help": [
+      920,
+      1,
+      177,
+      286
+    ],
+    "dots/hurt": [
+      1209,
+      1,
+      174,
+      286
+    ],
+    "dots/stand": [
+      1454,
+      1,
+      181,
+      286
+    ],
+    "grok-bot/tumble": [
+      38,
+      325,
+      212,
+      214
+    ],
+    "grok-bot/splat": [
+      289,
+      357,
+      286,
+      150
+    ],
+    "grok-bot/cheer": [
+      625,
+      289,
+      191,
+      286
+    ],
+    "grok-bot/help": [
+      914,
+      289,
+      188,
+      286
+    ],
+    "grok-bot/hurt": [
+      1205,
+      290,
+      182,
+      285
+    ],
+    "grok-bot/stand": [
+      1443,
+      289,
+      202,
+      286
+    ],
+    "muse/tumble": [
+      34,
+      607,
+      221,
+      226
+    ],
+    "muse/splat": [
+      293,
+      651,
+      279,
+      138
+    ],
+    "muse/cheer": [
+      615,
+      577,
+      211,
+      286
+    ],
+    "muse/help": [
+      921,
+      577,
+      175,
+      286
+    ],
+    "muse/hurt": [
+      1209,
+      578,
+      175,
+      285
+    ],
+    "muse/stand": [
+      1448,
+      577,
+      192,
+      286
+    ],
+    "claude/tumble": [
+      36,
+      898,
+      217,
+      221
+    ],
+    "claude/splat": [
+      289,
+      939,
+      286,
+      139
+    ],
+    "claude/cheer": [
+      631,
+      865,
+      178,
+      286
+    ],
+    "claude/help": [
+      924,
+      865,
+      169,
+      286
+    ],
+    "claude/hurt": [
+      1213,
+      865,
+      167,
+      286
+    ],
+    "claude/stand": [
+      1465,
+      865,
+      159,
+      286
+    ],
+    "gemini/tumble": [
+      30,
+      1178,
+      228,
+      237
+    ],
+    "gemini/splat": [
+      289,
+      1216,
+      286,
+      161
+    ],
+    "gemini/cheer": [
+      631,
+      1153,
+      179,
+      286
+    ],
+    "gemini/help": [
+      919,
+      1154,
+      178,
+      285
+    ],
+    "gemini/hurt": [
+      1196,
+      1156,
+      200,
+      280
+    ],
+    "gemini/stand": [
+      1452,
+      1153,
+      185,
+      286
+    ],
+    "deepseek/tumble": [
+      38,
+      1460,
+      213,
+      249
+    ],
+    "deepseek/splat": [
+      289,
+      1504,
+      286,
+      161
+    ],
+    "deepseek/cheer": [
+      618,
+      1441,
+      204,
+      286
+    ],
+    "deepseek/help": [
+      909,
+      1441,
+      199,
+      286
+    ],
+    "deepseek/hurt": [
+      1196,
+      1442,
+      200,
+      285
+    ],
+    "deepseek/stand": [
+      1442,
+      1441,
+      204,
+      286
+    ],
+    "qwen/tumble": [
+      30,
+      1751,
+      228,
+      243
+    ],
+    "qwen/splat": [
+      290,
+      1785,
+      284,
+      175
+    ],
+    "qwen/cheer": [
+      633,
+      1729,
+      175,
+      286
+    ],
+    "qwen/help": [
+      923,
+      1729,
+      171,
+      286
+    ],
+    "qwen/hurt": [
+      1211,
+      1729,
+      171,
+      286
+    ],
+    "qwen/stand": [
+      1459,
+      1729,
+      170,
+      286
+    ],
+    "doubao/tumble": [
+      36,
+      2043,
+      216,
+      235
+    ],
+    "doubao/splat": [
+      293,
+      2083,
+      279,
+      155
+    ],
+    "doubao/cheer": [
+      639,
+      2017,
+      162,
+      286
+    ],
+    "doubao/help": [
+      927,
+      2017,
+      163,
+      286
+    ],
+    "doubao/hurt": [
+      1210,
+      2021,
+      173,
+      278
+    ],
+    "doubao/stand": [
+      1464,
+      2017,
+      160,
+      286
+    ]
+  },
+  "bodies": {
+    "dots/cheer": 261,
+    "dots/help": 261,
+    "dots/hurt": 261,
+    "dots/stand": 261,
+    "grok-bot/cheer": 255,
+    "grok-bot/help": 255,
+    "grok-bot/hurt": 255,
+    "grok-bot/stand": 255,
+    "muse/cheer": 271,
+    "muse/help": 272,
+    "muse/hurt": 271,
+    "muse/stand": 272,
+    "claude/cheer": 280,
+    "claude/help": 280,
+    "claude/hurt": 280,
+    "claude/stand": 280,
+    "gemini/cheer": 260,
+    "gemini/help": 260,
+    "gemini/hurt": 259,
+    "gemini/stand": 261,
+    "deepseek/cheer": 255,
+    "deepseek/help": 255,
+    "deepseek/hurt": 255,
+    "deepseek/stand": 255,
+    "qwen/cheer": 261,
+    "qwen/help": 261,
+    "qwen/hurt": 261,
+    "qwen/stand": 261,
+    "doubao/cheer": 280,
+    "doubao/help": 280,
+    "doubao/hurt": 272,
+    "doubao/stand": 280
+  },
+  "sources": {
+    "dots.webp": "602e8ae9537a6159adf86a672083e3fc9143016501ed94d8fbece0c8b5e66b49",
+    "dots-hits.webp": "1eee731feac09aab2e949aab82e65b3e7142b8ef206e267a0ec4e7fe0ddd3428",
+    "dots-fullbody.webp": "04ff0b29e54eafa2e5e497ac52ca3f3dd3691fc8fdc1072776e997df11656eaf",
+    "grok-bot.webp": "b4528c1ae4b8f8ad86c4a772c99c68731f7848a14c20d2319de40da2f9adaea0",
+    "grok-bot-hits.webp": "2c8d4455c69dad535c2446706e79f9bd6efba2f58d2d0f8a4ece7844200f6056",
+    "grok-bot-fullbody.webp": "920a02aca7c25356173fd211eee5c6be5c2a9ced61ba6ef8f5ed93443a964e0a",
+    "muse.webp": "478dd7abcac99975bf74cbf800c9df7b83c4665a17046008b73ff4d0421559a2",
+    "muse-hits.webp": "adbd95edb2f02ad2fd3bd52deedc281dd1400f8ea0fc06eebfc93d2a3a586cdd",
+    "muse-fullbody.png": "92d61bbefd4f37e9b1133f2c11c2e39cab6a7e0dfe4c0880b1138b9c88061e9a",
+    "claude.webp": "8b11af80353c9eb69a8f64c9e6935c186d4d3fd1ea494fb675ab90c0f4abb670",
+    "claude-hits.webp": "2d041e01f29b8b7afc58923563530ad71f8b24af7147f7c163937c5692b7aed7",
+    "claude-fullbody.webp": "700131458ea34e4cf4d1a8fabd5e2bec9b9f0d1d2ac5af53ef891d63257a73a4",
+    "gemini.webp": "0e907afe5c980d7865b9318ea7a2841cba4d1bc9071095f7088fa10029690bfe",
+    "gemini-hits.webp": "f7bbefc8ea1cffc486435023cb47620733c52c6427ae90bdba1eff8a72a23e4a",
+    "gemini-fullbody.webp": "bb9f6aac01769fe2d3bb6b4dcd9cdd21ab9a312b1707b5af60bdeedd14dabd2f",
+    "deepseek.webp": "7b72f2ebdac63cf3082eb00978b0f43e7714b7c9920c6fadcda8fbaf0f6fc05d",
+    "deepseek-hits.webp": "2c5da2a8ddc009bbdac353746f1f542950f8dc226a355f642c7da5ef12491d17",
+    "deepseek-fullbody.webp": "dbc3f2dfea5b58777b91e1d80f00140ff34c1e0a8b8120be30d24606fd14afda",
+    "qwen.webp": "502dde7bfa3b8e422806d1677d6358918180c1ee5fa1c1a58673f4ffac483953",
+    "qwen-hits.webp": "162d0ac983df1d08f23c60bc4b4740a1fe50319f55cd592f64509e9d3470ec9f",
+    "qwen-fullbody.webp": "9cbdbcf52d5997700d1d0799826dcf3eb8f6d8b7590843dc1b30fc786763fc29",
+    "doubao.webp": "be872dedf100004663c74519b99bd2b190b7ebacd8d666a943b0b6616c71ac81",
+    "doubao-hits.webp": "9b7b7a636236e4fe531cb423a053251760a487a86906f1fcf5abc6f1c5d2488b",
+    "doubao-fullbody.webp": "aca26a20780813bdd0c42296cf6677d4b3c407934557daf61177684be7f2f6a8"
+  }
+}

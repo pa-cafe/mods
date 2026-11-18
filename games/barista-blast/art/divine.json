@@ -1,0 +1,254 @@
+{
+  "file": "divine.998f1aaa15.webp",
+  "bytes": 625084,
+  "sha256": "998f1aaa15ce90e36136b18faef98a2e963af1e2f8307c6f9a9af08ace71f578",
+  "avif": "divine.44ff0f841d.avif",
+  "avifBytes": 375724,
+  "cell": 288,
+  "frames": {
+    "dots/help": [
+      57,
+      1,
+      175,
+      286
+    ],
+    "dots/hurt": [
+      347,
+      1,
+      171,
+      286
+    ],
+    "dots/cheer": [
+      631,
+      2,
+      178,
+      285
+    ],
+    "dots/stand": [
+      877,
+      1,
+      182,
+      286
+    ],
+    "grok-bot/help": [
+      45,
+      289,
+      198,
+      286
+    ],
+    "grok-bot/hurt": [
+      339,
+      289,
+      187,
+      286
+    ],
+    "grok-bot/cheer": [
+      622,
+      289,
+      196,
+      286
+    ],
+    "grok-bot/stand": [
+      866,
+      289,
+      204,
+      286
+    ],
+    "muse/help": [
+      56,
+      578,
+      176,
+      284
+    ],
+    "muse/hurt": [
+      345,
+      578,
+      175,
+      285
+    ],
+    "muse/cheer": [
+      624,
+      577,
+      193,
+      286
+    ],
+    "muse/stand": [
+      871,
+      577,
+      194,
+      286
+    ],
+    "claude/help": [
+      60,
+      865,
+      169,
+      286
+    ],
+    "claude/hurt": [
+      346,
+      866,
+      172,
+      285
+    ],
+    "claude/cheer": [
+      628,
+      866,
+      185,
+      285
+    ],
+    "claude/stand": [
+      888,
+      865,
+      161,
+      286
+    ],
+    "gemini/help": [
+      51,
+      1154,
+      186,
+      284
+    ],
+    "gemini/hurt": [
+      335,
+      1155,
+      195,
+      283
+    ],
+    "gemini/cheer": [
+      626,
+      1153,
+      188,
+      286
+    ],
+    "gemini/stand": [
+      874,
+      1153,
+      188,
+      286
+    ],
+    "deepseek/help": [
+      49,
+      1441,
+      190,
+      286
+    ],
+    "deepseek/hurt": [
+      337,
+      1442,
+      190,
+      285
+    ],
+    "deepseek/cheer": [
+      620,
+      1441,
+      200,
+      286
+    ],
+    "deepseek/stand": [
+      866,
+      1441,
+      205,
+      286
+    ],
+    "qwen/help": [
+      53,
+      1729,
+      182,
+      286
+    ],
+    "qwen/hurt": [
+      340,
+      1729,
+      185,
+      286
+    ],
+    "qwen/cheer": [
+      624,
+      1729,
+      192,
+      286
+    ],
+    "qwen/stand": [
+      874,
+      1729,
+      188,
+      286
+    ],
+    "doubao/help": [
+      62,
+      2017,
+      165,
+      286
+    ],
+    "doubao/hurt": [
+      342,
+      2021,
+      181,
+      278
+    ],
+    "doubao/cheer": [
+      638,
+      2017,
+      165,
+      286
+    ],
+    "doubao/stand": [
+      888,
+      2017,
+      161,
+      286
+    ]
+  },
+  "bodies": {
+    "dots/help": 261,
+    "dots/hurt": 261,
+    "dots/cheer": 261,
+    "dots/stand": 261,
+    "grok-bot/help": 256,
+    "grok-bot/hurt": 255,
+    "grok-bot/cheer": 255,
+    "grok-bot/stand": 255,
+    "muse/help": 268,
+    "muse/hurt": 268,
+    "muse/cheer": 268,
+    "muse/stand": 269,
+    "claude/help": 279,
+    "claude/hurt": 279,
+    "claude/cheer": 279,
+    "claude/stand": 280,
+    "gemini/help": 259,
+    "gemini/hurt": 259,
+    "gemini/cheer": 259,
+    "gemini/stand": 261,
+    "deepseek/help": 255,
+    "deepseek/hurt": 255,
+    "deepseek/cheer": 255,
+    "deepseek/stand": 255,
+    "qwen/help": 272,
+    "qwen/hurt": 272,
+    "qwen/cheer": 272,
+    "qwen/stand": 272,
+    "doubao/help": 280,
+    "doubao/hurt": 272,
+    "doubao/cheer": 280,
+    "doubao/stand": 280
+  },
+  "sources": {
+    "dots-hits.webp": "eba842657078e63ee2c0aa73ac34fa252f005412f35383470ce4a5f8ceb9d07e",
+    "dots-fullbody.webp": "8f1045aad0f2c42ff17a4aa39d54777268212515a0f59375ec15eda36fb95881",
+    "grok-bot-hits.webp": "6d90b4c16ecc535c6df70c4a2a9e25f5abd09b1ae9c06c87fc5d320745acd3f5",
+    "grok-bot-fullbody.webp": "d1b66490717605828df017239f1573ddb92aa7e2f4009b9e502a3191196bb586",
+    "muse-hits.webp": "7c9adf4e0d7e33510bc0977a608e59e0565ac6a28818ac8578d7bd68fa29cf0d",
+    "muse-fullbody.webp": "fd89a6b9b946998e184a3f227b3ab0e2317ea11b161adab3cf09e85bd2f4a1fb",
+    "claude-hits.webp": "e3bb3e38d5a223679f2388af0c92d92899d9f71a1aa4e65c54458ad5a1a6c02b",
+    "claude-fullbody.webp": "b0753d319e23f11abc91c6c1d7b82c464c7385234a4376bc6747dc594cbf88fd",
+    "gemini-hits.webp": "0b5a9443a8aa58f7d34cbed5e03bf7be42937aedf8aeffa05ff22d59189446bc",
+    "gemini-fullbody.webp": "26c63228aeb751c113a7941f379a87bcebcecadd0bede73dd8e9f1af94143304",
+    "deepseek-hits.webp": "f70a4932233dc384f18b009b335026d7941c2a06b4b063c54009bf38394579e5",
+    "deepseek-fullbody.webp": "45a34dd4b54175b534c66997985f897a516cc0241d4abd169532685f0168107b",
+    "qwen-hits.webp": "1567a8c86d1f37926db8a87f112f8a0fdf28ce1396863c4c9d7fa1209e6d9a1e",
+    "qwen-fullbody.webp": "f5eca3c63371514a0ede4c043881a4b49fef5243f10523db4fd825f1aec59679",
+    "doubao-hits.webp": "89c4381bf04e343c48a047085e4c9b10187583a67333704d9eb2b3d4d5dafdda",
+    "doubao-fullbody.webp": "676d7f70a5ca6018184adf5595943b973ee6244487c876526e185e83db994ccf"
+  }
+}
