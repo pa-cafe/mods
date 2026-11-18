@@ -1,0 +1,65 @@
+{
+  "scope": "authoring recommendations, not runtime code",
+  "linearRGB": true,
+  "variants": [
+    {
+      "index": 0,
+      "label": "ivory-teal-copper",
+      "materialColorOverrides": {}
+    },
+    {
+      "index": 1,
+      "label": "sage-cream",
+      "materialColorOverrides": {
+        "hsc3-deep-teal": [
+          0.16,
+          0.31,
+          0.25
+        ],
+        "hsc3-roasted-copper": [
+          0.43,
+          0.24,
+          0.13
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "label": "brick-night-shift",
+      "materialColorOverrides": {
+        "hsc3-deep-teal": [
+          0.11,
+          0.22,
+          0.23
+        ],
+        "hsc3-roasted-copper": [
+          0.48,
+          0.16,
+          0.09
+        ],
+        "hsc3-cream-enamel": [
+          0.7,
+          0.59,
+          0.44
+        ]
+      }
+    },
+    {
+      "index": 3,
+      "label": "pale-laboratory",
+      "materialColorOverrides": {
+        "hsc3-deep-teal": [
+          0.15,
+          0.32,
+          0.34
+        ],
+        "hsc3-cream-enamel": [
+          0.84,
+          0.76,
+          0.59
+        ]
+      }
+    }
+  ],
+  "preserve": "original deterministic c.v; clone materials per variant not global mutation; no geometry or collision scaling implied"
+}

@@ -1,0 +1,266 @@
+{
+  "units": "meters",
+  "basis": "glTF +Y up/+X along street/+Z player",
+  "assemblies": {
+    "fab": [
+      {
+        "id": "hsc3_fab_hall",
+        "position": [
+          -13,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "hsc3_fab_office",
+        "position": [
+          32,
+          0,
+          -1
+        ]
+      },
+      {
+        "id": "hsc3_fab_skybridge",
+        "position": [
+          19.5,
+          15.6,
+          -1
+        ]
+      }
+    ],
+    "cooling": [
+      {
+        "id": "hsc3_cooling_deck",
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "hsc3_cooling_tower",
+        "position": [
+          -21,
+          10.8,
+          1
+        ]
+      },
+      {
+        "id": "hsc3_cooling_tower",
+        "position": [
+          22,
+          10.8,
+          7
+        ],
+        "scale": 0.93
+      }
+    ],
+    "power": [
+      {
+        "id": "hsc3_power_turbine_hall",
+        "position": [
+          -16,
+          0,
+          -2
+        ]
+      },
+      {
+        "id": "hsc3_power_boiler",
+        "position": [
+          6,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "hsc3_power_striped_chimney",
+        "position": [
+          36,
+          0,
+          2
+        ]
+      },
+      {
+        "id": "hsc3_power_flue_filter",
+        "position": [
+          22,
+          0,
+          2
+        ]
+      },
+      {
+        "id": "hsc3_substation",
+        "position": [
+          -46,
+          0,
+          -10
+        ]
+      },
+      {
+        "id": "hsc3_power_secondary_stack",
+        "position": [
+          -38,
+          0,
+          4
+        ]
+      }
+    ],
+    "wind": [
+      {
+        "id": "hsc3_wind_dune",
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "hsc3_wind_tower",
+        "position": [
+          -24,
+          4,
+          -6
+        ],
+        "scale": 0.8857142857142857
+      },
+      {
+        "id": "hsc3_wind_rotor",
+        "position": [
+          -24,
+          35,
+          -2.6
+        ],
+        "scale": 0.8260869565217391,
+        "rotationZ": 14
+      },
+      {
+        "id": "hsc3_wind_tower",
+        "position": [
+          0,
+          4,
+          2
+        ],
+        "scale": 1.0
+      },
+      {
+        "id": "hsc3_wind_rotor",
+        "position": [
+          0,
+          39,
+          5.4
+        ],
+        "scale": 1.0,
+        "rotationZ": 62
+      },
+      {
+        "id": "hsc3_wind_tower",
+        "position": [
+          26,
+          4,
+          -9
+        ],
+        "scale": 0.8
+      },
+      {
+        "id": "hsc3_wind_rotor",
+        "position": [
+          26,
+          32,
+          -5.6
+        ],
+        "scale": 0.7391304347826086,
+        "rotationZ": 100
+      }
+    ]
+  },
+  "anchors": {
+    "cooling.steam": [
+      [
+        -21,
+        56.8,
+        1
+      ],
+      [
+        22,
+        53.58,
+        7
+      ]
+    ],
+    "power.smoke": [
+      [
+        36,
+        73.5,
+        2
+      ],
+      [
+        -38,
+        42.4,
+        4
+      ]
+    ],
+    "power.steam": [
+      [
+        10.6,
+        51.4,
+        3
+      ]
+    ],
+    "wind.rotorAxis": "local +Z (glTF), local origin; keep source static angles 14/62/100 degrees unless runtime already animates",
+    "near": {
+      "hsc3_sawtooth_roastery_7m": {
+        "steam": [
+          [
+            2.35,
+            12.4,
+            -0.65
+          ]
+        ],
+        "sign": [
+          -0.9,
+          4.14,
+          1.91
+        ]
+      },
+      "hsc3_drum_roaster_7m": {
+        "steam": [
+          [
+            1,
+            7.4,
+            -0.4
+          ]
+        ]
+      },
+      "hsc3_low_loading_yard_7m": {
+        "sign": [
+          2.1,
+          1.75,
+          -0.56
+        ]
+      },
+      "hsc3_kettle_gantry_7m": {
+        "steam": [
+          [
+            -1.7,
+            7.2,
+            0
+          ]
+        ]
+      },
+      "hsc3_shift_canteen_7m": {
+        "badge": [
+          0,
+          7.2,
+          -0.1
+        ]
+      },
+      "hsc3_silo_pair_7m": {
+        "sign": [
+          1.6,
+          3.25,
+          1.91
+        ]
+      }
+    }
+  },
+  "preserve": "original placement seed, collision and rules; keep static wind angles unless original update system drives them; no new gameplay added"
+}

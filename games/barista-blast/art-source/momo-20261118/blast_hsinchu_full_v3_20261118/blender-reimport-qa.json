@@ -1,0 +1,512 @@
+[
+  {
+    "file": "hsc3_blank_signboard.glb",
+    "status": "PASS",
+    "meshes": 2,
+    "minBlender": [
+      -0.574999988079071,
+      -0.35268059372901917,
+      -0.015804119408130646
+    ],
+    "maxBlender": [
+      0.574999988079071,
+      0.17268052697181702,
+      1.4500000476837158
+    ]
+  },
+  {
+    "file": "hsc3_cable_span_14m.glb",
+    "status": "PASS",
+    "meshes": 1,
+    "minBlender": [
+      -7.013330936431885,
+      -3.8562920093536377,
+      7.635011196136475
+    ],
+    "maxBlender": [
+      7.013330459594727,
+      3.8562920093536377,
+      14.563618659973145
+    ]
+  },
+  {
+    "file": "hsc3_cafe_chair.glb",
+    "status": "PASS",
+    "meshes": 3,
+    "minBlender": [
+      -0.36000001430511475,
+      -0.36000001430511475,
+      0.0
+    ],
+    "maxBlender": [
+      0.36000001430511475,
+      0.36000001430511475,
+      1.5099999904632568
+    ]
+  },
+  {
+    "file": "hsc3_cafe_table.glb",
+    "status": "PASS",
+    "meshes": 2,
+    "minBlender": [
+      -0.7200000286102295,
+      -0.7200000286102295,
+      0.0
+    ],
+    "maxBlender": [
+      0.7200000286102295,
+      0.7200000286102295,
+      1.0199999809265137
+    ]
+  },
+  {
+    "file": "hsc3_cooling_deck.glb",
+    "status": "PASS",
+    "meshes": 4,
+    "minBlender": [
+      -44.5,
+      -17.5,
+      0.0
+    ],
+    "maxBlender": [
+      44.5,
+      17.5,
+      15.800000190734863
+    ]
+  },
+  {
+    "file": "hsc3_cooling_tower.glb",
+    "status": "PASS",
+    "meshes": 3,
+    "minBlender": [
+      -15.5,
+      -15.5,
+      0.0
+    ],
+    "maxBlender": [
+      15.5,
+      15.5,
+      46.5230827331543
+    ]
+  },
+  {
+    "file": "hsc3_crate.glb",
+    "status": "PASS",
+    "meshes": 2,
+    "minBlender": [
+      -0.5299999713897705,
+      -0.5799999833106995,
+      0.0
+    ],
+    "maxBlender": [
+      0.5299999713897705,
+      0.5,
+      1.0
+    ]
+  },
+  {
+    "file": "hsc3_drum_roaster_7m.glb",
+    "status": "PASS",
+    "meshes": 6,
+    "minBlender": [
+      -3.450000047683716,
+      -1.625,
+      0.0
+    ],
+    "maxBlender": [
+      3.450000047683716,
+      1.625,
+      7.300000190734863
+    ]
+  },
+  {
+    "file": "hsc3_fab_hall.glb",
+    "status": "PASS",
+    "meshes": 5,
+    "minBlender": [
+      -31.0,
+      -9.5,
+      0.0
+    ],
+    "maxBlender": [
+      31.0,
+      9.5,
+      70.0
+    ]
+  },
+  {
+    "file": "hsc3_fab_office.glb",
+    "status": "PASS",
+    "meshes": 5,
+    "minBlender": [
+      -10.5,
+      -8.5,
+      0.0
+    ],
+    "maxBlender": [
+      10.5,
+      8.5,
+      62.900001525878906
+    ]
+  },
+  {
+    "file": "hsc3_fab_skybridge.glb",
+    "status": "PASS",
+    "meshes": 3,
+    "minBlender": [
+      -2.5,
+      -2.809999942779541,
+      0.0
+    ],
+    "maxBlender": [
+      2.5,
+      2.5,
+      3.5999999046325684
+    ]
+  },
+  {
+    "file": "hsc3_far_factory_14m.glb",
+    "status": "PASS",
+    "meshes": 2,
+    "minBlender": [
+      -6.650000095367432,
+      -2.674999713897705,
+      0.0
+    ],
+    "maxBlender": [
+      7.149999618530273,
+      6.650000095367432,
+      39.0
+    ]
+  },
+  {
+    "file": "hsc3_kettle_gantry_7m.glb",
+    "status": "PASS",
+    "meshes": 5,
+    "minBlender": [
+      -3.1813759803771973,
+      -1.2149999141693115,
+      0.0
+    ],
+    "maxBlender": [
+      2.93999981880188,
+      1.2000000476837158,
+      8.114999771118164
+    ]
+  },
+  {
+    "file": "hsc3_low_loading_yard_7m.glb",
+    "status": "PASS",
+    "meshes": 5,
+    "minBlender": [
+      -3.450000047683716,
+      -1.28000009059906,
+      0.0
+    ],
+    "maxBlender": [
+      3.450000047683716,
+      1.2000000476837158,
+      2.4499998092651367
+    ]
+  },
+  {
+    "file": "hsc3_planter.glb",
+    "status": "PASS",
+    "meshes": 3,
+    "minBlender": [
+      -0.657770037651062,
+      -0.550000011920929,
+      0.0
+    ],
+    "maxBlender": [
+      0.613048791885376,
+      0.550000011920929,
+      2.25
+    ]
+  },
+  {
+    "file": "hsc3_power_boiler.glb",
+    "status": "PASS",
+    "meshes": 4,
+    "minBlender": [
+      -12.300000190734863,
+      -9.800000190734863,
+      0.0
+    ],
+    "maxBlender": [
+      12.300000190734863,
+      10.799999237060547,
+      52.5
+    ]
+  },
+  {
+    "file": "hsc3_power_flue_filter.glb",
+    "status": "PASS",
+    "meshes": 3,
+    "minBlender": [
+      -13.0,
+      -5.375,
+      6.0
+    ],
+    "maxBlender": [
+      14.511922836303711,
+      5.199999809265137,
+      28.621089935302734
+    ]
+  },
+  {
+    "file": "hsc3_power_secondary_stack.glb",
+    "status": "PASS",
+    "meshes": 2,
+    "minBlender": [
+      -1.7000000476837158,
+      -1.7000000476837158,
+      0.0
+    ],
+    "maxBlender": [
+      1.7000000476837158,
+      1.7000000476837158,
+      42.0
+    ]
+  },
+  {
+    "file": "hsc3_power_striped_chimney.glb",
+    "status": "PASS",
+    "meshes": 4,
+    "minBlender": [
+      -6.0,
+      -6.0,
+      0.0
+    ],
+    "maxBlender": [
+      6.0,
+      6.0,
+      73.23776245117188
+    ]
+  },
+  {
+    "file": "hsc3_power_turbine_hall.glb",
+    "status": "PASS",
+    "meshes": 3,
+    "minBlender": [
+      -19.25,
+      -11.510000228881836,
+      0.0
+    ],
+    "maxBlender": [
+      19.25,
+      11.25,
+      27.0
+    ]
+  },
+  {
+    "file": "hsc3_pylon_14m.glb",
+    "status": "PASS",
+    "meshes": 3,
+    "minBlender": [
+      -1.6397026777267456,
+      -4.0,
+      -0.04745374247431755
+    ],
+    "maxBlender": [
+      1.639702558517456,
+      3.999999761581421,
+      19.200000762939453
+    ]
+  },
+  {
+    "file": "hsc3_road_tile_7m.glb",
+    "status": "PASS",
+    "meshes": 4,
+    "minBlender": [
+      -3.5,
+      -6.0,
+      -0.30000001192092896
+    ],
+    "maxBlender": [
+      3.5,
+      6.0,
+      0.029999999329447746
+    ]
+  },
+  {
+    "file": "hsc3_sawtooth_roastery_7m.glb",
+    "status": "PASS",
+    "meshes": 4,
+    "minBlender": [
+      -3.375,
+      -1.902500033378601,
+      0.0
+    ],
+    "maxBlender": [
+      3.375,
+      1.559999942779541,
+      12.300000190734863
+    ]
+  },
+  {
+    "file": "hsc3_shift_canteen_7m.glb",
+    "status": "PASS",
+    "meshes": 5,
+    "minBlender": [
+      -3.450000047683716,
+      -2.549999952316284,
+      0.0
+    ],
+    "maxBlender": [
+      3.450000047683716,
+      1.625,
+      8.25
+    ]
+  },
+  {
+    "file": "hsc3_silo_pair_7m.glb",
+    "status": "PASS",
+    "meshes": 5,
+    "minBlender": [
+      -3.0,
+      -1.902500033378601,
+      0.0
+    ],
+    "maxBlender": [
+      3.0,
+      1.2999999523162842,
+      10.5
+    ]
+  },
+  {
+    "file": "hsc3_smoke_cluster_unit.glb",
+    "status": "PASS",
+    "meshes": 1,
+    "minBlender": [
+      -0.7472125291824341,
+      -0.40830719470977783,
+      -0.20000000298023224
+    ],
+    "maxBlender": [
+      1.097212553024292,
+      0.40830719470977783,
+      1.1500000953674316
+    ]
+  },
+  {
+    "file": "hsc3_steam_cluster_unit.glb",
+    "status": "PASS",
+    "meshes": 1,
+    "minBlender": [
+      -0.8255289196968079,
+      -0.44999995827674866,
+      -0.15000000596046448
+    ],
+    "maxBlender": [
+      1.0755289793014526,
+      0.44999995827674866,
+      1.2000000476837158
+    ]
+  },
+  {
+    "file": "hsc3_streetlamp.glb",
+    "status": "PASS",
+    "meshes": 4,
+    "minBlender": [
+      -0.26629582047462463,
+      -0.2800000011920929,
+      0.0
+    ],
+    "maxBlender": [
+      0.9749999642372131,
+      0.2800000011920929,
+      4.670000076293945
+    ]
+  },
+  {
+    "file": "hsc3_substation.glb",
+    "status": "PASS",
+    "meshes": 4,
+    "minBlender": [
+      -11.242486953735352,
+      -3.0,
+      0.0
+    ],
+    "maxBlender": [
+      11.242486953735352,
+      3.0,
+      12.280000686645508
+    ]
+  },
+  {
+    "file": "hsc3_tree.glb",
+    "status": "PASS",
+    "meshes": 2,
+    "minBlender": [
+      -1.4155399799346924,
+      -0.680512011051178,
+      0.0
+    ],
+    "maxBlender": [
+      1.4155399799346924,
+      0.6954480409622192,
+      4.900000095367432
+    ]
+  },
+  {
+    "file": "hsc3_walk_tile_7m.glb",
+    "status": "PASS",
+    "meshes": 3,
+    "minBlender": [
+      -3.5,
+      -2.0250000953674316,
+      -0.23999999463558197
+    ],
+    "maxBlender": [
+      3.5,
+      2.0,
+      0.11999999731779099
+    ]
+  },
+  {
+    "file": "hsc3_wind_dune.glb",
+    "status": "PASS",
+    "meshes": 2,
+    "minBlender": [
+      -46.31079864501953,
+      -18.207679748535156,
+      -5.699999809265137
+    ],
+    "maxBlender": [
+      43.67734909057617,
+      17.012800216674805,
+      8.300000190734863
+    ]
+  },
+  {
+    "file": "hsc3_wind_rotor.glb",
+    "status": "PASS",
+    "meshes": 3,
+    "minBlender": [
+      -19.99358367919922,
+      -1.2000000476837158,
+      -11.629903793334961
+    ],
+    "maxBlender": [
+      19.843584060668945,
+      1.2000001668930054,
+      23.0
+    ]
+  },
+  {
+    "file": "hsc3_wind_tower.glb",
+    "status": "PASS",
+    "meshes": 4,
+    "minBlender": [
+      -2.0999999046325684,
+      -2.799999952316284,
+      0.0
+    ],
+    "maxBlender": [
+      2.0999999046325684,
+      5.199999809265137,
+      37.349998474121094
+    ]
+  }
+]
