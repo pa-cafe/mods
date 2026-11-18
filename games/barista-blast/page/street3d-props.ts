@@ -91,6 +91,10 @@ export function buildProp(b: Build, prop: StreetProp, place: number) {
   const model = prop.kind === 'window' ? 'common_takeaway_window' : prop.kind === 'mail' ? 'common_ban_letter'
     : prop.reset ? 'common_quota_wall_reset' : 'common_quota_wall_blocked';
   if (b.model(model, 0, 0, 0)) {
+    if (prop.kind === 'mail' && place === 4) {
+      // A dark mount separates the ivory envelope from the pale columns and cloud banks.
+      b.box('#68404B', 2.24, 1.67, 0.08, 0, 3.68, -0.68);
+    }
     if (prop.kind !== 'window') {
       const mail = prop.kind === 'mail', word = prop.sign ?? '';
       const width = tagWidth(word, mail ? 2.2 : 2.1);
