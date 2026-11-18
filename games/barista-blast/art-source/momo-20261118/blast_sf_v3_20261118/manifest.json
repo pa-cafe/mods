@@ -1,0 +1,246 @@
+{
+  "version": "sf-v3-six-near-and-behind-kit",
+  "units": "meters",
+  "assets": [
+    {
+      "asset": "sf3_highrise_shop_7m",
+      "glb": "assets/sf3_highrise_shop_7m.glb",
+      "bytes": 121600,
+      "triangles": 2092,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.075000047683716,
+          -2.490000009536743,
+          0.0
+        ],
+        "max": [
+          3.075000047683716,
+          1.625,
+          18.799999237060547
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "sf3_neon_cafe_7m",
+      "glb": "assets/sf3_neon_cafe_7m.glb",
+      "bytes": 68168,
+      "triangles": 1160,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.325000047683716,
+          -2.8899998664855957,
+          0.0
+        ],
+        "max": [
+          3.325000047683716,
+          1.625,
+          7.275000095367432
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "sf3_server_exchange_7m",
+      "glb": "assets/sf3_server_exchange_7m.glb",
+      "bytes": 126964,
+      "triangles": 2152,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.125,
+          -1.7200000286102295,
+          0.0
+        ],
+        "max": [
+          3.125,
+          1.625,
+          11.25
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "sf3_vending_alley_7m",
+      "glb": "assets/sf3_vending_alley_7m.glb",
+      "bytes": 60808,
+      "triangles": 1048,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.450000047683716,
+          -1.4850000143051147,
+          0.0
+        ],
+        "max": [
+          3.450000047683716,
+          0.7551919221878052,
+          5.200000286102295
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "sf3_billboard_garage_7m",
+      "glb": "assets/sf3_billboard_garage_7m.glb",
+      "bytes": 48428,
+      "triangles": 756,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.2249999046325684,
+          -2.75,
+          0.0
+        ],
+        "max": [
+          3.2249999046325684,
+          1.625,
+          9.600000381469727
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "sf3_communications_hut_7m",
+      "glb": "assets/sf3_communications_hut_7m.glb",
+      "bytes": 68140,
+      "triangles": 1224,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.9249999523162842,
+          -1.6999999284744263,
+          0.0
+        ],
+        "max": [
+          1.9249999523162842,
+          1.625,
+          20.0
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "sf3_freeway_14m",
+      "glb": "assets/sf3_freeway_14m.glb",
+      "bytes": 38692,
+      "triangles": 608,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          0.0,
+          -3.4100000858306885,
+          0.0
+        ],
+        "max": [
+          14.0,
+          3.4100000858306885,
+          14.764999389648438
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "sf3_sedan",
+      "glb": "assets/sf3_sedan.glb",
+      "bytes": 28064,
+      "triangles": 488,
+      "meshes": 5,
+      "materials": 5,
+      "primitives": 5,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -1.4500000476837158,
+          -0.9407500624656677,
+          0.04999997094273567
+        ],
+        "max": [
+          1.475000023841858,
+          0.9407500624656677,
+          1.744999885559082
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "sf3_delivery_truck",
+      "glb": "assets/sf3_delivery_truck.glb",
+      "bytes": 30752,
+      "triangles": 520,
+      "meshes": 6,
+      "materials": 6,
+      "primitives": 6,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -3.0999999046325684,
+          -0.9407500624656677,
+          0.04999997094273567
+        ],
+        "max": [
+          3.125,
+          0.9407500624656677,
+          2.5999999046325684
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    },
+    {
+      "asset": "sf3_roadside_billboard",
+      "glb": "assets/sf3_roadside_billboard.glb",
+      "bytes": 22804,
+      "triangles": 336,
+      "meshes": 4,
+      "materials": 4,
+      "primitives": 4,
+      "textures": 0,
+      "blender_bounds": {
+        "min": [
+          -2.700000047683716,
+          -1.2000000476837158,
+          0.0
+        ],
+        "max": [
+          2.700000047683716,
+          0.25,
+          19.150001525878906
+        ]
+      },
+      "glb_axes": "Y up, forward +Z (Blender front -Y)",
+      "origin": "local (0,0,0); placement ground/center specified in README"
+    }
+  ]
+}

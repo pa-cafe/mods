@@ -1,0 +1,89 @@
+{
+  "version": 4,
+  "dependency": "blast_orbit_v3_20261118",
+  "axes": "Three +X street, +Y up, +Z player",
+  "landmarks": {
+    "rootPosition": [
+      "original X",
+      5,
+      -66
+    ],
+    "legacyScale": 0.62,
+    "framedScales": {
+      "dataStation": 0.52,
+      "satelliteGroup": 0.46
+    },
+    "dysonSpinPivotY": 26,
+    "satelliteCount": 7
+  },
+  "gags": {
+    "depth": 50,
+    "trainDepth": 60,
+    "armLeftPivot": [
+      -4.3,
+      10.6,
+      -0.2
+    ],
+    "armRightPivot": [
+      4.3,
+      10.6,
+      -0.2
+    ],
+    "armOpen": 0.66,
+    "flameLocalPosition": [
+      0,
+      0,
+      0
+    ],
+    "flameDirection": "-Y",
+    "puffCount": 14,
+    "shardCount": 9,
+    "trainSatelliteCount": 16,
+    "trainSatelliteGap": 3.2,
+    "runtimeControl": "Keep original orbit-gags.ts pose and timing; replace visuals only",
+    "preserveCanvas": [
+      "localized words",
+      "dummy-face"
+    ]
+  },
+  "near": {
+    "rootPosition": [
+      "7*i+3.5",
+      0,
+      -4.4
+    ],
+    "scale": 1,
+    "variantSelector": "c.v % 4",
+    "variants": "additive overlays, not 24 unique bodies"
+  },
+  "ground": {
+    "centerX": "7*i+3.5",
+    "rootY": 0,
+    "rootZ": 0,
+    "width": 7,
+    "walkwayZ": [
+      -6.4,
+      0
+    ],
+    "roadZ": [
+      0,
+      12
+    ]
+  },
+  "runtimeOnlyPending": [
+    "gradient colors",
+    "stars",
+    "Canvas styling",
+    "runtime loading and old visual retirement",
+    "browser/mobile performance and animation QA"
+  ],
+  "qa": {
+    "nodeGLTFLoaderPassed": 26,
+    "totalGlbBytes": 900768,
+    "maxTriangles": 4644,
+    "maxPrimitives": 6,
+    "textures": 0,
+    "preview": "Blender fixed game camera, not runtime screenshot",
+    "framedAlternativesVisuallyChecked": true
+  }
+}
