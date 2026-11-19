@@ -238,7 +238,8 @@ export class BlastScene {
     ctx.restore();
     this.overlay(phase, run, tokens, now, keep);
     if (!this.calm) { const flash = this.flash.size * clamp(1 - (now - this.flash.at) / 140); if (flash > 0) { ctx.fillStyle = `rgba(255,250,230,${flash})`; ctx.fillRect(0, 0, view.width, view.height); } }
-    if (this.table) drawTable(ctx, view, this.table, this.calm);
+    // The first-time card for a state that hurts stays over the table: it is shown only once, and the table never holds the run.
+    if (this.table) { drawTable(ctx, view, this.table, this.calm); this.introduction(); }
     if (this.takeover) drawTakeover(ctx, view, this.takeover, this.calm);
     if (phase.kind === 'result') this.bill(phase, now, keep);
   }
@@ -868,7 +869,7 @@ export class BlastScene {
       if (t > 2.8) this.toast = null;
       else below += (drawToast(ctx, this.words(this.toast.line), formatTokens(this.toast.tokens), view.width / 2, below, k, t < 0.25 ? easeOut(t / 0.25) : t > 2.5 ? 1 - (t - 2.5) / 0.3 : 1) ?? 0) + 6;
     }
-    if (phase.kind === 'result') { this.introduction(); return; }
+    if (phase.kind === 'result') { if (!this.table) this.introduction(); return; }
     const seen = run && phase.kind === 'flying' ? aheadOf(run, view.width <= 660 ? 2 : 3, phase.rules) : null;
     const tap = phase.kind === 'flying' ? blastTap(run, phase.rules) : null;
     drawRefills(ctx, run, row, clamp(1 - (now - this.cups) / 300), seen && keep.runs < CUE_RUNS ? seen.cue : null, this.calm ? 1 : 0.5 + 0.5 * Math.sin(now / 110), tap);
@@ -882,7 +883,7 @@ export class BlastScene {
     this.shower(now);
     if (this.badCut && !drawBadCut(ctx, view, this.badCut, now, this.calm)) this.badCut = null;
     if (this.seen) this.aloft(run, this.seen.lens, below, k, tap);
-    this.introduction();
+    if (!this.table) this.introduction();
     this.tourNote(run);
     if (!keep.flyHint && !this.touring && run.step < blastTuning.diveCooldown * 3) drawHint(ctx, this.words('Falling? Tap to refill. Rising? Tap to dive.'), view.width, view.height - 150 * k, k, clamp((blastTuning.diveCooldown * 3 - run.step) / 60));
   }
