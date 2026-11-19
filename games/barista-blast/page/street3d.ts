@@ -15,6 +15,7 @@ import { StreetModels } from './street3d-models';
 import { Machine, type MachineState } from './street3d-machine';
 import { buildProp, propKey, type StreetProp } from './street3d-props';
 import { GAG_DEPTH, OrbitGags } from './street3d-gags';
+import { NeonRig } from './street3d-neon';
 import { FACE, FAR_TILE, groundMarks, pieces, SIGHT_MARGIN, sightOn, skyline, skylines, TILE, type Tint } from './street3d-sets';
 
 const FOV = 22, SKY = -520, CLOUD_TILE = 30;
@@ -44,6 +45,10 @@ const mod = (value: number, by: number) => (value % by + by) % by;
 
 const facadeTints = [undefined, [0.91, 1, 0.94], [1, 0.9, 0.84], [0.88, 0.94, 1]] as const;
 
+/** The street after dark in neon: a deep violet sky with a hot pink horizon, a cold moon-blue light from above, and a purple haze. */
+const NIGHT = { sky: ['#0A0624', '#1A0F46', '#3C176B', '#C23A9C'], sun: '#8FA2FF', power: 0.75, fill: '#8573FF', ground: '#2A1B55', fillPower: 1.15, fog: '#2B1553', body: '#FF7ACB' } as const;
+const scratch = new THREE.Color();
+
 const moods = [
   { sky: ['#7799C8', '#C8B8CB', '#E9CDB7', '#F7E1BC'], sun: '#FFE9C8', power: 2.45, fill: 1.75, glow: 0.2, angle: [-6, 9, 8] },
   { sky: ['#719C9A', '#B7C6B9', '#E3C39C', '#F4D9AC'], sun: '#FFE0B9', power: 2.55, fill: 1.85, glow: 0.4, angle: [-10, 6, 7] },
@@ -56,7 +61,8 @@ const moods = [
 /** A camera swung off the street's straight-on view, for a still picture: round `target` by `yaw` and `pitch` degrees, with `target` drawn at `at` (pixels). */
 type Angle = { target: THREE.Vector3; yaw: number; pitch: number; at: { x: number; y: number } };
 /** `disassembly` is the words that float up when orbit's rocket comes apart, in the page's language. */
-export type StreetView = { lens: Lens; from: number; to: number; wipe: { top: number; bottom: number } | null; machine: MachineState; props: StreetProp[]; disassembly: string };
+/** `neon` is how far into the night in neon the street is, 0 (day) to 1: the run Gemini flies is at night. Only how the street is lit and dressed. */
+export type StreetView = { lens: Lens; from: number; to: number; wipe: { top: number; bottom: number } | null; machine: MachineState; props: StreetProp[]; disassembly: string; neon?: number };
 
 function skyTexture(colors: readonly string[]) {
   const canvas = document.createElement('canvas'); canvas.width = 4; canvas.height = 256;
@@ -100,7 +106,12 @@ class World {
   ground = new THREE.Group();
 
   backdrop = new THREE.Group();
-  sky: THREE.Mesh; body: THREE.Mesh;
+  sky: THREE.Mesh; body: THREE.Mesh; nightSky: THREE.Mesh;
+  readonly neon = new NeonRig();
+  private fill: THREE.HemisphereLight;
+  private daylight: { fill: THREE.Color; ground: THREE.Color };
+  /** How far into the neon night the lights were last set, so a street that stays as it is is left alone. -1 forces the next call. */
+  graded = -1;
   rows = new Map<number, THREE.Group>(); far = new Map<number, THREE.Group>(); clouds = new Map<number, THREE.Group>();
   skyMaterials: THREE.Material[] = [];
   skyTextures: THREE.Texture[] = [];
@@ -110,6 +121,7 @@ class World {
     const scene = scenes[place], mood = moods[place];
 
     const fill = new THREE.HemisphereLight(new THREE.Color(mood.sky[1]).lerp(new THREE.Color('#fff'), 0.6), scene.walk, mood.fill);
+    this.fill = fill; this.daylight = { fill: fill.color.clone(), ground: fill.groundColor.clone() };
     this.sun.color.set(mood.sun); this.sun.intensity = mood.power;
     this.sun.castShadow = true; this.sun.shadow.bias = -0.0004; this.sun.shadow.normalBias = 0.04;
     Object.assign(this.sun.shadow.camera, { left: -32, right: 32, top: 26, bottom: -6, near: 1, far: 90 });
@@ -124,7 +136,14 @@ class World {
     const flat = (map: THREE.Texture, see = false) => own(new THREE.MeshBasicMaterial({ map: own(map), fog: false, depthWrite: false, transparent: see }));
     this.sky = new THREE.Mesh(pane, flat(skyTexture(mood.sky))); this.sky.position.z = SKY; this.sky.renderOrder = -3;
     this.body = new THREE.Mesh(pane, flat(bodyTexture(place), true)); this.body.position.z = SKY + 20; this.body.renderOrder = -1;
-    this.backdrop.add(this.sky, this.body);
+    // The same sky after dark lies over the day's, and fades in with the neon night.
+    const dusk = own(skyTexture(NIGHT.sky)), duskMaterial = own(new THREE.MeshBasicMaterial({ map: dusk, fog: false, depthWrite: false, transparent: true, opacity: 0 }));
+    this.nightSky = new THREE.Mesh(pane, duskMaterial); this.nightSky.position.z = SKY + 1; this.nightSky.renderOrder = -2;
+    const lights = new Float32Array(160 * 3), half = -SKY * Math.tan(rad(FOV / 2));
+    for (let i = 0; i < 160; i++) lights.set([(hash(i, 132) - 0.5) * half * 6, (hash(i, 133) * 1.5 - 0.5) * half, SKY + 12], i * 3);
+    const nightStars = new THREE.Points(own(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(lights, 3))), own(new THREE.PointsMaterial({ color: '#fff', size: 2, sizeAttenuation: false, transparent: true, opacity: 0, fog: false, depthWrite: false })));
+    nightStars.renderOrder = -1.5; this.nightSky.userData.stars = nightStars;
+    this.backdrop.add(this.sky, this.body, this.nightSky, nightStars);
     if (scene.stars) {
       const points = new Float32Array(120 * 3), half = -SKY * Math.tan(rad(FOV / 2));
       for (let i = 0; i < 120; i++) points.set([(hash(i, 32) - 0.5) * half * 6, (hash(i, 33) * 1.7 - 0.7) * half, SKY + 10], i * 3);
@@ -132,6 +151,20 @@ class World {
       stars.renderOrder = -2; this.backdrop.add(stars);
     }
     this.scene.add(this.sun, this.sun.target, fill, this.ground, this.backdrop);
+  }
+
+  /** Sets the lights, the haze and the sky to `level` of the way from this place's day to the neon night. */
+  grade(level: number) {
+    if (level === this.graded) return;
+    this.graded = level;
+    const mood = moods[this.place];
+    this.sun.color.set(mood.sun).lerp(scratch.set(NIGHT.sun), level); this.sun.intensity = mood.power + (NIGHT.power - mood.power) * level;
+    this.fill.color.copy(this.daylight.fill).lerp(scratch.set(NIGHT.fill), level); this.fill.groundColor.copy(this.daylight.ground).lerp(scratch.set(NIGHT.ground), level);
+    this.fill.intensity = mood.fill + (NIGHT.fillPower - mood.fill) * level;
+    this.fog.color.set(mood.sky[2]).lerp(scratch.set(NIGHT.fog), level);
+    (this.nightSky.material as THREE.MeshBasicMaterial).opacity = level;
+    const stars = this.nightSky.userData.stars as THREE.Points; stars.visible = level > 0.01; (stars.material as THREE.PointsMaterial).opacity = level * 0.9;
+    (this.body.material as THREE.MeshBasicMaterial).color.set('#fff').lerp(scratch.set(NIGHT.body), level);
   }
 
 
@@ -172,7 +205,7 @@ class World {
     for (let index = first; index <= last; index++) if (!layer.has(index)) { const group = make(index); layer.set(index, group); this.scene.add(group); }
   }
 
-  dispose() { releaseInstances(this.scene); for (const item of [...this.owned, ...this.skyMaterials, ...this.skyTextures]) item.dispose(); }
+  dispose() { releaseInstances(this.scene); this.neon.dispose(); for (const item of [...this.owned, ...this.skyMaterials, ...this.skyTextures]) item.dispose(); }
 }
 
 export class Street3d {
@@ -295,11 +328,12 @@ export class Street3d {
     world.skyTextures.push(halo);
     world.skyMaterials.push(world.body.material as THREE.Material);
     world.body.add(body);
+    world.graded = -1;
   }
 
   private frame(world: World) {
     const half = -SKY * Math.tan(rad(FOV / 2)), wide = half * this.camera.aspect, scene = scenes[world.place], size = Math.min(wide, half) * 1.6;
-    world.sky.scale.set(wide * 2.1, half * 2.1, 1);
+    world.sky.scale.set(wide * 2.1, half * 2.1, 1); world.nightSky.scale.set(wide * 2.1, half * 2.1, 1);
     world.body.scale.set(size, size, 1); world.body.position.set(wide * 0.56, half * (1 - 2 * scene.bodyAt * 0.78), SKY + 20);
     world.sun.castShadow = this.level === 0; world.sun.shadow.mapSize.set(2048, 2048);
   }
@@ -415,7 +449,7 @@ export class Street3d {
   }
 
   /** Draws the street as the game's lens sees it: the game's plane is z = 0, and the camera sits back far enough that a metre there is `lens.scale` pixels. */
-  draw({ lens, from, to, wipe, machine, props, disassembly }: StreetView, angle?: Angle) {
+  draw({ lens, from, to, wipe, machine, props, disassembly, neon = 0 }: StreetView, angle?: Angle) {
     const { view, camera, renderer } = this, distance = view.height / lens.scale / (2 * Math.tan(rad(FOV / 2)));
     let x = lens.left + view.width / (2 * lens.scale);
     const y = (lens.ground - view.height / 2) / lens.scale;
@@ -435,12 +469,15 @@ export class Street3d {
     const show = (place: number) => {
       const world = this.world(place), [dx, dy, dz] = moods[place].angle;
       world.fog.near = distance + 18; world.fog.far = distance + 130;
+      world.grade(neon);
       world.sun.position.set(x + dx, dy, dz); world.sun.target.position.set(x, 0, -4);
       world.ground.position.x = x; world.backdrop.position.copy(camera.position); world.backdrop.quaternion.copy(camera.quaternion);
 
       const reach = (depth: number) => view.width / (2 * lens.scale) * (distance + depth) / distance, span = (depth: number, tile: number, margin = 1) => [Math.floor((x - reach(depth)) / tile) - margin, Math.floor((x + reach(depth)) / tile) + margin] as const;
       const more = angle ? 4 : 0;
-      world.keep(world.rows, ...span(-FACE + 5, TILE, 1 + more), index => this.row(world, index));
+      const rowSpan = span(-FACE + 5, TILE, 1 + more);
+      world.keep(world.rows, ...rowSpan, index => this.row(world, index));
+      world.neon.update(world.scene, rowSpan[0], rowSpan[1], neon, this.calm ? 0 : performance.now(), this.level < 1);
       world.keep(world.far, ...span(82, FAR_TILE, SIGHT_MARGIN + more), index => this.far(world, index));
       world.keep(world.clouds, ...span(64, CLOUD_TILE, 1 + more), index => this.clouds(world, index));
       if (place === ORBIT) {

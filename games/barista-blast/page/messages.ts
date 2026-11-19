@@ -334,4 +334,19 @@ export const blastMessages = [
   ['Fact-checked. Probably! Sure win!', '查證完畢，大概吧！穩贏！', '查证完毕，大概吧！稳赢！', '事実確認完了。たぶんね！楽勝！', '팩트체크 완료. 아마도! 무조건 이겨!'],
   ['In the plainest words: charge ahead!', '用最白的話說：往前衝！', '用最白的话说：往前冲！', '一番わかりやすく言うと、前へ突っ込め！', '가장 쉽게 말하면: 앞으로 돌격!'],
   ['Put plainly: no going round this time', '說人話就是：這次不繞彎啦', '说人话就是：这次不绕弯啦', '要するに、今回は回り道なし', '쉽게 말해, 이번엔 안 돌아가요'],
+
+  // Gemini 4 names its models after elements (Hydrogen, Carbon, Neon, Argon): her name tag runs through the table, and her flights are at night, in neon.
+  ['Hydrogen', '氫', '氢', '水素', '수소'],
+  ['Carbon', '碳', '碳', '炭素', '탄소'],
+  ['Neon', '氖', '氖', 'ネオン', '네온'],
+  ['Argon', '氬', '氩', 'アルゴン', '아르곤'],
+  ['Renamed again this week. I’m Neon now', '這週又改名了，現在叫氖', '这周又改名了，现在叫氖', '今週もまた改名。今はネオンよ', '이번 주에도 또 개명했어요. 이제 네온이에요'],
+  ['Hydrogen, Carbon, Neon… I’m speedrunning the periodic table', '氫、碳、氖……我正在速通元素週期表', '氢、碳、氖……我正在速通元素周期表', '水素、炭素、ネオン…周期表をスピードランしてるの', '수소, 탄소, 네온… 주기율표 스피드런 중이에요'],
+  ['Neon banana? I made one while I was at it', '氖燈香蕉要不要？我順便做了一根', '氖灯香蕉要不要？我顺便做了一根', 'ネオンバナナいる？ついでに作ったの', '네온 바나나 드실래요? 하는 김에 하나 만들었어요'],
+  ['Hydrogen was last week. Keep up, or just lean on me', '氫是上週的事了，跟不上就靠過來', '氢是上周的事了，跟不上就靠过来', '水素は先週のこと。ついて来られないなら寄りかかって', '수소는 지난주 얘기예요. 못 따라오겠으면 기대세요'],
+  ['My name tag changed again. Pretend you didn’t see', '我的名牌又換了，當作沒看到', '我的名牌又换了，当作没看到', '名札がまた変わったの。見なかったことにして', '이름표가 또 바뀌었어요. 못 본 척해 주세요'],
+  ['Was it Carbon or Neon this time? I’ve apologised under both', '這次是碳還是氖？兩個名字我都道歉過了', '这次是碳还是氖？两个名字我都道歉过了', '今回は炭素？ネオン？どっちの名前でも謝ったわ', '이번엔 탄소였나 네온이었나? 두 이름으로 다 사과했어요'],
+  ['Neon’s on. The whole street is mine tonight', '氖燈亮了，今晚整條街都歸我', '氖灯亮了，今晚整条街都归我', 'ネオン点灯。今夜はこの通り、全部私のもの', '네온 점등. 오늘 밤 이 거리는 전부 제 거예요'],
+  ['Gemini 4 is speedrunning the table', 'Gemini 4 速通週期表中', 'Gemini 4 速通元素周期表中', 'Gemini 4 が周期表をスピードラン中', 'Gemini 4, 주기율표 스피드런 중'],
+  ['Hydrogen, Carbon, Neon, Argon… who is next week?', '氫、碳、氖、氬……下週輪到誰？', '氢、碳、氖、氩……下周轮到谁？', '水素、炭素、ネオン、アルゴン…来週は誰？', '수소, 탄소, 네온, 아르곤… 다음 주는 누구?'],
 ] as const;

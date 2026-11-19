@@ -26,6 +26,8 @@ import type { StreetView } from './street3d';
 import { cloudArt, farShape, ORBIT, paintBody, rowArt, sceneAt, scenes, type Scene } from './scenes';
 import { CATCH_MS, catchAt, catchesGrok, drawCatch, drawOrbitGags } from './orbit-gags';
 import { drawGiant, GIANT_MS } from './voidGiant';
+import { elementAt, neonColors, neonFor, settleNeon, tableFalls } from './gemini-elements';
+import { drawTable, stageTable, TABLE_MS, type Table } from './periodic';
 
 type Words = (key: TextKey, values?: Record<string, string | number>) => string;
 /** What the page keeps between runs and the scene only reads. */
@@ -84,6 +86,10 @@ export class BlastScene {
   private cutin: { at: number; who: Who; partner?: Who; robed: boolean; line: string; card: Drawn; assist?: { speaker: string; hint: string }; rocket?: true } | null = null;
   private badCut: BadCut | null = null; private lost: Lost = { cups: 0, caffeine: 0 };
   private takeover: Takeover | null = null;
+  /** The periodic table that falls for Gemini, now and then: only drawn, it never holds the run. `tabled` is set once the street's table has had its turn. */
+  private table: Table | null = null; private tabled = false;
+  /** How far into the night in neon the street is, 0 to 1: the run Gemini flies is at night. Drawn only. */
+  private neon = 0;
   private pictures = new Map<BlastKind, HTMLCanvasElement>();
   private faces = new Map<BlastKind, HTMLCanvasElement>();
   private bursts: Burst[] = [];
@@ -114,6 +120,8 @@ export class BlastScene {
   bare = false;
   /** CSS pixels at the bottom of the screen that the page's own buttons take once a run ends. The receipt stays above them. */
   foot = 170;
+  /** The street's seed, read off the phase every frame: it decides where each of Gemini's name tags starts and which streets the periodic table falls on. */
+  seed = 0;
   /** Where the world was on screen in the last frame, and which place the run is in, for that street. */
   seen: StreetView | null = null;
   private receipt: { bill: Bill; art: { image: HTMLCanvasElement; width: number; height: number } } | null = null;
@@ -147,6 +155,7 @@ export class BlastScene {
     for (let i = 0; i < (big ? 12 : 5); i++) this.puffs.push({ at: now + i * 12, x: tip.x + (hash(i, 1) - 0.5) * 1.2, y: tip.y + (hash(i, 2) - 0.5) * 0.8, size: (big ? 0.5 : 0.3) + hash(i, 3) * 0.4 });
     if (big) { this.bursts.push({ at: now, x: tip.x, y: tip.y, size: 1.2 }); this.kick(now, 12); this.flash = { at: now, size: 0.45 }; }
     if (key) this.showCard(key, null, now);
+    if (phase.pilot === 'gemini') this.say('Neon’s on. The whole street is mine tonight', 'gemini', now);
   }
 
   private faceOf(kind: BlastKind) {
@@ -180,6 +189,7 @@ export class BlastScene {
     if (acted && acted.as !== 'window') this.badCut = { at: now, actor: this.actor(atlasLook[acted.as]), card: wordCard(this.words(moodOf({ kind: acted.as, mood: 'bad' })!.tag), clamp(this.view.width * 0.05, 24, 44), this.ratio, 'pink', 4) };
     for (const node of blastAhead(run, 40)) if (node.kind !== 'window' && node.mood === 'bad') badOf(atlasLook[node.kind]);
     for (const event of events) {
+      if (event.type === 'hit' || event.type === 'boost') this.fall(event.hit, run);
       if (event.type === 'hit') this.hit(event.hit, event.from, event.to, run, now, big !== null || event.held === true || event.hit === acted, event.held !== true);
       else if (event.type === 'lapsed') this.hit(event.hit, event.from, event.to, run, now, big !== null || event.hit === acted);
       else if (event.type === 'boost') this.boosted(event.hit, run, now, big !== null);
@@ -197,6 +207,8 @@ export class BlastScene {
     const { ctx, view, ratio } = this;
     if (phase.kind === 'aiming' && this.shown?.kind !== 'aiming') this.reset();
     this.shown = phase;
+    this.seed = phase.seed;
+    this.neon = this.calm ? neonFor(phase.pilot) : settleNeon(this.neon, neonFor(phase.pilot), seconds);
     const run = subjectOf(phase);
     if (run) this.lost = { cups: run.refills, caffeine: run.caffeine };
     const subject = run ? { x: run.x, y: run.y, speed: Math.sqrt(run.vx * run.vx + run.vy * run.vy), aiming: false } : { x: 0, y: 0, speed: 0, aiming: true };
@@ -210,6 +222,7 @@ export class BlastScene {
     this.track(run, tokens, now, seconds);
     if (this.intro && (this.intro.age += seconds * 1000) > INTRO_MS) this.intro = null;
     if (this.takeover && (this.takeover.age += seconds * 1000) > this.takeover.ms) this.takeover = null;
+    if (this.table && (this.table.age += seconds * 1000) > TABLE_MS) this.table = null;
 
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.clearRect(0, 0, view.width, view.height);
@@ -225,13 +238,14 @@ export class BlastScene {
     ctx.restore();
     this.overlay(phase, run, tokens, now, keep);
     if (!this.calm) { const flash = this.flash.size * clamp(1 - (now - this.flash.at) / 140); if (flash > 0) { ctx.fillStyle = `rgba(255,250,230,${flash})`; ctx.fillRect(0, 0, view.width, view.height); } }
+    if (this.table) drawTable(ctx, view, this.table, this.calm);
     if (this.takeover) drawTakeover(ctx, view, this.takeover, this.calm);
     if (phase.kind === 'result') this.bill(phase, now, keep);
   }
 
 
   private reset() {
-    this.card = null; this.talk = null; this.intro = null; this.takeover = null; this.cutin = null; this.badCut = null; this.bursts = []; this.bits = []; this.puffs = []; this.coins = []; this.stains = []; this.trail = []; this.ghostTrail = [];
+    this.card = null; this.talk = null; this.intro = null; this.takeover = null; this.cutin = null; this.badCut = null; this.table = null; this.tabled = false; this.bursts = []; this.bits = []; this.puffs = []; this.coins = []; this.stains = []; this.trail = []; this.ghostTrail = [];
     this.reactions.clear(); this.leanAt = -1e9; this.dim = 0; this.toast = null; this.receipt = null; this.spin = 0; this.rate = 0; this.unit = ''; this.power = 0;
     this.scene = { from: 0, to: 0, at: -1e9 };
   }
@@ -409,7 +423,7 @@ export class BlastScene {
   private backdrop(lens: Lens, blend: number, speed: number) {
     const { ctx, view } = this, base = lens.ground - 0.3 * lens.scale;
     const wiping = this.scene.from !== this.scene.to && blend < 1, slant = view.height * 0.35, edge = (view.width + slant) * (1 - easeOut(blend)) - slant;
-    this.seen = { lens, from: this.scene.from, to: this.scene.to, wipe: wiping ? { top: edge + slant, bottom: edge } : null, machine: { power: 0, shake: 0 }, props: [], disassembly: this.words('Rapid unscheduled disassembly') };
+    this.seen = { lens, from: this.scene.from, to: this.scene.to, wipe: wiping ? { top: edge + slant, bottom: edge } : null, machine: { power: 0, shake: 0 }, props: [], disassembly: this.words('Rapid unscheduled disassembly'), neon: this.neon };
     if (!wiping) { if (!this.bare) this.paintScene(this.scene.to, lens, base); }
     else {
       if (!this.bare) {
@@ -421,6 +435,7 @@ export class BlastScene {
       ctx.beginPath(); ctx.moveTo(edge + slant, 0); ctx.lineTo(edge, view.height); ctx.strokeStyle = CREAM; ctx.lineWidth = 10; ctx.stroke();
     }
     ctx.globalAlpha = 1;
+    if (this.neon > 0.01 && !this.bare) this.night(lens, base);
     if (this.dim > 0.01) { ctx.fillStyle = `rgba(26,20,44,${this.dim})`; ctx.fillRect(0, 0, view.width, base); }
     if (!wiping && this.scene.to === VOID_SCENE) this.giant(base);
     if (speed > 30 && !this.calm) {
@@ -548,17 +563,20 @@ export class BlastScene {
       if (behind && this.bare && this.seen) this.seen.props.push({ kind: behind, x: node.x + propOffset, squash: 1, sign: this.words(behind === 'wall' ? reset ? 'LIMITS RESET' : 'AT CAPACITY' : 'BANNED'), ...(reset ? { reset } : {}) });
       else if (behind === 'wall') drawStamp(ctx, this.stampFor(reset ? 'wall-reset' : 'wall', () => wallArt(this.res, this.words(reset ? 'LIMITS RESET' : 'AT CAPACITY'), reset)), 0.5 * s, 0, s);
       else if (behind === 'mail') drawStamp(ctx, this.stampFor('letter', () => mailArt(this.res, this.words('BANNED'))), propOffset * s, 0, s);
+      if (this.neon > 0.01) this.spill(0, 0, s, node.x);
       this.shadow(0, 0, 0.55 * s);
       const robed = blastTokens(node.x) >= DIVINE_FROM;
       // A copy that has a quantisation (a run of the current rules) is drawn smaller and blockier the lower it is.
       const quant = node.quant;
       ctx.scale(1 / squash, squash); if (quant) this.crude(who, pose, s, robed, quant); else this.pose(who, pose, 0, 0, s, true, robed); ctx.scale(squash, 1 / squash);
       this.nameTag(node.copy ? this.words('A fine-tune') : this.nameOf(node.kind, node.cast), lens);
+      const top = -this.poseBox(who, 'stand', s * (quant ? CRUDE[quant].size : 1), robed).height - 0.12 * s;
       if (!node.done) {
-        const top = -this.poseBox(who, 'stand', s * (quant ? CRUDE[quant].size : 1), robed).height - 0.12 * s;
         this.sign(this.words(mood.tag), tone, top, lens);
         if (quant) this.chip(`Q${quant}`, top - clamp(lens.scale * 0.27, 13, 20) * 1.75 - 7, lens);
       }
+      // Gemini 4 keeps renaming itself after elements: her tag runs H, C, Ne, Ar, and goes on after she is hit.
+      if (node.kind === 'gemini') this.element(node.done ? top : top - clamp(lens.scale * 0.27, 13, 20) * 1.75 - 7, lens, now, node.x);
     } else if (node.kind === 'window' && this.bare && this.seen) {
       this.seen.props.push({ kind: 'window', x: node.x, squash });
     } else {
@@ -606,6 +624,82 @@ export class BlastScene {
     ctx.fillStyle = tone === 'bad' ? '#E5484D' : tone === 'good' ? '#C9F2D9' : '#EFE6D2'; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = INK; ctx.stroke();
     ctx.beginPath(); ctx.moveTo(-5, y - 1); ctx.lineTo(0, y + 6); ctx.lineTo(5, y - 1); ctx.closePath(); ctx.fillStyle = ctx.strokeStyle = INK; ctx.fill();
     label(ctx, text, 0, y - tall / 2 + 0.5, size, ink, 'center', 900);
+  }
+
+  /** Gemini 4's name tag: a periodic-table tile and the element's name, running H, C, Ne, Ar over and over. Its bottom edge is at `y`, where the sign over a resident's head would sit; `place` is where she stands, so each tag on the street starts at an element of its own. */
+  private element(y: number, lens: Lens, now: number, place: number, grow = 1) {
+    const { ctx } = this, { element, flip } = elementAt(this.seed, place, this.calm ? 0 : now), size = clamp(lens.scale * 0.2, 11, 15) * grow, tile = size * 2.2;
+    const name = `Gemini 4 · ${this.words(element.name)}`;
+    ctx.save();
+    ctx.font = `900 ${size}px ${houseFont()}`;
+    const width = tile + ctx.measureText(name).width + size * 1.1, left = -width / 2;
+    ctx.translate(0, y - tile / 2);
+    ctx.beginPath(); ctx.roundRect(left - 2, -tile / 2 - 2, width + 4, tile + 4, tile / 2 + 2);
+    ctx.fillStyle = INK; ctx.shadowColor = element.fill; ctx.shadowBlur = this.neon > 0.01 ? 12 : 0; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.lineWidth = 2.5; ctx.strokeStyle = element.fill; ctx.stroke();
+    // The tile turns over like a card each time the element changes.
+    ctx.save(); ctx.translate(left + tile / 2 + 1, 0); ctx.scale(1, this.calm ? 1 : 0.12 + 0.88 * flip);
+    ctx.beginPath(); ctx.roundRect(-tile / 2 + 1, -tile / 2 + 1, tile - 2, tile - 2, tile * 0.22); ctx.fillStyle = element.fill; ctx.fill();
+    label(ctx, String(element.number), -tile / 2 + size * 0.55, -tile / 2 + size * 0.62, size * 0.62, element.ink, 'left', 900);
+    label(ctx, element.symbol, 0, size * 0.28, size * 1.05, element.ink, 'center', 900);
+    ctx.restore();
+    label(ctx, name, left + tile + size * 0.3, 1, size, CREAM, 'left', 800);
+    ctx.restore();
+  }
+
+  /** A pool of coloured light on the pavement under whoever stands at `x`: the street's signs and lamps spill on them at night. `key` picks the colour. */
+  private spill(x: number, ground: number, s: number, key: number) {
+    const { ctx } = this, color = neonColors[Math.floor(hash(Math.round(key * 10), 94) * neonColors.length)];
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.55 * this.neon;
+    ctx.translate(x, ground); ctx.scale(1, 0.26);
+    const pool = ctx.createRadialGradient(0, 0, 0, 0, 0, 1.9 * s);
+    pool.addColorStop(0, `${color}cc`); pool.addColorStop(0.5, `${color}55`); pool.addColorStop(1, `${color}00`);
+    ctx.fillStyle = pool; ctx.beginPath(); ctx.arc(0, 0, 1.9 * s, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  /** A soft coloured glow round a point, added to what is under it. */
+  private halo(x: number, y: number, s: number, color: string) {
+    const { ctx } = this;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.4 * this.neon;
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, 1.7 * s);
+    glow.addColorStop(0, `${color}99`); glow.addColorStop(1, `${color}00`);
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x, y, 1.7 * s, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  /**
+   * The night in neon on the flat street, for where there is no 3D one: the sky and shops dark, the shops' signs and the
+   * lamps along the kerb lit and glowing. The 3D street does its own, from the same `neon`.
+   */
+  private night(lens: Lens, base: number) {
+    const { ctx, view } = this, n = this.neon, s = lens.scale * 0.95, shift = lens.left * 0.5, slot = 3.4;
+    const first = Math.floor(shift / slot) - 1, last = Math.ceil((shift + view.width / s) / slot);
+    ctx.save();
+    const sky = ctx.createLinearGradient(0, 0, 0, Math.max(base, 1));
+    sky.addColorStop(0, `rgba(8,4,40,${0.92 * n})`); sky.addColorStop(0.7, `rgba(44,12,86,${0.84 * n})`); sky.addColorStop(1, `rgba(150,30,120,${0.62 * n})`);
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, view.width, Math.max(base, 0));
+    ctx.fillStyle = `rgba(20,8,56,${0.66 * n})`; ctx.fillRect(0, Math.max(base, 0), view.width, view.height);
+    ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round'; ctx.fillStyle = '#fff';
+    for (let i = 0; i < 46; i++) { const z = hash(i, 99); ctx.globalAlpha = n * (0.3 + z * 0.6); ctx.fillRect(hash(i, 100) * view.width, hash(i, 101) * base * 0.7, z * 1.8 + 0.7, z * 1.8 + 0.7); }
+    for (let i = first; i <= last; i++) {
+      const x = (i * slot - shift) * s, color = neonColors[Math.floor(hash(i, 95) * neonColors.length)], high = (1.7 + hash(i, 96) * 1.5) * s;
+      ctx.globalAlpha = 0.9 * n; ctx.shadowColor = color; ctx.shadowBlur = 16; ctx.strokeStyle = color; ctx.lineWidth = Math.max(2.5, 0.07 * s);
+      ctx.beginPath(); ctx.moveTo(x + 0.4 * s, base - high); ctx.lineTo(x + (0.6 + 1.7 * (0.5 + hash(i, 97) * 0.5)) * s, base - high); ctx.stroke();
+      if (hash(i, 98) > 0.45) { ctx.beginPath(); ctx.arc(x + 1.4 * s, base - high - 0.55 * s, 0.22 * s, 0, Math.PI * 2); ctx.stroke(); }
+      ctx.shadowBlur = 0; ctx.globalAlpha = 0.28 * n;
+      const pool = ctx.createRadialGradient(x + 1.6 * s, base, 0, x + 1.6 * s, base, 1.6 * s);
+      pool.addColorStop(0, color); pool.addColorStop(1, `${color}00`);
+      ctx.fillStyle = pool; ctx.fillRect(x - 0.2 * s, base - 1.6 * s, 3.6 * s, 1.8 * s);
+    }
+    ctx.restore();
+  }
+
+  /** The rare entrance of the periodic table, on the first Gemini the street brings, or on the first boost when she flies. Only drawn: a hit lands as it always did. */
+  private fall(hit: BlastHit, run: BlastRun) {
+    if (this.tabled || !tableFalls(this.seed, run.pilot, hit)) return;
+    this.tabled = true;
+    if (cutinPolicy('gemini:table') === 'full') this.table = stageTable(this.view.width, this.ratio, this.words);
   }
 
   private nameTag(name: string, lens: Lens) {
@@ -676,10 +770,13 @@ export class BlastScene {
     const x = (meters: number) => (meters - lens.left) * lens.scale, y = (meters: number) => lens.ground - meters * lens.scale, s = lens.scale;
     if (phase.kind === 'aiming' || phase.kind === 'charging') {
       const jitter = phase.kind === 'charging' ? Math.sin(now * 1.3) * blastPower(holdStep(phase, now)) * 0.04 * s : 0;
+      if (this.neon > 0.01) this.spill(x(0), y(0), s, 0);
       this.shadow(x(0), y(0), 0.55 * s); this.pose(this.pilot, 'stand', x(0) + jitter, y(0), s, true);
+      if (this.flying === 'gemini') { ctx.save(); ctx.translate(x(0) + jitter, y(0) - this.poseBox(this.pilot, 'stand', s).height - 0.3 * s); this.element(0, lens, now, 0, 1.3); ctx.restore(); }
       return;
     }
     const run = phase.run, height = run.y + BODY;
+    if (this.neon > 0.01) { this.spill(x(run.x), y(0), s, 0); this.halo(x(run.x), y(height), s, neonColors[1]); }
     this.shadow(x(run.x), y(0), clamp(0.6 - run.y * 0.03, 0.15, 0.6) * s, clamp(0.3 - run.y * 0.02, 0.05, 0.3));
     if (!this.calm) {
       const fading = clamp(Math.round((Math.sqrt(run.vx * run.vx + run.vy * run.vy) - 22) / 8), 0, 6), ghosts = this.ghostTrail.slice(-fading);
@@ -696,6 +793,7 @@ export class BlastScene {
     } else {
       ctx.save(); ctx.translate(x(run.x), y(height)); ctx.rotate(this.spin); this.pose(this.pilot, 'tumble', 0, 0, s); ctx.restore();
     }
+    if (this.flying === 'gemini' && !run.end) { ctx.save(); ctx.translate(x(run.x), y(height) - 1.05 * s); this.element(0, lens, now, 0, 1.3); ctx.restore(); }
     if (run.shield && !run.end) {
       const r = 1.75 * s, fading = run.shield < 120 && !this.calm ? 0.45 + 0.55 * Math.abs(Math.sin(now / 70)) : 1;
       ctx.save(); ctx.translate(x(run.x), y(height)); ctx.globalAlpha = fading;
