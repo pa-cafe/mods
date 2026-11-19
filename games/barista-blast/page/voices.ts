@@ -75,6 +75,14 @@ export const blastVoices: Partial<Record<TextKey, Voiced>> = {
   'We bicker, but I’ll still give you this push': row('dots-meet-push'),
   'Hsss! Keep away from my dried fish': row('gemini-meet-fish'),
   'The jar is empty, meow… treat me?': row('gemini-meet-treat'),
+  // Gemini 4's element names (Hydrogen, Carbon, Neon, Argon): her hits and her neon night.
+  'Renamed again this week. I’m Neon now': row('gemini-renamed'),
+  'Hydrogen, Carbon, Neon… I’m speedrunning the periodic table': row('gemini-speedrun'),
+  'Neon banana? I made one while I was at it': row('gemini-neonbanana'),
+  'Hydrogen was last week. Keep up, or just lean on me': row('gemini-lastweek'),
+  'My name tag changed again. Pretend you didn’t see': row('gemini-nametag'),
+  'Was it Carbon or Neon this time? I’ve apologised under both': row('gemini-apologised'),
+  'Neon’s on. The whole street is mine tonight': row('gemini-neonon'),
   'Well, well, robot cat. Actually moving today?': row('grok-meet-robotcat'),
 };
 
