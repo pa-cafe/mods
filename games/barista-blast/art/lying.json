@@ -1,0 +1,66 @@
+{
+  "dots": {
+    "file": "lying/dots.1f1b3b33f3.webp",
+    "width": 820,
+    "height": 456,
+    "bytes": 58626,
+    "source": "2fd83eab38fdddaac5c14c41d49fa8488ebad7f4cd4dfd2880f21a429f45675e",
+    "body": 679
+  },
+  "grok-bot": {
+    "file": "lying/grok-bot.e702c34473.webp",
+    "width": 816,
+    "height": 463,
+    "bytes": 61404,
+    "source": "e7b279667f9eb746a206f7e09b6dcf8977a199d0b89985950f39b21913cc51dd",
+    "body": 663
+  },
+  "muse": {
+    "file": "lying/muse.c330414f3a.webp",
+    "width": 837,
+    "height": 453,
+    "bytes": 51214,
+    "source": "8d47da7f1b2cb4ccf6c68e6d5bf27b27fa403e55a22e156b96766f638c2e73f3",
+    "body": 706
+  },
+  "claude": {
+    "file": "lying/claude.16802cd0be.webp",
+    "width": 850,
+    "height": 419,
+    "bytes": 56836,
+    "source": "f3af37a0c44bbb4fdee29ab3ea843b8fc1448aac1c0989be96c87b531a78da3b",
+    "body": 728
+  },
+  "gemini": {
+    "file": "lying/gemini.39f5109a86.webp",
+    "width": 709,
+    "height": 450,
+    "bytes": 62340,
+    "source": "a97e619485697d9427a4926ba8f1a9a662d8ff8f17a3b1cafd4a73ea8170d31b",
+    "body": 675
+  },
+  "deepseek": {
+    "file": "lying/deepseek.73a7b74aed.webp",
+    "width": 790,
+    "height": 453,
+    "bytes": 62354,
+    "source": "0929bdc392fdb461b7d552553b80497a58f6d19ce83109ee137d3f5c9c17179a",
+    "body": 664
+  },
+  "qwen": {
+    "file": "lying/qwen.eeb0eb9522.webp",
+    "width": 728,
+    "height": 477,
+    "bytes": 61096,
+    "source": "e4caa7e558709a4f63785c76078d667efd4439abcccf6aa1c18e9eaebd9bbd1d",
+    "body": 679
+  },
+  "doubao": {
+    "file": "lying/doubao.ee343c624c.webp",
+    "width": 729,
+    "height": 460,
+    "bytes": 48316,
+    "source": "1064f4637e9cce4cae60ea7476b4444d4235c41bcce8cdd19a38061fca995051",
+    "body": 728
+  }
+}

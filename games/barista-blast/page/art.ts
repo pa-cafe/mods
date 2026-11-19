@@ -2,6 +2,8 @@ import bad from '../art/bad.json';
 import cheers from '../art/cheers.json';
 import cutins from '../art/cutins.json';
 import divineCheers from '../art/divine-cheers.json';
+import lyings from '../art/lying.json';
+import thumbs from '../art/thumbs.json';
 import divineCutins from '../art/divine-cutins.json';
 import divine from '../art/divine.json';
 import rockets from '../art/rocket.json';
@@ -87,6 +89,24 @@ export function cheerReady(look: AtlasLook, robed = false): Promise<HTMLImageEle
   if (!known || typeof Image === 'undefined') return Promise.resolve(null);
   const image = new Image(); image.src = `/art/blast/${known.file}`;
   return image.decode().then(() => image, () => null);
+}
+type FigureFile = CutinFile & { body: number };
+const figureFiles: Record<'lie' | 'thumb', Partial<Record<AtlasLook, FigureFile>>> = { lie: lyings, thumb: thumbs };
+/**
+ * A look's big picture for the two poses a short or middling run's share card uses: `lie`, flat on the ground, and
+ * `thumb`, standing with a thumb up. `body` is the picture's pixels from her soles (or, lying, the same measure) to the
+ * top of her hair, so a card can stand her as tall as the victory pose. Null when the look has none or it fails.
+ */
+export function figureReady(look: AtlasLook, pose: 'lie' | 'thumb'): Promise<{ image: HTMLImageElement; body: number } | null> {
+  const known = figureFiles[pose][look];
+  if (!known || typeof Image === 'undefined') return Promise.resolve(null);
+  const image = new Image(); image.src = `/art/blast/${known.file}`;
+  return image.decode().then(() => ({ image, body: known.body }), () => null);
+}
+/** How many pixels a look's body (soles to the top of the hair) is when her victory picture stands `tall` pixels high on a card. */
+export function cheerBody(look: AtlasLook, tall: number) {
+  const [, , , h] = sheets.own.frames[`${look}/cheer`] as number[];
+  return tall * (sheets.own.bodies[`${look}/cheer`] ?? h) / h;
 }
 /** The same picture once it has arrived, for a share card drawn after the run; null when the look has none or it fails to load. */
 export function cutinReady(look: AtlasLook, robed = false): Promise<HTMLImageElement | null> {
