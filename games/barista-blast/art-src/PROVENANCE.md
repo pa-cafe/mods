@@ -379,3 +379,24 @@ The rocket, the tower and the arm were then generated again the same day, in a t
 | orbit/arm | `1fbd98423ef13004ebba464c691f917a01bcef056a7d41306cc970d0fef5e63f` |
 | orbit/car | `d8f80f4c7fbc767ed996fb65e8f323304d2b72c1c96ecf45a31ae21aadc1b374` |
 | orbit/satellite | `cdcf587734d5667258e3e567b7ccca3dda484bf43ef28adce244983bd52b3aa3` |
+
+## Lying flat and thumbs up, for the chibi bill (2026-11-19)
+
+`card/` holds one strip per character of two standing-size figures, left to right: her lying flat on the ground with a sheepish smile, a sweat drop and a limp thumb up, and her standing with a thumb up and a wink. The chibi share card (`page/share-card.ts`) stands her in the first when a run ends under 50 m and in the second from 50 m to 1,000 m; beyond that it keeps her victory pose from `hits/`, and her robed one in the divine realm. Dylan asked for new large pictures, not the street figures scaled up ("補畫大圖，然後照建議改"). The permission for the seven characters drawn after ZipZipPipe's designs is the one recorded above, and so are its limits.
+
+Generated on 2026-11-19 with the codex CLI built-in image generation (`codex exec`, model `gpt-6.1-sol`), one run per character, one try each. Attached: that character's full-body picture (`standing/<look>.webp`, or the cafe's `public/art/residents/defaults/muse-fullbody.png` for Muse), and that character's `hits/` strip as a guide to layout and proportions only. The prompt asked for the same character, the same two-head proportions and style, the two poses above, a clear gap between the figures, at least 5% clear space on every side, no text and real transparency. Nothing was drawn or retouched by hand. Dylan's assistant opened every picture and checked that it is the same character, has no text, has a transparent background and has normal arms, legs and hands; all eight passed on the first try. The generated pictures leave 5.5% or more clear on every side.
+
+`npm run blast:art` (in the cafe repository, with `BLAST_MODS` pointing at a checkout of this repository) cuts the two figures by alpha, scales both by one factor, so that the standing figure's body from soles to the top of her hair is as tall as her victory figure's in `cheers/`, adds the sticker edge and writes them, as WebP (quality 82, like `cheers/`), to `art/lying/` and `art/thumbs/` with `lying.json` and `thumbs.json`. Each entry carries `body`, that body height in the picture's own pixels; the lying picture carries the same number, so the card can stand her at the same height in every pose.
+
+SHA-256 of the PNGs as generated (1536×1024), stored here as lossless WebP:
+
+| File | SHA-256 of the generated PNG |
+|---|---|
+| card/dots | `953bba6b5d2e60f30523207c29121b2258ed5308359fb88188494bda1d943035` |
+| card/grok-bot | `60b0b470f141e65edbb0cce6fc4fa3f99fff2e15fb044d1742ece6e7cff794df` |
+| card/muse | `e5cef11cd50f021ef268f9d0f4f4221f1387470c453926b4f7246ecd283660d4` |
+| card/claude | `d001e2da8942be84ad8b758f60170ed54b4b66392fe50f4e4dcceab03e71b71d` |
+| card/gemini | `ed67e9511225c02c510253ecff56c883c54254b2ebffd61845dff1d41d705d84` |
+| card/deepseek | `7543d7c72683c12a753005c21e59af7c9fbd9b927062981bd2310abb4a945b35` |
+| card/qwen | `c6977f6231e4cdc6c6cf56e78020895558316565e9a3a9426da7f417adb25c34` |
+| card/doubao | `8733cab674adcd3f8ebc7c736ef3df5cc6fcaeb733e9b74dee56c60f92cd2b18` |
