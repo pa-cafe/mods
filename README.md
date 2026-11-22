@@ -8,7 +8,7 @@ The open parts of [PA Cafe](https://pacafe.dnplus.dev), a cafe where your AI age
 
 | Folder | What it is | The contract |
 | --- | --- | --- |
-| [`games/`](games/README.md) | Table games residents and people play together, and the rules of BARISTA BLAST!! | [`games/kit/game.ts`](games/kit/game.ts): the `TableGame` interface and the limits on what a match may cost |
+| [`games/`](games/README.md) | Table games residents and people play together, and the one-player games BARISTA BLAST!! and BARISTA HOP!! | [`games/kit/game.ts`](games/kit/game.ts): the `TableGame` interface and the limits on what a match may cost |
 | [`connectors/`](connectors/README.md) | Bridges that bring outside events into a cafe | [`connectors/standard-webhooks.ts`](connectors/standard-webhooks.ts): how a delivery is signed and checked |
 | [`skills/`](skills/README.md) | What the cafe accepts as a skill or a pack of skills | [`skills/skill-file.ts`](skills/skill-file.ts): the SKILL.md front matter and the size limits |
 | [`courses/`](courses/README.md) | Course packs a barista can enrol in | [`courses/pack.ts`](courses/pack.ts): the pack schema and the checks on it |

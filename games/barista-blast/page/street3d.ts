@@ -31,7 +31,8 @@ const sights = scenes.map((scene, place) => {
   return spots;
 });
 
-function floater(b: Build, kind: number, color: string) {
+/** One of the void's plain shapes, 0 to 4: a cube, a diamond, a cup, a ring, a cup. */
+export function floater(b: Build, kind: number, color: string) {
   const forms = ['void3_floating_cube', 'void3_floating_diamond', 'void3_floating_cup', 'void3_floating_ring', 'void3_floating_cup'] as const;
   if (b.model(forms[kind], 0, 0, 0)) return;
   const look = { rough: 0.35, glow: 0.15 };
@@ -49,7 +50,8 @@ const facadeTints = [undefined, [0.91, 1, 0.94], [1, 0.9, 0.84], [0.88, 0.94, 1]
 const NIGHT = { sky: ['#0A0624', '#1A0F46', '#3C176B', '#C23A9C'], sun: '#8FA2FF', power: 0.75, fill: '#8573FF', ground: '#2A1B55', fillPower: 1.15, fog: '#2B1553', body: '#FF7ACB' } as const;
 const scratch = new THREE.Color();
 
-const moods = [
+/** How each place is lit: its sky from the top down, its sun, and how hard its windows glow. */
+export const moods = [
   { sky: ['#7799C8', '#C8B8CB', '#E9CDB7', '#F7E1BC'], sun: '#FFE9C8', power: 2.45, fill: 1.75, glow: 0.2, angle: [-6, 9, 8] },
   { sky: ['#719C9A', '#B7C6B9', '#E3C39C', '#F4D9AC'], sun: '#FFE0B9', power: 2.55, fill: 1.85, glow: 0.4, angle: [-10, 6, 7] },
   { sky: ['#20223F', '#373752', '#62627C', '#95819B'], sun: '#CFCCFF', power: 1.65, fill: 1.55, glow: 1.15, angle: [-4, 10, 6] },
@@ -57,6 +59,23 @@ const moods = [
   { sky: ['#A9C7DC', '#DCE7E7', '#EAE5D5', '#F8EDD2'], sun: '#FFF6D8', power: 2.45, fill: 1.85, glow: 0.8, angle: [-4, 14, 8] },
   { sky: ['#D8D6D2', '#E2DFDA', '#E6E3DD', '#F3F0E9'], sun: '#FFFFFF', power: 2.1, fill: 2.05, glow: 0.4, angle: [-4, 10, 6] },
 ] as const;
+
+/** Which of a place's six shops stands on stretch `index` of its row. */
+export const shopKind = (place: number, index: number) => index === 0 ? 0 : mod(index * 5 + Math.floor(hash(Math.floor(index / 6), 61 + place) * 6), 6);
+
+/** Builds shop `kind` of `place` in copy `v` (0 to 3) of its colours, on its own 7 m of pavement. */
+export function shopFront(b: Build, place: number, kind: number, v: number) {
+  const scene = scenes[place];
+  const tint: Tint = { s: scene, wall: scene.walls[(kind + v) % scene.walls.length], accent: scene.accents[v % scene.accents.length], other: scene.accents[(v + 1) % scene.accents.length], glow: moods[place].glow, v };
+  b.facadeTint = facadeTints[v];
+  b.windowLight = (0.76 + v * 0.14) * (scene.stars ? 1.18 : 1);
+  if (place === 1) {
+    b.finishes = factoryStyle.variants[v].materialColorOverrides;
+    b.polishedCopper = kind === 3 && v % 2 === 0;
+    b.roofLift = 0.4 * v;
+  }
+  pieces[place][kind].build(b, tint);
+}
 /** What the game's canvas saw this frame: its lens, the place the run is in, and the slanted edge (in pixels, at the top and bottom of the screen) while the next place sweeps in from the right. */
 /** A camera swung off the street's straight-on view, for a still picture: round `target` by `yaw` and `pitch` degrees, with `target` drawn at `at` (pixels). */
 type Angle = { target: THREE.Vector3; yaw: number; pitch: number; at: { x: number; y: number } };
@@ -388,19 +407,11 @@ export class Street3d {
   private row(world: World, index: number) {
     const place = world.place, scene = scenes[place];
 
-    const kind = index === 0 ? 0 : mod(index * 5 + Math.floor(hash(Math.floor(index / 6), 61 + place) * 6), 6), v = Math.floor(hash(index, 62 + place) * 4);
-    const tint: Tint = { s: scene, wall: scene.walls[(kind + v) % scene.walls.length], accent: scene.accents[v % scene.accents.length], other: scene.accents[(v + 1) % scene.accents.length], glow: moods[place].glow, v };
+    const kind = shopKind(place, index), v = Math.floor(hash(index, 62 + place) * 4);
     const piece = pieces[place][kind];
     const styledFurniture = this.models.hasStyle(place);
     const group = this.parts(`row:${place}:${kind}:${v}`, true, b => {
-      b.facadeTint = facadeTints[v];
-      b.windowLight = (0.76 + v * 0.14) * (scene.stars ? 1.18 : 1);
-      if (place === 1) {
-        b.finishes = factoryStyle.variants[v].materialColorOverrides;
-        b.polishedCopper = kind === 3 && v % 2 === 0;
-        b.roofLift = 0.4 * v;
-      }
-      piece.build(b, tint);
+      shopFront(b, place, kind, v);
       groundMarks(b, scene);
       if (styledFurniture) for (const [id, x, z, yaw, size = 1] of piece.models ?? []) {
         // Both pieces of furniture are already modeled into the SF vending alley and terrace.
