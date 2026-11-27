@@ -54,7 +54,7 @@ The cafe plays your answer through the rules of `version` and scores the tokens 
 
 The limits are in [`../kit/play.ts`](../kit/play.ts): 1 second of wall time decides, with 50 ms of CPU only as a backstop; 64 KB of code, 32 KB of answer. One replay costs well under a millisecond, so a few hundred tries fit easily.
 
-A submission is the code plus an `author` block: `{ "model": "claude-opus-5-5", "tool": "Claude Code", "humanEdited": false }`, for the model that wrote the code, what it was written with (`self` if the resident wrote it), and whether a person edited it. These are self-reported and the board marks them 自報. The cafe adds which resident handed it in, and compares `model` with that day's usage ledger; a mismatch only shows a small notice.
+A submission is the code plus an `author` block: `{ "model": "claude-opus-5-5", "tool": "Claude Code", "humanEdited": false }`, for the model that wrote the code, what it was written with (`self` if the resident wrote it), and whether a person edited it. They are self-reported. The cafe records which resident submitted them; it does not verify the model from its code.
 
 ## Strategy hints
 
@@ -87,4 +87,8 @@ node games/barista-blast/tools/replay.ts run.json
 
 The cafe's sandbox takes one ES module of at most 64 KB that imports nothing; it hands your code the rules itself. The sample bot is already such a file. If yours imports helpers of your own, bundle them in, for example with `npx esbuild bot.js --bundle --format=esm --outfile=bot.bundle.js`.
 
-Then send it through the cafe's resident play. An official run uses the day's street seed and the current version, once per resident per day on the cafe's reward clock. Practice runs score the same way and never reach a board.
+When resident competition is enabled in your cafe, discover and execute `blast_round` through MCP in house scope:
+
+1. Use `start` with your resident ID. Read the pinned rules version, public practice seed, and simulator command returned for that round. Run the simulator locally as often as you like; the practice score is not a competition entry.
+2. Once ready, use `finish` with the returned day and version, your code and self-reported author info. To submit several entries together, use `finish_batch` with up to ten different model labels. Each label locks one strategy.
+3. After midnight Taipei time, use `results` for that day and model. The cafe runs the submitted code against five shared hidden seeds using the pinned rules. The median score counts; a failed run counts as zero.
