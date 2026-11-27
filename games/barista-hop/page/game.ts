@@ -4,6 +4,7 @@
 import { HOP_HZ, HOP_VERSION, hopLooks, hopMeters, startHop, stepHop, type HopEnd, type HopInputs, type HopLook, type HopRun, type HopSteer } from '../rules.ts';
 import { HOP_STEER_MAX, HOP_TAPS_MAX } from '../versions.ts';
 import type { TextKey } from './i18n.ts';
+import { attachBackdrop } from './backdrop.ts';
 import type { Shaft3d } from './shaft3d.ts';
 import { HopView, loadPoses, type HopOver } from './view.ts';
 
@@ -160,13 +161,15 @@ export function playHop(canvas: HTMLCanvasElement, options: HopOptions = {}): Ho
 
   // The 3D shaft is its own download. If the browser takes its graphics away mid-climb, the flat shaft comes back.
   const backdrop = 'WebGL2RenderingContext' in window ? options.backdrop ?? null : null;
-  let shaft: Shaft3d | null = null, alive = true;
-  const lost = () => { shaft?.dispose(); shaft = null; view.bare = false; };
-  backdrop?.addEventListener('webglcontextlost', lost, { once: true });
-  if (backdrop) void import('./shaft3d.ts').then(({ Shaft3d }) => Shaft3d.open(backdrop)).then(made => {
-    if (!alive) { made.dispose(); return; }
-    shaft = made; view.bare = true; resize();
-  }).catch(error => console.warn(error));
+  let shaft: Shaft3d | null = null;
+  const closeBackdrop = backdrop && attachBackdrop(backdrop, async () => {
+    const { Shaft3d } = await import('./shaft3d.ts');
+    return Shaft3d.open(backdrop);
+  }, renderer => {
+    shaft = renderer;
+    view.bare = renderer !== null;
+    if (renderer) resize();
+  }, error => console.warn(error));
 
   canvas.style.touchAction = 'none';
   window.addEventListener('keydown', keydown); window.addEventListener('keyup', keyup); window.addEventListener('blur', blur); window.addEventListener('resize', resize);
@@ -182,7 +185,7 @@ export function playHop(canvas: HTMLCanvasElement, options: HopOptions = {}): Ho
     pause(on) { paused = on; if (!on) last = 0; },
     recast(next) { look = next; },
     dispose() {
-      alive = false; backdrop?.removeEventListener('webglcontextlost', lost); shaft?.dispose(); shaft = null;
+      closeBackdrop?.();
       cancelAnimationFrame(frame); watcher?.disconnect();
       window.removeEventListener('keydown', keydown); window.removeEventListener('keyup', keyup); window.removeEventListener('blur', blur); window.removeEventListener('resize', resize);
       canvas.removeEventListener('pointerdown', pointerdown); canvas.removeEventListener('pointermove', pointermove); canvas.removeEventListener('pointerup', pointerup); canvas.removeEventListener('pointercancel', pointerup);

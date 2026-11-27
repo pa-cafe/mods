@@ -198,7 +198,8 @@ export function stepHop(run: HopRun, steer: HopSteer, tap: boolean) {
   const want = steer * T.run, push = T.grip * DT;
   run.vx = run.vx < want ? Math.min(want, run.vx + push) : Math.max(want, run.vx - push);
   run.x = wrap(run.x + run.vx * DT);
-  if (run.rocket > 0) { run.rocket--; run.vy = T.rocketSpeed; } else run.vy -= T.gravity * DT;
+  const rodeRocket = run.rocket > 0;
+  if (rodeRocket) { run.rocket--; run.vy = T.rocketSpeed; } else run.vy -= T.gravity * DT;
   const from = run.y;
   run.y += run.vy * DT;
 
@@ -218,7 +219,7 @@ export function stepHop(run: HopRun, steer: HopSteer, tap: boolean) {
     if (!cloud || cloud.gone || run.y > cloud.y + T.cloudTall || run.y + T.body < cloud.y - T.cloudTall) continue;
     if (Math.abs(hopAcross(run.x, hopCloudX(cloud, run.step))) > T.cloudWide) continue;
     // A rocket goes through a cloud, and feet coming down on one pop it and hop off it. Anything else is rate limited.
-    if (run.rocket > 0) { cloud.gone = true; run.event = 'pop'; }
+    if (rodeRocket || run.rocket > 0) { cloud.gone = true; run.event = 'pop'; }
     else if (run.vy < 0 && from >= cloud.y) { cloud.gone = true; run.vy = T.jump; run.event = 'pop'; }
     else { run.end = 'limited'; return; }
   }

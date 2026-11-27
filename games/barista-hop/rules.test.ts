@@ -136,6 +136,18 @@ describe('BARISTA HOP!! climb', () => {
     expect(run.cups).toBe(T.cups);
   });
 
+  it('stays protected through the last rocket step, but not the next step', () => {
+    const run = onShaft([{ y: 2, spots: [], cloud: { x: 5, y: 2, phase: T.cloudSteps / 4, gone: false } }]);
+    run.y = 2;
+    run.rocket = 1;
+    stepHop(run, 0, false);
+    expect([run.rocket, run.end, run.event, run.rows[1].cloud?.gone]).toEqual([0, null, 'pop', true]);
+    run.rows[1].cloud!.gone = false;
+    run.rows[1].cloud!.y = run.y + run.vy / 60;
+    stepHop(run, 0, false);
+    expect(run.end).toBe('limited');
+  });
+
   it('ends on a cloud met from below, and pops one landed on', () => {
     const still = { phase: T.cloudSteps / 4, gone: false };
     const under = onShaft([{ y: 30, spots: [], cloud: { x: 5, y: 2, ...still } }]);
