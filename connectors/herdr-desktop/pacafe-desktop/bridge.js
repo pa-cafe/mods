@@ -7,7 +7,7 @@ import { historyRequest, historyCursor } from './history-protocol.js';
 
 const helper = async (action, ...args) => {
   const home = appHome();
-  const result = await exec('node', [`${home}/mods/pacafe-desktop/credentials.mjs`, action, home, ...args], { timeout: action === 'wake' ? 100_000 : action === 'tokscale-usage' ? 50_000 : 15_000 });
+  const result = await exec('node', [`${home}/mods/pacafe-desktop/credentials.mjs`, action, home, ...args], { timeout: action === 'wake' ? 100_000 : action === 'tokscale-usage' ? 50_000 : action === 'answer' ? 35_000 : 15_000 });
   if (result.code !== 0) throw new Error('The PA Cafe helper could not finish. Check that Node.js 18.17+ is on Herdr’s PATH.');
   return JSON.parse(result.stdout);
 };
@@ -295,6 +295,7 @@ export class DispatchBridge {
     this.lastSettledSignature = undefined;
     this.profileAvailability = false;
     this.turnReports = false;
+    this.approvals = false;
     this.lastAdvertisedProfiles = this.profileSignature([], []);
     this.permissions = readPermissions(state?.permissions);
     this.profiles = permittedProfiles(this.permissions, state?.profiles);
@@ -375,23 +376,32 @@ export class DispatchBridge {
   }
 
   async advertise(connection, profiles, reports, nativeTurns) {
-    const body = { op: 'sync', profiles, reports, ...(this.fileRelay && { fileRelay: true }) };
+    // An older cafe refuses the prompt field, so the plain body never has it.
+    const plain = reports.map(row => {
+      const copy = { ...row };
+      delete copy.prompt;
+      return copy;
+    });
+    const body = { op: 'sync', profiles, reports: plain, ...(this.fileRelay && { fileRelay: true }) };
     const extended = this.profileAvailability === true;
     const history = this.historySupported === true && ['macos', 'linux'].includes(herdrWindow()?.platform);
     const offline = extended ? this.offlineProfiles(profiles) : [];
     const turnReports = this.turnReports === true;
-    const observedTurns = turnReports ? reports.map(row => {
+    const approvals = this.approvals === true;
+    const observedTurns = (approvals ? reports : plain).map(row => {
+      if (!turnReports) return row;
       const turn = nativeTurns.get(row.session);
       return row.terminal && Number.isSafeInteger(turn) && turn > 0 ? { ...row, turn } : row;
-    }) : reports;
+    });
     let result;
     try {
       result = await this.post({ ...body, reports: observedTurns, ...(extended && { offlineProfiles: offline }),
         ...(history && { terminalHistory: true }) }, connection);
     } catch (error) {
-      if ((!extended && !history && !turnReports) || error.status !== 400 || this.closed || this.connection !== connection) throw error;
+      if ((!extended && !history && !turnReports && !approvals) || error.status !== 400 || this.closed || this.connection !== connection) throw error;
       this.profileAvailability = false;
       this.turnReports = false;
+      this.approvals = false;
       this.historySupported = false;
       this.stopHistory();
       result = await this.post(body, connection);
@@ -442,7 +452,9 @@ export class DispatchBridge {
       reportTurns.set(session.id, terminal?.turn);
       if (watchesStandby(status)) terminalSignatures.set(session.id, terminalSignature(terminal));
       const binding = await terminalBinding(profile, session, terminal);
-      return { task: session.task, session: session.id, status, terminal: binding, canSend: Boolean(binding && sendStatus(profile, terminal)), ...(this.fileRelay && profile.on === null && { fileRelay: true }) };
+      return { task: session.task, session: session.id, status, terminal: binding, canSend: Boolean(binding && sendStatus(profile, terminal)), ...(this.fileRelay && profile.on === null && { fileRelay: true }),
+        // The helper reads the request from Core and replaces this, or drops it.
+        ...(this.approvals && status === 'blocked' && binding && { prompt: true }) };
     }))).filter(Boolean);
     if (connection !== this.connection || this.closed) return;
     if (recovered || this.unsaved) await this.save();
@@ -457,6 +469,8 @@ export class DispatchBridge {
     if (!this.historySupported) this.stopHistory();
     const learnedTurnReports = !this.turnReports && !compatible && result.turnReports === true;
     this.turnReports = !compatible && result.turnReports === true;
+    // The cafe can switch phone answers off (HERDR_REMOTE_APPROVAL) without a new mod.
+    this.approvals = !compatible && result.approvals === true;
     // A finished terminal may go straight into standby after the capability
     // handshake. Make one local check carry its initial bound counter.
     this.lastSettledSignature = learnedTurnReports &&
@@ -484,6 +498,20 @@ export class DispatchBridge {
       this.deliveries.add(offer.task);
       void helper('deliver', connection.url, JSON.stringify({ ...target, input: offer.id, terminal: offer.terminal, ...(offer.file === true && { file: true }) }))
         .catch(() => undefined).finally(() => this.deliveries.delete(offer.task));
+    }
+
+    // An answer the barista gave on the phone. The helper presses only the
+    // request they saw, after reading it again; never anything on its own.
+    for (const offer of this.approvals && Array.isArray(result.answers) ? result.answers.slice(0, 4) : []) {
+      if (this.busy) break;
+      const target = this.targetFor(offer, reports.filter(report => report.status === 'blocked'));
+      if (!target || !uuid(offer.id) || !/^[A-Za-z0-9_-]{43}$/.test(offer.prompt) || this.deliveries.has(offer.task)) continue;
+      this.deliveries.add(offer.task);
+      void helper('answer', connection.url, JSON.stringify({ ...target, terminal: offer.terminal, prompt: offer.prompt, id: offer.id }))
+        // A helper that stopped after taking the answer may have pressed it.
+        .then(outcome => outcome === 'unknown', () => true)
+        .then(unclear => { if (unclear) this.actionError = 'A phone answer may not have reached the agent. Check the terminal.'; })
+        .finally(() => this.deliveries.delete(offer.task));
     }
 
     const views = Array.isArray(result.views) ? result.views.slice(0, 4) : [];

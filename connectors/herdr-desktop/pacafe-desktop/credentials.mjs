@@ -13,7 +13,7 @@ import { TerminalHistory, historyLines, historyOutputLimit } from './history.mjs
 import { historyRequest, historyCursor } from './history-protocol.js';
 import { setTimeout as delay } from 'node:timers/promises';
 import { setTimeout, clearTimeout } from 'node:timers';
-import { addressMatches, agentMessage, liveBinding, localAliasCandidate, sameMachine, sendStatus, validMessage } from './session.js';
+import { addressMatches, agentMessage, approvesOnce, liveBinding, localAliasCandidate, pendingPermission, permissionKeys, sameMachine, sendStatus, validMessage } from './session.js';
 
 import { permittedProfiles, readPermissions } from './dispatch-permissions.js';
 import { codexBindingName, codexHookArguments, hookArguments, replyId, replyName } from './reply-hook.mjs';
@@ -97,16 +97,162 @@ function stillApproved(device, profile, session) {
       row.address === session.address && row.command === session.command);
 }
 
+function boundTo(profile, session, live) {
+  const binding = liveBinding(profile, session, live);
+  const alias = !binding && process.platform === 'darwin' && localAliasCandidate(profile, live);
+  if (!alias) return binding;
+  try { return realpathSync(profile.folder) === alias ? liveBinding(profile, session, live, alias) : null; } catch { return null; }
+}
+
 async function liveTerminal(device, { profile, session, terminal }) {
   if (typeof terminal !== 'string' || !terminal || !stillApproved(device, profile, session) ||
       !addressMatches(profile, session.address) || !await sameMachine(profile, coreJson)) return null;
   const live = await coreJson(['get', session.address]);
-  let binding = liveBinding(profile, session, live);
-  const alias = !binding && process.platform === 'darwin' && localAliasCandidate(profile, live);
-  if (alias) {
-    try { if (realpathSync(profile.folder) === alias) binding = liveBinding(profile, session, live, alias); } catch { return null; }
+  return boundTo(profile, session, live) === terminal && stillApproved(device, profile, session) ? live : null;
+}
+
+// Core has no prompt id, so the request is named by everything that changes
+// when another one replaces it: the terminal binding, the turn, when the
+// status last changed, and the agent's own words.
+const promptId = (binding, pending) => createHash('sha256')
+  .update(JSON.stringify([binding, pending.turn, pending.at, pending.app, pending.kind, pending.msg])).digest('base64url');
+
+function sessionTarget(state, { task, session: id, terminal }) {
+  const session = state?.sessions?.find(row => row.task === task && row.id === id);
+  const profile = session && permittedProfiles(readPermissions(state.permissions), state.profiles).find(row => row.id === session.profile);
+  return profile ? { profile, session: { id: session.id, address: session.address, task: session.task, command: session.command }, terminal } : null;
+}
+
+// The bridge marks a blocked report with prompt: true only after the cafe
+// said it takes approvals. Read the request from Core here, the same way an
+// answer reads it again before pressing anything.
+async function withPrompts(device, reports) {
+  const state = read('dispatch.json');
+  return Promise.all(reports.map(async ({ prompt, ...report }) => {
+    if (prompt !== true) return report;
+    const target = sessionTarget(state, report);
+    const live = target && await liveTerminal(device, target).catch(() => null);
+    const pending = live && pendingPermission(target.profile, live);
+    return pending ? { ...report, prompt: { id: promptId(report.terminal, pending), text: pending.text.replaceAll(device.secret, '[redacted]') } } : report;
+  }));
+}
+
+// Core's terminal.keys has no guard for a blocked prompt (terminal.send's
+// `if` covers idle and working only). It also holds a key until nobody has
+// typed in that terminal for HC_QUIET_MS (3 s by default), and it presses even
+// after this connection closes. So this narrows the race and cannot close it:
+// read the dialog and the status on one connection, press only if both still
+// match, and once the key request is written, wait for Core's answer. Core
+// reports the status and turn it saw as it pressed, but not the status time or
+// the words, so a key it held back may have landed on a later request with the
+// same turn: a held key is reported as unknown, never as sent.
+const heldMs = 1000;
+function pressIfSame(address, { approves, same }, keys, { writeBy, answerBy }) {
+  return new Promise(resolve => {
+    let step = 0, buffer = '', turn = null, settled = false, asked = 0, roundTrip = 0, written = 0;
+    const child = spawn(coreBinary, ['connect'], { stdio: ['pipe', 'pipe', 'ignore'] });
+    const timers = [];
+    const finish = outcome => {
+      if (settled) return;
+      settled = true;
+      for (const timer of timers) clearTimeout(timer);
+      child.stdin.end();
+      child.kill();
+      resolve(outcome);
+    };
+    // Before the key request is written nothing was pressed. After it, Core may press it at any time.
+    const lost = () => finish(step === 3 ? 'unknown' : 'changed');
+    const ask = (id, method, params) => {
+      asked = Date.now();
+      child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id, method, params })}\n`);
+    };
+    timers.push(setTimeout(() => { if (step < 3) finish('changed'); }, Math.max(0, writeBy - Date.now())));
+    timers.push(setTimeout(() => finish('unknown'), Math.max(0, answerBy - Date.now())));
+    child.on('error', lost);
+    child.on('close', lost);
+    child.stdin.on('error', () => {});
+    child.stdout.on('data', chunk => {
+      buffer += chunk;
+      if (buffer.length > 262_144) { lost(); return; }
+      let end;
+      while (!settled && (end = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, end);
+        buffer = buffer.slice(end + 1);
+        let reply;
+        try { reply = JSON.parse(line); } catch { lost(); return; }
+        if (step === 1 && reply.id === 1) {
+          if (!approves(reply.result?.text)) { finish('changed'); return; }
+          step = 2;
+          ask(2, 'terminal.get', { terminal: address });
+        } else if (step === 2 && reply.id === 2) {
+          roundTrip = Date.now() - asked;
+          let still;
+          try { still = Boolean(reply.result && same(reply.result)); } catch { still = false; }
+          if (!still || Date.now() >= writeBy) { finish('changed'); return; }
+          turn = reply.result.turn;
+          step = 3;
+          ask(3, 'terminal.keys', { terminal: address, keys });
+          written = asked;
+        } else if (step === 3 && reply.id === 3) {
+          const held = Date.now() - written > roundTrip + heldMs;
+          finish(!held && reply.result?.status === 'blocked' && reply.result.turn === turn ? 'pressed' : 'unknown');
+        }
+      }
+    });
+    step = 1;
+    ask(1, 'terminal.read', { terminal: address, lines: 0 });
+  });
+}
+
+const settleMs = 3000;
+// Write the key early enough that a key Core holds for a person's typing, the
+// check after it and the result still fit in the time the cafe gave.
+const confirmMs = settleMs + 1000;
+const pressWindowMs = 12_000;
+async function answer(device, target) {
+  const { profile, session, terminal, prompt, id } = target;
+  const request = { task: session.task, session: session.id, terminal, prompt, id };
+  let taker = null;
+  const result = outcome => post(device.url, { op: 'approval-result', ...request, ...(taker && { taker }), outcome }, device.secret).catch(() => null);
+  const same = live => {
+    const pending = live && pendingPermission(profile, live);
+    return Boolean(pending && promptId(terminal, pending) === prompt);
+  };
+  // Check before taking it: a request that moved on is withdrawn and nothing is pressed.
+  if (!same(await liveTerminal(device, target).catch(() => null))) {
+    await result('changed');
+    return 'changed';
   }
-  return binding === terminal && stillApproved(device, profile, session) ? live : null;
+  const started = Date.now();
+  const { body } = await post(device.url, { op: 'approval-take', ...request }, device.secret).catch(() => ({ body: null }));
+  if (!body) return 'changed';
+  // The take names this helper, so a second bridge or a restart cannot report over it.
+  if (typeof body.taker === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(body.taker)) taker = body.taker;
+  const keys = permissionKeys(profile.lifecycle, body.answer);
+  const remaining = Number.isSafeInteger(body.remaining) && body.remaining > 0 && body.remaining <= pressWindowMs ? body.remaining : 0;
+  const deadline = started + remaining, writeBy = deadline - confirmMs;
+  if (!taker || !keys || Date.now() >= writeBy) {
+    await result('changed');
+    return 'changed';
+  }
+  const pressed = await pressIfSame(session.address, {
+    approves: screen => body.answer === 'deny' || approvesOnce(profile.lifecycle, screen),
+    same: live => stillApproved(device, profile, session) && boundTo(profile, session, live) === terminal && same(live),
+  }, keys, { writeBy, answerBy: deadline });
+  if (pressed !== 'pressed') {
+    await result(pressed);
+    return pressed;
+  }
+  // Read it again: the answer counts as sent only once this request has left the screen.
+  const until = Math.min(Date.now() + settleMs, deadline + settleMs);
+  let outcome = 'unknown';
+  while (Date.now() < until) {
+    await delay(250);
+    const live = await coreJson(['get', session.address]).catch(() => null);
+    if (live && boundTo(profile, session, live) === terminal && !same(live)) { outcome = 'sent'; break; }
+  }
+  await result(outcome);
+  return outcome;
 }
 
 const historyDirectory = /^\/tmp\/pacafe-herdr-history-[a-zA-Z0-9]{6}$/;
@@ -509,6 +655,7 @@ switch (action) {
     if (!value || value.url !== args[0]) { emit({ status: 403, body: null }); break; }
     const op = JSON.parse(args[1]);
     if (!['sync', 'claim', 'disconnect'].includes(op.op)) throw new Error('Invalid device request');
+    if (op.op === 'sync' && Array.isArray(op.reports)) op.reports = await withPrompts(value, op.reports);
     emit(await post(value.url, op, value.secret));
     break;
   }
@@ -536,6 +683,11 @@ switch (action) {
     const value = connection(read('connection.json'));
     if (value?.url === args[0]) await deliver(value, JSON.parse(args[1]));
     emit(null);
+    break;
+  }
+  case 'answer': {
+    const value = connection(read('connection.json'));
+    emit(value?.url === args[0] ? await answer(value, JSON.parse(args[1])) : null);
     break;
   }
   case 'forget': erase('connection.json'); erase('pending.json'); erase('dispatch.json'); eraseReplies(); emit(null); break;

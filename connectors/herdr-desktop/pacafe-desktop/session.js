@@ -59,3 +59,63 @@ export async function sameMachine(profile, json) {
     : (await json(['machine', 'ls'])).machines.find(row => row.name === profile.on && row.state === 'connected');
   return machine?.id === profile.core;
 }
+
+// A permission request the agent itself reported through OSC 7501. Only this
+// kind is answerable from the cafe; questions and sign-ins stay in the terminal.
+// Invisible format characters (bidi overrides, zero-width) are refused: the
+// barista must not approve text that reads unlike what runs.
+// Keep the text boundary in sync with shared/herdr-desktop.ts in the cafe host.
+// eslint-disable-next-line no-control-regex
+const promptControls = /[\x00-\x08\x0b-\x1f\x7f-\x9f\u2028\u2029\p{Cf}]/u;
+export function pendingPermission(profile, terminal) {
+  const report = terminal?.status;
+  if (!report || typeof report !== 'object' || report.state !== 'blocked' || report.kind !== 'permission') return null;
+  if (profile.lifecycle === 'codex' ? report.app !== 'codex' : profile.lifecycle !== 'claude' || !['claude', 'claude-code'].includes(report.app)) return null;
+  if (!Number.isSafeInteger(terminal.turn) || !Number.isSafeInteger(terminal.status_ms) || typeof report.msg !== 'string') return null;
+  const text = report.msg.replaceAll('\r\n', '\n').trim();
+  if (!text || text.length > 500 || promptControls.test(text) || !askedTool(profile.lifecycle, text)) return null;
+  return { turn: terminal.turn, at: terminal.status_ms, app: report.app, kind: report.kind, msg: report.msg, text };
+}
+
+// The agent's msg is its own one-line summary, not the dialog. Claude Code
+// falls back to a bare label ("permission prompt") when the summary would be
+// cut, and uses the same kind for dialogs whose first option approves more
+// than one request (the plan dialog's "approve plan", plan mode, browser and
+// computer use). Only "approve <Tool>: <what>" names one tool call; a summary
+// that names only the tool says nothing the barista could judge.
+const bareLabels = new Set(['permission prompt', 'sandbox request', 'worker request', 'goal proposal', 'input needed', 'awaiting input', 'approve plan']);
+const planTools = new Set(['ExitPlanMode', 'EnterPlanMode']);
+function askedTool(lifecycle, text) {
+  if (bareLabels.has(text.toLowerCase()) || text.endsWith('…')) return false;
+  if (lifecycle !== 'claude') return true;
+  const asked = /^approve ([A-Za-z][A-Za-z0-9_-]{0,127}): (\S[\s\S]*)$/.exec(text);
+  return Boolean(asked) && !planTools.has(asked[1]) && asked[2].trim() !== asked[1];
+}
+
+// The dialog itself, read from the screen on the same Core connection right
+// before the key. Approve presses only when the option its key picks reads
+// exactly as the once-only Yes: Claude Code's "1. Yes", Codex's
+// "Yes, proceed (y)". A first option that approves more (don't ask again,
+// the plan dialog's bypass, a host allowance) or a dialog that lists No first
+// leaves the request on the desktop.
+const optionLine = /^[\s│┃|]*(?:[❯›>▶●]\s*)?(\d{1,2})\.\s+(.*?)[\s│┃|]*$/u;
+export function approvesOnce(lifecycle, screen) {
+  if (typeof screen !== 'string') return false;
+  const options = screen.split('\n').filter(line => line.trim()).slice(-24)
+    .map(line => optionLine.exec(line)).filter(Boolean).map(([, number, label]) => ({ number, label }));
+  const start = options.findLastIndex(option => option.number === '1');
+  const dialog = start < 0 ? [] : options.slice(start);
+  if (dialog.length < 2 || dialog[1].number !== '2') return false;
+  if (lifecycle === 'claude') return dialog[0].label === 'Yes';
+  if (lifecycle !== 'codex') return false;
+  const bound = dialog.filter(option => /\s\(y\)$/.test(option.label));
+  return bound.length === 1 && bound[0] === dialog[0] && bound[0].label === 'Yes, proceed (y)';
+}
+
+// Claude Code: 1 is "Yes" for this request only. Codex: y is "Yes, proceed"
+// for this request only. Esc declines in both. The approve key is pressed only
+// after approvesOnce saw that it picks that option.
+export function permissionKeys(lifecycle, answer) {
+  if (answer === 'deny') return ['claude', 'codex'].includes(lifecycle) ? ['esc'] : null;
+  return answer === 'approve' ? { claude: ['1'], codex: ['y'] }[lifecycle] ?? null : null;
+}
