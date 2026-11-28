@@ -1,9 +1,10 @@
 import { appHome, exec, panes, terminals, window as herdrWindow } from 'herdr';
-import { adapter, allowed, discovery, label, launch, lifecycle, placeInMain, prepare, releaseShellRecovery, terminalBinding, terminalFor, uuid, verifyWorkspace } from './core.js';
+import { adapter, allowed, coreSocket, discovery, label, launch, leadName, lifecycle, placeInMain, prepare, releaseShellRecovery, terminalBinding, terminalFor, uuid, verifyWorkspace } from './core.js';
 import { matches, sendStatus } from './session.js';
 import { automaticPermissionDiscoveries, dispatchProfileLimit, editablePermissions, permittedProfiles, planPermissions, readPermissions, spacePermissionKey } from './dispatch-permissions.js';
 import { isOwnedSpace } from './owned-space.js';
 import { historyRequest, historyCursor } from './history-protocol.js';
+import { leadPrompt, teamBrief, teammates } from './team.js';
 
 const helper = async (action, ...args) => {
   const home = appHome();
@@ -16,6 +17,7 @@ const captureLifetime = 45_000;
 const discoveryInterval = 15_000;
 const placementDelays = [2500, 5000, 10_000];
 const watchesStandby = status => status === 'turn-finished' || status === 'unavailable';
+const teamClis = new Set(['claude', 'codex', 'opencode']);
 const terminalSignature = terminal => terminal ? JSON.stringify([
   terminal.state, terminal.reason,
   typeof terminal.status === 'string' ? terminal.status : terminal.status?.state,
@@ -158,7 +160,9 @@ export class DispatchBridge {
       .map(session => {
         const terminal = live.get(session.address);
         const profile = this.usable(session.profile);
-        return [session.id, Boolean(profile), terminalSignature(profile && matches(profile, session, terminal) ? terminal : null)];
+        const exact = profile && matches(profile, session, terminal);
+        return [session.id, Boolean(profile), terminalSignature(exact ? terminal : null),
+          ...(this.teamReports && exact ? [teammates(session.address, [...live.values()])] : [])];
       }));
   }
 
@@ -296,6 +300,7 @@ export class DispatchBridge {
     this.profileAvailability = false;
     this.turnReports = false;
     this.approvals = false;
+    this.teamReports = false;
     this.lastAdvertisedProfiles = this.profileSignature([], []);
     this.permissions = readPermissions(state?.permissions);
     this.profiles = permittedProfiles(this.permissions, state?.profiles);
@@ -375,7 +380,7 @@ export class DispatchBridge {
     return JSON.stringify(negotiated ? [available, offline] : available);
   }
 
-  async advertise(connection, profiles, reports, nativeTurns) {
+  async advertise(connection, profiles, reports, nativeTurns, teams = new Map()) {
     // An older cafe refuses the prompt field, so the plain body never has it.
     const plain = reports.map(row => {
       const copy = { ...row };
@@ -393,15 +398,19 @@ export class DispatchBridge {
       const turn = nativeTurns.get(row.session);
       return row.terminal && Number.isSafeInteger(turn) && turn > 0 ? { ...row, turn } : row;
     });
+    // A cafe that has not said `teammates: true` refuses the field.
+    const teamReports = this.teamReports === true;
+    const observed = teamReports ? observedTurns.map(row => teams.has(row.session) ? { ...row, teammates: teams.get(row.session) } : row) : observedTurns;
     let result;
     try {
-      result = await this.post({ ...body, reports: observedTurns, ...(extended && { offlineProfiles: offline }),
+      result = await this.post({ ...body, reports: observed, ...(extended && { offlineProfiles: offline }),
         ...(history && { terminalHistory: true }) }, connection);
     } catch (error) {
-      if ((!extended && !history && !turnReports && !approvals) || error.status !== 400 || this.closed || this.connection !== connection) throw error;
+      if ((!extended && !history && !turnReports && !approvals && !teamReports) || error.status !== 400 || this.closed || this.connection !== connection) throw error;
       this.profileAvailability = false;
       this.turnReports = false;
       this.approvals = false;
+      this.teamReports = false;
       this.historySupported = false;
       this.stopHistory();
       result = await this.post(body, connection);
@@ -416,6 +425,7 @@ export class DispatchBridge {
     let recovered = false;
     const reportTurns = new Map();
     const terminalSignatures = new Map();
+    const teams = new Map();
     const reports = (await Promise.all(this.sessions.map(async session => {
       const profile = this.usable(session.profile);
       if (!profile) return null;
@@ -430,7 +440,11 @@ export class DispatchBridge {
         }
       }
       const snapshot = live.get(session.address);
-      const terminal = matches(profile, session, snapshot) ? snapshot : session.address ? await terminalFor(profile, session).catch(() => null) : null;
+      const inSnapshot = matches(profile, session, snapshot);
+      const terminal = inSnapshot ? snapshot : session.address ? await terminalFor(profile, session).catch(() => null) : null;
+      // Helpers come from the same snapshot as their lead; a lead missing
+      // from it sends no list, and the cafe keeps the last one.
+      if (this.teamReports && inSnapshot && snapshot.state === 'live') teams.set(session.id, teammates(session.address, [...live.values()]));
       const status = session.address ? terminal ? lifecycle(profile, terminal) : 'unavailable' : 'launch-failed';
       if (terminal?.state === 'live') {
         // Older clients persisted a queued placement as shown. Retry only if
@@ -461,7 +475,7 @@ export class DispatchBridge {
     if (this.closed || this.busy) return;
     const settledSignature = this.settledSignature();
     const advertised = profiles.filter(profile => this.usable(profile.id));
-    const { result, signature, compatible } = await this.advertise(connection, advertised, reports, reportTurns);
+    const { result, signature, compatible } = await this.advertise(connection, advertised, reports, reportTurns, teams);
     if (!result || this.closed || connection !== this.connection) return;
     this.lastAdvertisedProfiles = signature;
     this.profileAvailability = !compatible && result.profileAvailability === true;
@@ -471,6 +485,7 @@ export class DispatchBridge {
     this.turnReports = !compatible && result.turnReports === true;
     // The cafe can switch phone answers off (HERDR_REMOTE_APPROVAL) without a new mod.
     this.approvals = !compatible && result.approvals === true;
+    this.teamReports = !compatible && result.teammates === true;
     // A finished terminal may go straight into standby after the capability
     // handshake. Make one local check carry its initial bound counter.
     this.lastSettledSignature = learnedTurnReports &&
@@ -560,13 +575,27 @@ export class DispatchBridge {
     try {
       if (!this.usable(profile.id)) return;
       await verifyWorkspace(profile);
+      const team = await this.teamFor(profile, next.task);
       if (connection === this.connection && this.usable(profile.id)) {
-        session.address = await launch(profile, command, session.task, id, job.prompt, capture?.args, ownedSpace);
+        session.address = await launch(profile, command, session.task, id, leadPrompt(team?.brief, job.prompt), capture?.args, ownedSpace, team);
         session.shown = this.reveal(profile, session);
       }
     } finally {
       if (!this.closed) await this.save();
     }
+  }
+
+  // The lead may start helpers on the command line tools the barista
+  // approved for this same workspace and computer.
+  async teamFor(profile, task) {
+    if (!teamClis.has(profile.lifecycle)) return null;
+    const clis = this.profiles.filter(row => row.on === profile.on && row.core === profile.core && row.space === profile.space &&
+      row.folder === profile.folder && teamClis.has(row.lifecycle) && this.usable(row.id)).map(row => row.lifecycle);
+    const socket = profile.lifecycle === 'codex' || clis.includes('codex') ? await coreSocket(profile) : null;
+    // A Codex lead without Core's socket cannot run hc, so it works alone.
+    if (profile.lifecycle === 'codex' && !socket) return null;
+    const brief = teamBrief({ lead: leadName(task), folder: profile.folder, clis, socket });
+    return brief ? { brief, socket } : null;
   }
 
   placementRetryDue() {
