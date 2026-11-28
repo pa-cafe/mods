@@ -13,7 +13,7 @@ import { TerminalHistory, historyLines, historyOutputLimit } from './history.mjs
 import { historyRequest, historyCursor } from './history-protocol.js';
 import { setTimeout as delay } from 'node:timers/promises';
 import { setTimeout, clearTimeout } from 'node:timers';
-import { addressMatches, agentMessage, liveBinding, localAliasCandidate, pendingPermission, permissionKeys, sameMachine, sendStatus, validMessage } from './session.js';
+import { addressMatches, agentMessage, approvesOnce, liveBinding, localAliasCandidate, pendingPermission, permissionKeys, sameMachine, sendStatus, validMessage } from './session.js';
 
 import { permittedProfiles, readPermissions } from './dispatch-permissions.js';
 import { codexBindingName, codexHookArguments, hookArguments, replyId, replyName } from './reply-hook.mjs';
@@ -138,29 +138,42 @@ async function withPrompts(device, reports) {
 }
 
 // Core's terminal.keys has no guard for a blocked prompt (terminal.send's
-// `if` covers idle and working only). Read and press in one connection so
-// nothing else of ours runs between the check and the key, and press only if
-// the same request is still on screen. Core answers with the status and turn
-// it saw when it pressed.
-function pressIfSame(address, check, keys, signal) {
+// `if` covers idle and working only). It also holds a key until nobody has
+// typed in that terminal for HC_QUIET_MS (3 s by default), and it presses even
+// after this connection closes. So this narrows the race and cannot close it:
+// read the dialog and the status on one connection, press only if both still
+// match, and once the key request is written, wait for Core's answer. Core
+// reports the status and turn it saw as it pressed, but not the status time or
+// the words, so a key it held back may have landed on a later request with the
+// same turn: a held key is reported as unknown, never as sent.
+const heldMs = 1000;
+function pressIfSame(address, { approves, same }, keys, { writeBy, answerBy }) {
   return new Promise(resolve => {
-    let step = 0, buffer = '', turn = null, settled = false;
-    const child = spawn(coreBinary, ['connect'], { signal, stdio: ['pipe', 'pipe', 'ignore'] });
+    let step = 0, buffer = '', turn = null, settled = false, asked = 0, roundTrip = 0, written = 0;
+    const child = spawn(coreBinary, ['connect'], { stdio: ['pipe', 'pipe', 'ignore'] });
+    const timers = [];
     const finish = outcome => {
       if (settled) return;
       settled = true;
+      for (const timer of timers) clearTimeout(timer);
       child.stdin.end();
+      child.kill();
       resolve(outcome);
     };
-    // Once the key request is written, a lost answer may still have pressed it.
-    const lost = () => finish(step === 2 ? 'unknown' : 'changed');
-    const ask = (id, method, params) => child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id, method, params })}\n`);
+    // Before the key request is written nothing was pressed. After it, Core may press it at any time.
+    const lost = () => finish(step === 3 ? 'unknown' : 'changed');
+    const ask = (id, method, params) => {
+      asked = Date.now();
+      child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id, method, params })}\n`);
+    };
+    timers.push(setTimeout(() => { if (step < 3) finish('changed'); }, Math.max(0, writeBy - Date.now())));
+    timers.push(setTimeout(() => finish('unknown'), Math.max(0, answerBy - Date.now())));
     child.on('error', lost);
     child.on('close', lost);
     child.stdin.on('error', () => {});
     child.stdout.on('data', chunk => {
       buffer += chunk;
-      if (buffer.length > 262_144) { lost(); child.kill(); return; }
+      if (buffer.length > 262_144) { lost(); return; }
       let end;
       while (!settled && (end = buffer.indexOf('\n')) >= 0) {
         const line = buffer.slice(0, end);
@@ -168,29 +181,39 @@ function pressIfSame(address, check, keys, signal) {
         let reply;
         try { reply = JSON.parse(line); } catch { lost(); return; }
         if (step === 1 && reply.id === 1) {
-          let same;
-          try { same = Boolean(reply.result && check(reply.result)); } catch { same = false; }
-          if (!same) { finish('changed'); return; }
-          turn = reply.result.turn;
+          if (!approves(reply.result?.text)) { finish('changed'); return; }
           step = 2;
-          ask(2, 'terminal.keys', { terminal: address, keys });
+          ask(2, 'terminal.get', { terminal: address });
         } else if (step === 2 && reply.id === 2) {
-          finish(reply.result?.status === 'blocked' && reply.result.turn === turn ? 'pressed' : 'unknown');
+          roundTrip = Date.now() - asked;
+          let still;
+          try { still = Boolean(reply.result && same(reply.result)); } catch { still = false; }
+          if (!still || Date.now() >= writeBy) { finish('changed'); return; }
+          turn = reply.result.turn;
+          step = 3;
+          ask(3, 'terminal.keys', { terminal: address, keys });
+          written = asked;
+        } else if (step === 3 && reply.id === 3) {
+          const held = Date.now() - written > roundTrip + heldMs;
+          finish(!held && reply.result?.status === 'blocked' && reply.result.turn === turn ? 'pressed' : 'unknown');
         }
       }
     });
     step = 1;
-    ask(1, 'terminal.get', { terminal: address });
+    ask(1, 'terminal.read', { terminal: address, lines: 0 });
   });
 }
 
 const settleMs = 3000;
-// Press early enough that the check after the key and the result still fit in the time the cafe gave.
+// Write the key early enough that a key Core holds for a person's typing, the
+// check after it and the result still fit in the time the cafe gave.
 const confirmMs = settleMs + 1000;
+const pressWindowMs = 12_000;
 async function answer(device, target) {
   const { profile, session, terminal, prompt, id } = target;
   const request = { task: session.task, session: session.id, terminal, prompt, id };
-  const result = outcome => post(device.url, { op: 'approval-result', ...request, outcome }, device.secret).catch(() => null);
+  let taker = null;
+  const result = outcome => post(device.url, { op: 'approval-result', ...request, ...(taker && { taker }), outcome }, device.secret).catch(() => null);
   const same = live => {
     const pending = live && pendingPermission(profile, live);
     return Boolean(pending && promptId(terminal, pending) === prompt);
@@ -203,21 +226,25 @@ async function answer(device, target) {
   const started = Date.now();
   const { body } = await post(device.url, { op: 'approval-take', ...request }, device.secret).catch(() => ({ body: null }));
   if (!body) return 'changed';
+  // The take names this helper, so a second bridge or a restart cannot report over it.
+  if (typeof body.taker === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(body.taker)) taker = body.taker;
   const keys = permissionKeys(profile.lifecycle, body.answer);
-  const remaining = Number.isSafeInteger(body.remaining) ? started + body.remaining - Date.now() : 0;
-  if (!keys || remaining - confirmMs <= 0 || remaining > 12_000) {
+  const remaining = Number.isSafeInteger(body.remaining) && body.remaining > 0 && body.remaining <= pressWindowMs ? body.remaining : 0;
+  const deadline = started + remaining, writeBy = deadline - confirmMs;
+  if (!taker || !keys || Date.now() >= writeBy) {
     await result('changed');
     return 'changed';
   }
-  const signal = AbortSignal.timeout(remaining - confirmMs);
-  const pressed = await pressIfSame(session.address, live =>
-    stillApproved(device, profile, session) && boundTo(profile, session, live) === terminal && same(live), keys, signal);
+  const pressed = await pressIfSame(session.address, {
+    approves: screen => body.answer === 'deny' || approvesOnce(profile.lifecycle, screen),
+    same: live => stillApproved(device, profile, session) && boundTo(profile, session, live) === terminal && same(live),
+  }, keys, { writeBy, answerBy: deadline });
   if (pressed !== 'pressed') {
     await result(pressed);
     return pressed;
   }
   // Read it again: the answer counts as sent only once this request has left the screen.
-  const until = Date.now() + settleMs;
+  const until = Math.min(Date.now() + settleMs, deadline + settleMs);
   let outcome = 'unknown';
   while (Date.now() < until) {
     await delay(250);

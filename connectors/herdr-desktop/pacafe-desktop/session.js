@@ -92,8 +92,29 @@ function askedTool(lifecycle, text) {
   return Boolean(asked) && !planTools.has(asked[1]) && asked[2].trim() !== asked[1];
 }
 
+// The dialog itself, read from the screen on the same Core connection right
+// before the key. Approve presses only when the option its key picks reads
+// exactly as the once-only Yes: Claude Code's "1. Yes", Codex's
+// "Yes, proceed (y)". A first option that approves more (don't ask again,
+// the plan dialog's bypass, a host allowance) or a dialog that lists No first
+// leaves the request on the desktop.
+const optionLine = /^[\s│┃|]*(?:[❯›>▶●]\s*)?(\d{1,2})\.\s+(.*?)[\s│┃|]*$/u;
+export function approvesOnce(lifecycle, screen) {
+  if (typeof screen !== 'string') return false;
+  const options = screen.split('\n').filter(line => line.trim()).slice(-24)
+    .map(line => optionLine.exec(line)).filter(Boolean).map(([, number, label]) => ({ number, label }));
+  const start = options.findLastIndex(option => option.number === '1');
+  const dialog = start < 0 ? [] : options.slice(start);
+  if (dialog.length < 2 || dialog[1].number !== '2') return false;
+  if (lifecycle === 'claude') return dialog[0].label === 'Yes';
+  if (lifecycle !== 'codex') return false;
+  const bound = dialog.filter(option => /\s\(y\)$/.test(option.label));
+  return bound.length === 1 && bound[0] === dialog[0] && bound[0].label === 'Yes, proceed (y)';
+}
+
 // Claude Code: 1 is "Yes" for this request only. Codex: y is "Yes, proceed"
-// for this request only. Esc declines in both. Never a key that approves more.
+// for this request only. Esc declines in both. The approve key is pressed only
+// after approvesOnce saw that it picks that option.
 export function permissionKeys(lifecycle, answer) {
   if (answer === 'deny') return ['claude', 'codex'].includes(lifecycle) ? ['esc'] : null;
   return answer === 'approve' ? { claude: ['1'], codex: ['y'] }[lifecycle] ?? null : null;

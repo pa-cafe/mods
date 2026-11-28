@@ -7,7 +7,7 @@ import { historyRequest, historyCursor } from './history-protocol.js';
 
 const helper = async (action, ...args) => {
   const home = appHome();
-  const result = await exec('node', [`${home}/mods/pacafe-desktop/credentials.mjs`, action, home, ...args], { timeout: action === 'wake' ? 100_000 : action === 'tokscale-usage' ? 50_000 : action === 'answer' ? 20_000 : 15_000 });
+  const result = await exec('node', [`${home}/mods/pacafe-desktop/credentials.mjs`, action, home, ...args], { timeout: action === 'wake' ? 100_000 : action === 'tokscale-usage' ? 50_000 : action === 'answer' ? 35_000 : 15_000 });
   if (result.code !== 0) throw new Error('The PA Cafe helper could not finish. Check that Node.js 18.17+ is on Herdr’s PATH.');
   return JSON.parse(result.stdout);
 };
@@ -508,8 +508,10 @@ export class DispatchBridge {
       if (!target || !uuid(offer.id) || !/^[A-Za-z0-9_-]{43}$/.test(offer.prompt) || this.deliveries.has(offer.task)) continue;
       this.deliveries.add(offer.task);
       void helper('answer', connection.url, JSON.stringify({ ...target, terminal: offer.terminal, prompt: offer.prompt, id: offer.id }))
-        .then(outcome => { if (outcome === 'unknown') this.actionError = 'A phone answer may not have reached the agent. Check the terminal.'; })
-        .catch(() => undefined).finally(() => this.deliveries.delete(offer.task));
+        // A helper that stopped after taking the answer may have pressed it.
+        .then(outcome => outcome === 'unknown', () => true)
+        .then(unclear => { if (unclear) this.actionError = 'A phone answer may not have reached the agent. Check the terminal.'; })
+        .finally(() => this.deliveries.delete(offer.task));
     }
 
     const views = Array.isArray(result.views) ? result.views.slice(0, 4) : [];
