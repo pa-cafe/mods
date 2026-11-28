@@ -38,6 +38,6 @@ export default ts.config(
   ...ts.configs.recommended,
   { rules: { 'no-empty': ['error', { allowEmptyCatch: true }] } },
   { languageOptions: { parserOptions: { tsconfigRootDir: import.meta.dirname } } },
-  { files: ['connectors/herdr/**/*.mjs'], languageOptions: { globals: { process: 'readonly', console: 'readonly', fetch: 'readonly', AbortSignal: 'readonly', Buffer: 'readonly', URL: 'readonly', TextDecoder: 'readonly', TextEncoder: 'readonly', setTimeout: 'readonly', clearTimeout: 'readonly' } } },
+  { files: ['connectors/herdr/**/*.mjs', 'connectors/herdr-desktop/**/*.mjs'], languageOptions: { globals: { process: 'readonly', console: 'readonly', fetch: 'readonly', Response: 'readonly', AbortController: 'readonly', AbortSignal: 'readonly', Buffer: 'readonly', URL: 'readonly', TextDecoder: 'readonly', TextEncoder: 'readonly', setTimeout: 'readonly', clearTimeout: 'readonly' } } },
   ...boundaries(),
 );

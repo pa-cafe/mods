@@ -1,0 +1,11 @@
+[package]
+name = "pacafe-tokscale-history"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+fs2 = "0.4"
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread"] }
+tokscale-core = { git = "https://github.com/dnplus/tokscale", rev = "0cb83853f18f9846168ad52d9946bad56017a888" }

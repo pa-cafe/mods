@@ -1,0 +1,13 @@
+{
+  "title": "PA Cafe Settings",
+  "place": "none",
+  "overlay": { "kind": "dialog", "width": 620, "height": 0.85 },
+  "palette": [
+    {
+      "title": "PA Cafe Settings",
+      "command": "mod.open",
+      "args": { "name": "pacafe-desktop" },
+      "words": "desktop pair dispatch phone agents"
+    }
+  ]
+}

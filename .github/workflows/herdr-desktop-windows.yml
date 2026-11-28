@@ -1,0 +1,49 @@
+name: Herdr Desktop on Windows
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/herdr-desktop-windows.yml'
+      - 'connectors/herdr-desktop/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: herdr-desktop-windows-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  git-bash-native:
+    name: Git Bash installer and synthetic native usage
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install and exercise the locked native helper
+        shell: bash
+        env:
+          CARGO_NET_GIT_FETCH_WITH_CLI: 'true'
+        run: |
+          set -euo pipefail
+          test "$(node -p process.platform)" = win32
+          git --version
+          rustc --version
+          u=$(mktemp -d)
+          trap 'rm -rf -- "$u"' EXIT
+          profile="$u/PA Cafe profile"
+          export HERDR_APP_HOME="$(cygpath -aw "$profile")"
+          mod="$profile/mods/pacafe-desktop"
+          exe="$mod/bin/pacafe-tokscale-history.exe"
+          bash connectors/herdr-desktop/install.sh
+          test -f "$mod/mod.json"
+          test ! -e "$exe"
+          bash connectors/herdr-desktop/install.sh --with-usage
+          test -f "$exe"
+          export PACAFE_TEST_USAGE_SCANNER="$(cygpath -aw "$exe")"
+          node --test connectors/herdr-desktop/tests/tokscale-native.test.mjs connectors/herdr-desktop/tests/tokscale.test.mjs
