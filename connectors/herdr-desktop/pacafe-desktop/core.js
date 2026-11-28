@@ -1,6 +1,7 @@
 import { exec, hc, knownAgents, panes, run, spaces } from 'herdr';
 import { isOwnedSpace, ownedPlacement, ownedSpaceLabels } from './owned-space.js';
 import { addressMatches, liveBinding, localAliasCandidate, matches, sameMachine } from './session.js';
+import { codexSocketArgs, validSocket } from './team.js';
 
 // These commands are shipped in Herdr's program table. Additional local flags
 // and custom launchers are left to Herdr's normal, local agent menu.
@@ -51,7 +52,7 @@ export function allowed(profile, catalog) {
     catalog.agents.get(profile.on)?.some(agent => agent.key === profile.key && agent.installed &&
       adapter(agent) === profile.lifecycle && JSON.stringify(agent.run) === JSON.stringify(profile.run));
 }
-async function executable(command, on) {
+export async function executable(command, on) {
   // Resolve the locally approved executable, bypassing hc template names.
   let result = await exec('which', [command], { on, timeout: 4000 }).catch(() => null);
   if (!result || result.code !== 0) result = await exec('where.exe', [command], { on, timeout: 4000 }).catch(() => null);
@@ -66,15 +67,48 @@ export async function prepare(profile) {
   await verifyWorkspace(profile);
   return executable(profile.run[0], profile.on);
 }
-export async function launch(profile, command, task, session, prompt, replyArgs = [], ownedSpace) {
+// The lead's Herdr address. Names are addresses, so the brief can name it before launch.
+export const leadName = task => `pa-${task.slice(0, 23)}`;
+
+// Core sets HC_TERMINAL_SOCKET only inside its terminals, so read it from a
+// short one. Windows and unknown setups answer null, and Codex leads keep the
+// plain workspace sandbox.
+export async function coreSocket(profile) {
+  const args = ['run', '--json', '--no-parent', '--no-notify', '--cwd', profile.folder];
+  if (profile.on !== null) args.push('--on', profile.on);
+  const result = await hc([...args, '--', '/usr/bin/printenv', 'HC_TERMINAL_SOCKET']).catch(() => null);
+  if (result?.code !== 0) return null;
+  let probe;
+  try { probe = JSON.parse(result.stdout); } catch { return null; }
+  if (typeof probe?.address === 'string') await hc(['rm', probe.address]).catch(() => null);
+  const socket = typeof probe?.output === 'string' ? probe.output.trim() : null;
+  return validSocket(socket) ? socket : null;
+}
+
+// Permission profiles, which keep a Codex lead's network to Core's socket and
+// a Codex helper's off, arrived in Codex 0.172. An older Codex would ignore
+// them and fall back to the barista's own settings.
+export async function codexHasProfiles(command, on) {
+  const result = await exec(command, ['--version'], { on, timeout: 4000 }).catch(() => null);
+  const version = result?.code === 0 && /\bcodex-cli (\d+)\.(\d+)\.\d+/.exec(result.stdout);
+  return Boolean(version) && (Number(version[1]) > 0 || Number(version[2]) >= 172);
+}
+
+// `team` (a lead with a brief) lets the lead reach Core: Claude may run hc,
+// and Codex may use Core's socket from inside its workspace sandbox.
+export async function launch(profile, command, task, session, prompt, replyArgs = [], ownedSpace, team = null) {
   const args = ['run', '--json', '--bg', '--no-parent', '--no-notify', '--cwd', profile.folder,
-    '--name', `pa-${task.slice(0, 23)}`,
+    '--name', leadName(task),
     '--label', `pacafe.task=${task}`, '--label', `pacafe.session=${session}`, '--label', `pacafe.profile=${profile.id}`];
   for (const value of ownedSpaceLabels(ownedSpace, session)) args.push('--label', value);
   if (profile.on !== null) args.push('--on', profile.on);
+  // Codex runs its commands inside the terminal, where hc and the hooks find
+  // Herdr, only with --no-daemon.
+  const daemonless = (replyArgs.length || team) && !profile.run.includes('--no-daemon') ? ['--no-daemon'] : [];
+  const codexSandbox = team && validSocket(team.socket) ? codexSocketArgs(team.socket) : ['--sandbox', 'workspace-write'];
   const argv = profile.lifecycle === 'codex'
-    ? [command, ...profile.run.slice(1), ...(replyArgs.length && !profile.run.includes('--no-daemon') ? ['--no-daemon'] : []), '--sandbox', 'workspace-write', '--ask-for-approval', 'on-request', ...replyArgs, '--', prompt]
-    : profile.lifecycle === 'claude' ? [command, '--permission-mode', 'default', ...replyArgs, '--', prompt]
+    ? [command, ...profile.run.slice(1), ...daemonless, ...codexSandbox, '--ask-for-approval', 'on-request', ...replyArgs, '--', prompt]
+    : profile.lifecycle === 'claude' ? [command, '--permission-mode', 'default', ...(team ? ['--allowedTools', 'Bash(hc:*)'] : []), ...replyArgs, '--', prompt]
     : [command];
   if (profile.lifecycle === 'generic' && /[\s;|&<>$`*?(){}~'"]/.test(command)) {
     throw new Error('The generic agent needs a direct executable path.');

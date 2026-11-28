@@ -185,6 +185,8 @@ export default class PACafeDesktop extends View {
       .when(!bridge.connection, section => section.child(div().text_color(hex(t.muted)).child('請先配對。')))
       .child(list('允許使用的 Spaces', 'spaces', options.spaces, bridge.catalog ? '沒有可用的 Space。' : '正在查詢 Spaces…'))
       .child(list('允許使用的 Agents', 'agents', options.agents, '沒有可用的 Agent。'))
+      .child(div().w_full().whitespace_normal().text_color(hex(t.muted))
+        .child('小屋支援隊員時，派給 Claude Code 或 Codex 的工作由它帶隊：它能用同一個 Space 裡開放的 Agent 開隊員，也能操作這台電腦 Herdr 裡的所有終端機。隊員卡在確認時，只有帶隊的 Agent 能回覆，手機不行。只開放你放心交給它的 Space 和 Agent。'))
       .when(Boolean(bridge.connection), section => section
         .when(count > dispatchProfileLimit, section => section.child(div().text_color(hex(t.blocked))
           .child(`最多開放 ${dispatchProfileLimit} 個組合，請縮小選擇。`)))
