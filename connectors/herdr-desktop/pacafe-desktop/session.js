@@ -59,3 +59,26 @@ export async function sameMachine(profile, json) {
     : (await json(['machine', 'ls'])).machines.find(row => row.name === profile.on && row.state === 'connected');
   return machine?.id === profile.core;
 }
+
+// A permission request the agent itself reported through OSC 7501. Only this
+// kind is answerable from the cafe; questions and sign-ins stay in the terminal.
+// Keep the text boundary in sync with shared/herdr-desktop.ts in the cafe host.
+// eslint-disable-next-line no-control-regex
+const promptControls = /[\x00-\x08\x0b-\x1f\x7f-\x9f\u2028\u2029]/u;
+export function pendingPermission(profile, terminal) {
+  const report = terminal?.status;
+  if (!report || typeof report !== 'object' || report.state !== 'blocked' || report.kind !== 'permission') return null;
+  if (profile.lifecycle === 'codex' ? report.app !== 'codex' : profile.lifecycle !== 'claude' || !['claude', 'claude-code'].includes(report.app)) return null;
+  if (!Number.isSafeInteger(terminal.turn) || !Number.isSafeInteger(terminal.status_ms) || typeof report.msg !== 'string') return null;
+  const text = report.msg.replaceAll('\r\n', '\n').trim();
+  // Never shorten it: the barista must see the whole request they answer.
+  if (!text || text.length > 500 || promptControls.test(text)) return null;
+  return { turn: terminal.turn, at: terminal.status_ms, app: report.app, kind: report.kind, msg: report.msg, text };
+}
+
+// Claude Code: 1 is "Yes" for this request only. Codex: y is "Yes, proceed"
+// for this request only. Esc declines in both. Never a key that approves more.
+export function permissionKeys(lifecycle, answer) {
+  if (answer === 'deny') return ['claude', 'codex'].includes(lifecycle) ? ['esc'] : null;
+  return answer === 'approve' ? { claude: ['1'], codex: ['y'] }[lifecycle] ?? null : null;
+}

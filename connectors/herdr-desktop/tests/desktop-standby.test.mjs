@@ -588,3 +588,66 @@ test('automatic enrollment keeps prior permissions after a write failure and nev
   assert.deepEqual(bridge.profiles.map(row => row.folder), ['/local', '/fresh']);
   assert.deepEqual(bridge.availableProfiles().map(row => row.workspace), ['Fresh']);
 });
+
+const settle = async () => { for (let i = 0; i < 5; i++) await setImmediate(); };
+const waitingTerminal = () => ({ ...boundTurn(3), status: 'blocked' });
+const phoneAnswer = { task: session.task, session: session.id, terminal: 'remote/t1:41:1234', prompt: 'P'.repeat(43), id: '34c64b85-230f-4000-a358-6b85778f4421' };
+
+test('asks the helper for a waiting request and answers from the phone only while the cafe takes approvals', async () => {
+  const bridge = fixture();
+  native.live = [waitingTerminal()];
+  const posts = [];
+  const answered = [];
+  let reply = { answers: [phoneAnswer] };
+  bridge.post = async op => { posts.push(op); return reply; };
+  native.helper = async action => { if (action === 'answer') answered.push(action); return 'sent'; };
+  await bridge.sync();
+  await settle();
+  assert.equal('prompt' in posts[0].reports[0], false);
+  assert.deepEqual(answered, []);
+  reply = { approvals: true, answers: [phoneAnswer] };
+  await bridge.sync();
+  await settle();
+  assert.deepEqual(answered, ['answer']);
+  await bridge.sync();
+  assert.equal(posts[2].reports[0].prompt, true);
+  // HERDR_REMOTE_APPROVAL=off: the next answer stops the presses, then the request text.
+  reply = { approvals: false, answers: [phoneAnswer] };
+  answered.length = 0;
+  await bridge.sync();
+  await bridge.sync();
+  await settle();
+  assert.deepEqual(answered, []);
+  assert.equal('prompt' in posts.at(-1).reports[0], false);
+  // Only an exact blocked binding is answered.
+  reply = { approvals: true, answers: [{ ...phoneAnswer, terminal: 'remote/t1:41:9999' }, { ...phoneAnswer, id: 'not-a-uuid' }] };
+  await bridge.sync();
+  await settle();
+  assert.deepEqual(answered, []);
+});
+
+test('says on the desktop when a phone answer may not have reached the agent', async () => {
+  const bridge = fixture();
+  native.live = [waitingTerminal()];
+  bridge.approvals = true;
+  bridge.post = async () => ({ approvals: true, answers: [phoneAnswer] });
+  native.helper = async action => action === 'answer' ? 'unknown' : null;
+  await bridge.sync();
+  await settle();
+  assert.equal(bridge.actionError, 'A phone answer may not have reached the agent. Check the terminal.');
+});
+
+test('drops the request marker when an older cafe refuses it', async () => {
+  const bridge = fixture();
+  native.live = [waitingTerminal()];
+  bridge.approvals = true;
+  const posts = [];
+  bridge.post = async op => {
+    posts.push(op);
+    if (op.reports[0].prompt) throw Object.assign(new Error('Bad request'), { status: 400 });
+    return {};
+  };
+  await bridge.sync();
+  assert.deepEqual(posts.map(op => op.reports[0].prompt), [true, undefined]);
+  assert.equal(bridge.approvals, false);
+});
