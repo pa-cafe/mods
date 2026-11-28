@@ -22,6 +22,19 @@ export function liveBinding(profile, session, terminal, realFolder = profile.fol
   return `${terminal.address}:${terminal.pid}:${terminal.created_ms}`;
 }
 
+/** A local human shortcut, never a terminal input or session creation capability. */
+export function nativeAttentionTarget(profile, session, terminal, paneList) {
+  if (!profile || profile.on !== null || !['codex', 'claude'].includes(profile.lifecycle)) return null;
+  const report = terminal?.report ?? terminal?.status;
+  const status = typeof terminal?.status === 'string' ? terminal.status : report?.state;
+  if (status !== 'blocked' ||
+      (profile.lifecycle === 'codex' ? report?.app !== 'codex' : !['claude', 'claude-code'].includes(report?.app))) return null;
+  const binding = liveBinding(profile, session, terminal);
+  if (!binding) return null;
+  const pane = paneList.find(entry => entry.terminal === session.address && entry.pane)?.pane;
+  return pane ? { binding, pane } : null;
+}
+
 export function sendStatus(profile, terminal) {
   const report = terminal?.report ?? terminal?.status;
   if (profile.lifecycle === 'generic' || (profile.lifecycle === 'codex' ? report?.app !== 'codex' : !['claude', 'claude-code'].includes(report?.app))) return null;

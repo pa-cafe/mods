@@ -1,9 +1,9 @@
 import { View, div, image } from 'gpui-kit';
 import { Button, Checkbox, Input, InputState, h_flex, v_flex } from 'gpui-base';
-import { appHome, checking, closeOverlay, exec, focused, panes, pickFolder, props, run, spaces, theme, window as herdrWindow } from 'herdr';
+import { appHome, checking, closeOverlay, exec, focused, panes, pickFolder, props, run, spaces, terminals, theme, window as herdrWindow } from 'herdr';
 import { DispatchBridge } from './bridge.js';
 import { placeInMain, terminalFor, verifyWorkspace } from './core.js';
-import { liveBinding } from './session.js';
+import { liveBinding, nativeAttentionTarget } from './session.js';
 import { changePermissionChoices, dispatchProfileLimit, editablePermissions, permissionSelected, planPermissions } from './dispatch-permissions.js';
 import { receiverTabCommand } from './receiver-tab.js';
 
@@ -291,6 +291,45 @@ export default class PACafeDesktop extends View {
     return binding;
   }
 
+  async focusAttention(cx, bridge, profile, session, shown) {
+    const connection = bridge.connection;
+    if (this.closed || activeBridge !== bridge || !connection) return;
+    this.attentionError = '';
+    try {
+      await verifyWorkspace(profile);
+      const terminal = await terminalFor(profile, session);
+      const current = bridge.usable(profile.id) === profile && nativeAttentionTarget(profile, session, terminal, panes());
+      if (this.closed || activeBridge !== bridge || bridge.connection !== connection ||
+          current?.binding !== shown.binding || current?.pane !== shown.pane) {
+        throw new Error('The selected terminal is no longer waiting.');
+      }
+      // Focus the already attached native pane. No key injection or fallback
+      // shell; the user still sees and answers the current prompt locally.
+      run('pane.focus', { pane: current.pane });
+    } catch {
+      if (!this.closed) this.attentionError = '這個終端已不在等候處理，或目前無法開啟。';
+    }
+    if (!this.closed) cx.notify();
+  }
+
+  renderAttention(bridge) {
+    const panel = v_flex().w_full().gap(6);
+    if (this.ownedBridge !== bridge || !bridge?.connection) return panel;
+    const currentPanes = panes();
+    const byAddress = new Map(terminals().map(terminal => [terminal.address, terminal]));
+    const rows = bridge.sessions.flatMap(session => {
+      const profile = bridge.usable(session.profile);
+      const target = nativeAttentionTarget(profile, session, byAddress.get(session.address), currentPanes);
+      return target ? [{ session, profile, target }] : [];
+    });
+    if (rows.length) panel.child(div().font_semibold().child('需要你處理'));
+    for (const { session, profile, target } of rows) panel.child(h_flex().w_full().items_center().gap(8)
+      .child(div().flex_1().truncate().child(`${profile.agent} · ${profile.workspace} · ${session.task.slice(0, 8)}`))
+      .child(button(`attention-${session.id}`, '開啟本機終端', cx => cx.spawn(cx => this.focusAttention(cx, bridge, profile, session, target)))));
+    if (this.attentionError) panel.child(div().whitespace_normal().child(this.attentionError));
+    return panel;
+  }
+
   renderBadge() {
     const t = theme();
     const bridge = activeBridge;
@@ -327,7 +366,8 @@ export default class PACafeDesktop extends View {
       .child(div().text_color(hex(t.muted)).child(this.ownedBridge === activeBridge
         ? '這個分頁正在接收派工。可切到其他分頁繼續工作。'
         : 'PA Cafe 只會開一個接收器。可在設定查看狀態。'))
-      .child(h_flex().child(button('receiver-settings', 'PA Cafe Settings', () => run('mod.open', { name: mod }))));
+      .child(h_flex().child(button('receiver-settings', 'PA Cafe Settings', () => run('mod.open', { name: mod }))))
+      .child(this.renderAttention(bridge));
     if (!this.overlay || !bridge?.ready) {
       return root.child(div().child(bridge?.pollError ?? '正在讀取 PA Cafe 設定…'));
     }
