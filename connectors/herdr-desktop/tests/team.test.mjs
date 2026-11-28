@@ -208,6 +208,19 @@ test('an older cafe that refuses the field gets the plain report once, then the 
   assert.ok(sent(bridge.posts[4])[0], 'learned again from the next plain answer');
 });
 
+test('a refused report alongside phone approvals drops both flags and retries plain', async () => {
+  const refused = Object.assign(new Error('HTTP 400'), { status: 400 });
+  const bridge = bridgeFixture([{ teammates: true, approvals: true }, refused, {}]);
+  await bridge.sync([]);
+  assert.equal(bridge.approvals, true);
+  assert.equal(bridge.teamReports, true);
+  await bridge.sync([]);
+  assert.ok(sent(bridge.posts[1])[0], 'tried with the list');
+  assert.deepEqual(sent(bridge.posts[2]), [undefined], 'the retry is plain');
+  assert.equal(bridge.approvals, false);
+  assert.equal(bridge.teamReports, false);
+});
+
 test('a lead missing from the snapshot sends no list, so the cafe keeps the last one', async () => {
   const bridge = bridgeFixture([{ teammates: true }, {}]);
   await bridge.sync([]);
