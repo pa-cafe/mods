@@ -62,9 +62,11 @@ export async function sameMachine(profile, json) {
 
 // A permission request the agent itself reported through OSC 7501. Only this
 // kind is answerable from the cafe; questions and sign-ins stay in the terminal.
+// Invisible format characters (bidi overrides, zero-width) are refused: the
+// barista must not approve text that reads unlike what runs.
 // Keep the text boundary in sync with shared/herdr-desktop.ts in the cafe host.
 // eslint-disable-next-line no-control-regex
-const promptControls = /[\x00-\x08\x0b-\x1f\x7f-\x9f\u2028\u2029]/u;
+const promptControls = /[\x00-\x08\x0b-\x1f\x7f-\x9f\u2028\u2029\p{Cf}]/u;
 export function pendingPermission(profile, terminal) {
   const report = terminal?.status;
   if (!report || typeof report !== 'object' || report.state !== 'blocked' || report.kind !== 'permission') return null;

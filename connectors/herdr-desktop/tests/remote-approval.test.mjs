@@ -23,7 +23,8 @@ test('only a permission request the agent reported in full is answerable', () =>
     [claude, blocked({ kind: 'question' })], [claude, blocked({ kind: 'auth' })], [claude, blocked({ state: 'working' })],
     [claude, blocked({ app: 'codex' })], [codex, blocked({})], [{ lifecycle: 'generic' }, blocked({})],
     [claude, blocked({ msg: 'x'.repeat(501) })], [claude, blocked({ msg: 'echo ok\rrm -rf /' })], [claude, blocked({ msg: 'line\u001b[2J' })],
-    [claude, blocked({ msg: '   ' })], [claude, blocked({}, { status_ms: null })], [claude, { status: 'blocked', turn: 1, status_ms: 10 }], [claude, null],
+    [claude, blocked({ msg: '   ' })],
+    ...[0x202e, 0x2066, 0x2069, 0x200b, 0x200d, 0xfeff, 0xad].map(hidden => [claude, blocked({ msg: `approve Bash: rm -rf ${String.fromCodePoint(hidden)}/tmp/x` })]), [claude, blocked({}, { status_ms: null })], [claude, { status: 'blocked', turn: 1, status_ms: 10 }], [claude, null],
   ]) assert.equal(pendingPermission(profile, terminal), null, JSON.stringify(terminal));
 });
 
@@ -47,7 +48,7 @@ async function fixture(t, { lifecycle = 'claude', app = 'claude-code', take = { 
     res.setHeader('Content-Type', 'application/json');
     if (op.op === 'approval-take') {
       res.statusCode = take.status;
-      res.end(take.status === 200 ? JSON.stringify({ answer: take.answer, remaining: 12_000 }) : '{}');
+      res.end(take.status === 200 ? JSON.stringify({ answer: take.answer, remaining: take.remaining ?? 12_000 }) : '{}');
     } else res.end(op.op === 'approval-result' ? '{"ok":true}' : '{}');
   });
   server.listen(0, '127.0.0.1');
@@ -185,6 +186,14 @@ test('presses nothing when the cafe does not hand the answer over', { skip }, as
   assert.equal(await f.answer((await f.reported()).id), 'changed');
   assert.equal(f.keys(), '');
   assert.deepEqual(f.ops(), ['approval-take']);
+});
+
+test('presses nothing when too little time is left to check the key afterwards', { skip }, async t => {
+  const f = await fixture(t, { take: { status: 200, answer: 'approve', remaining: 3500 } });
+  f.show('terminal', f.record({ state: 'blocked', kind: 'permission', msg: 'approve Bash: touch x' }));
+  assert.equal(await f.answer((await f.reported()).id), 'changed');
+  assert.equal(f.keys(), '');
+  assert.deepEqual(f.ops(), ['approval-take', 'approval-result:changed']);
 });
 
 test('says unknown, not sent, when the request is still on screen after the key', { skip }, async t => {

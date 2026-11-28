@@ -185,6 +185,8 @@ function pressIfSame(address, check, keys, signal) {
 }
 
 const settleMs = 3000;
+// Press early enough that the check after the key and the result still fit in the time the cafe gave.
+const confirmMs = settleMs + 1000;
 async function answer(device, target) {
   const { profile, session, terminal, prompt, id } = target;
   const request = { task: session.task, session: session.id, terminal, prompt, id };
@@ -203,11 +205,11 @@ async function answer(device, target) {
   if (!body) return 'changed';
   const keys = permissionKeys(profile.lifecycle, body.answer);
   const remaining = Number.isSafeInteger(body.remaining) ? started + body.remaining - Date.now() : 0;
-  if (!keys || remaining <= 0 || remaining > 12_000) {
+  if (!keys || remaining - confirmMs <= 0 || remaining > 12_000) {
     await result('changed');
     return 'changed';
   }
-  const signal = AbortSignal.timeout(remaining);
+  const signal = AbortSignal.timeout(remaining - confirmMs);
   const pressed = await pressIfSame(session.address, live =>
     stillApproved(device, profile, session) && boundTo(profile, session, live) === terminal && same(live), keys, signal);
   if (pressed !== 'pressed') {
