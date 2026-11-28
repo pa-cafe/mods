@@ -1,5 +1,5 @@
-import { appHome, exec, panes, terminals, window as herdrWindow } from 'herdr';
-import { adapter, allowed, coreSocket, discovery, label, launch, leadName, lifecycle, placeInMain, prepare, releaseShellRecovery, terminalBinding, terminalFor, uuid, verifyWorkspace } from './core.js';
+import { appHome, exec, hc, panes, terminals, window as herdrWindow } from 'herdr';
+import { adapter, allowed, codexHasProfiles, coreSocket, discovery, executable, label, launch, leadName, lifecycle, placeInMain, prepare, releaseShellRecovery, terminalBinding, terminalFor, uuid, verifyWorkspace } from './core.js';
 import { matches, sendStatus } from './session.js';
 import { automaticPermissionDiscoveries, dispatchProfileLimit, editablePermissions, permittedProfiles, planPermissions, readPermissions, spacePermissionKey } from './dispatch-permissions.js';
 import { isOwnedSpace } from './owned-space.js';
@@ -17,7 +17,11 @@ const captureLifetime = 45_000;
 const discoveryInterval = 15_000;
 const placementDelays = [2500, 5000, 10_000];
 const watchesStandby = status => status === 'turn-finished' || status === 'unavailable';
-const teamClis = new Set(['claude', 'codex', 'opencode']);
+// Leads are the CLIs the mod starts with the task; OpenCode starts by hand,
+// so it can only be a helper.
+const leadClis = new Set(['claude', 'codex']);
+const helperCli = row => leadClis.has(row.lifecycle) ? row.lifecycle
+  : row.lifecycle === 'generic' && row.key === 'opencode' && row.run?.length === 1 && row.run[0] === 'opencode' ? 'opencode' : null;
 const terminalSignature = terminal => terminal ? JSON.stringify([
   terminal.state, terminal.reason,
   typeof terminal.status === 'string' ? terminal.status : terminal.status?.state,
@@ -162,7 +166,7 @@ export class DispatchBridge {
         const profile = this.usable(session.profile);
         const exact = profile && matches(profile, session, terminal);
         return [session.id, Boolean(profile), terminalSignature(exact ? terminal : null),
-          ...(this.teamReports && exact ? [teammates(session.address, [...live.values()])] : [])];
+          ...(this.teamReports && exact ? [teammates(session.address, this.withParents([...live.values()]))] : [])];
       }));
   }
 
@@ -301,6 +305,7 @@ export class DispatchBridge {
     this.turnReports = false;
     this.approvals = false;
     this.teamReports = false;
+    this.parents = new Map();
     this.lastAdvertisedProfiles = this.profileSignature([], []);
     this.permissions = readPermissions(state?.permissions);
     this.profiles = permittedProfiles(this.permissions, state?.profiles);
@@ -426,6 +431,7 @@ export class DispatchBridge {
     const reportTurns = new Map();
     const terminalSignatures = new Map();
     const teams = new Map();
+    const family = this.teamReports ? await this.family([...live.values()]) : [];
     const reports = (await Promise.all(this.sessions.map(async session => {
       const profile = this.usable(session.profile);
       if (!profile) return null;
@@ -444,7 +450,7 @@ export class DispatchBridge {
       const terminal = inSnapshot ? snapshot : session.address ? await terminalFor(profile, session).catch(() => null) : null;
       // Helpers come from the same snapshot as their lead; a lead missing
       // from it sends no list, and the cafe keeps the last one.
-      if (this.teamReports && inSnapshot && snapshot.state === 'live') teams.set(session.id, teammates(session.address, [...live.values()]));
+      if (this.teamReports && inSnapshot && snapshot.state === 'live') teams.set(session.id, teammates(session.address, family));
       const status = session.address ? terminal ? lifecycle(profile, terminal) : 'unavailable' : 'launch-failed';
       if (terminal?.state === 'live') {
         // Older clients persisted a queued placement as shown. Retry only if
@@ -575,7 +581,7 @@ export class DispatchBridge {
     try {
       if (!this.usable(profile.id)) return;
       await verifyWorkspace(profile);
-      const team = await this.teamFor(profile, next.task);
+      const team = await this.teamFor(profile, command, next.task);
       if (connection === this.connection && this.usable(profile.id)) {
         session.address = await launch(profile, command, session.task, id, leadPrompt(team?.brief, job.prompt), capture?.args, ownedSpace, team);
         session.shown = this.reveal(profile, session);
@@ -586,16 +592,59 @@ export class DispatchBridge {
   }
 
   // The lead may start helpers on the command line tools the barista
-  // approved for this same workspace and computer.
-  async teamFor(profile, task) {
-    if (!teamClis.has(profile.lifecycle)) return null;
-    const clis = this.profiles.filter(row => row.on === profile.on && row.core === profile.core && row.space === profile.space &&
-      row.folder === profile.folder && teamClis.has(row.lifecycle) && this.usable(row.id)).map(row => row.lifecycle);
-    const socket = profile.lifecycle === 'codex' || clis.includes('codex') ? await coreSocket(profile) : null;
-    // A Codex lead without Core's socket cannot run hc, so it works alone.
-    if (profile.lifecycle === 'codex' && !socket) return null;
-    const brief = teamBrief({ lead: leadName(task), folder: profile.folder, clis, socket });
+  // approved for this same workspace and computer, but only once the cafe
+  // stores and shows them (`teammates: true`); an older cafe gets a solo agent.
+  async teamFor(profile, command, task) {
+    if (!this.teamReports || !leadClis.has(profile.lifecycle)) return null;
+    const paths = new Map([[profile.run[0], command]]);
+    const resolve = async name => {
+      if (!paths.has(name)) paths.set(name, await executable(name, profile.on).catch(() => null));
+      return paths.get(name);
+    };
+    const profiles = new Map();
+    const codexReady = path => {
+      if (!profiles.has(path)) profiles.set(path, codexHasProfiles(path, profile.on));
+      return profiles.get(path);
+    };
+    // A Codex lead reaches Core only through the socket its profile allows.
+    let socket = null;
+    if (profile.lifecycle === 'codex') {
+      if (!(await codexReady(command))) return null;
+      socket = await coreSocket(profile);
+      if (!socket) return null;
+    }
+    const helpers = [];
+    for (const row of this.profiles) {
+      const cli = helperCli(row);
+      if (!cli || helpers.some(helper => helper.cli === cli) || row.on !== profile.on || row.core !== profile.core ||
+        row.space !== profile.space || row.folder !== profile.folder || !this.usable(row.id)) continue;
+      const path = await resolve(row.run[0]);
+      if (path && (cli !== 'codex' || await codexReady(path))) helpers.push({ cli, path });
+    }
+    const brief = teamBrief({ lead: leadName(task), folder: profile.folder, helpers });
     return brief ? { brief, socket } : null;
+  }
+
+  // Desktop's terminal list carries `parent`. For a build without it, ask Core
+  // once per terminal; a terminal's parent never changes.
+  async family(list) {
+    const missing = list.filter(terminal => typeof terminal?.address === 'string' && !Object.hasOwn(terminal, 'parent') &&
+      !this.parents.has(terminal.address)).slice(0, 24);
+    await Promise.all(missing.map(async terminal => {
+      const result = await hc(['get', terminal.address, '--json']).catch(() => null);
+      let full = null;
+      try { full = result?.code === 0 ? JSON.parse(result.stdout) : null; } catch { /* asked again next round */ }
+      if (full && typeof full === 'object') {
+        this.parents.set(terminal.address, { parent: typeof full.parent === 'string' ? full.parent : null, created_ms: full.created_ms, argv: full.argv });
+      }
+    }));
+    if (this.parents.size > 512) this.parents = new Map([...this.parents].slice(-256));
+    return this.withParents(list);
+  }
+
+  withParents(list) {
+    return list.map(terminal => !terminal || Object.hasOwn(terminal, 'parent') || !this.parents.has(terminal.address) ? terminal
+      : { ...this.parents.get(terminal.address), ...terminal, parent: this.parents.get(terminal.address).parent });
   }
 
   placementRetryDue() {

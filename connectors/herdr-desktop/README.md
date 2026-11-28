@@ -53,7 +53,19 @@ On macOS, **保持待命** is off by default. Turn it on in PA Cafe Settings to 
 
 Pairing credentials, approvals, and session metadata stay in private files tied to that pairing. Prompts for manually started agents are available for the lifetime of the receiver.
 
-The mod starts a dedicated Core terminal in the approved workspace folder. Codex and Claude Code keep their regular approval prompts and report completion through Core's root agent status. Other supported agents open with their default local command and the prompt is displayed in settings for manual start.
+The mod starts a dedicated Core terminal in the approved workspace folder. Codex and Claude Code report completion through Core's root agent status and keep their regular approval prompts, except that a team lead may run Herdr's `hc` (below). Other supported agents, OpenCode included, open with their default local command and the prompt is displayed in settings for manual start.
+
+### Teams
+
+When the cafe stores helpers (its sync answer says `teammates: true`), a Claude Code or Codex agent leads the task and may start helpers with Herdr's own `hc run`, on the approved Claude Code, Codex and OpenCode profiles for the same machine, Space and folder. Older cafes get no team; the agent works alone, as before.
+
+**The lead can operate every terminal in this computer's Herdr.** `hc` has no per-terminal permission, so only the lead's brief keeps it to its own helpers, and it can also start other programs through Core. Approve a Space and agent for dispatch only if you accept that; the dispatch settings say so too.
+
+- A Claude Code lead runs with `--permission-mode default --allowedTools "Bash(hc:*)"`. A Codex lead (0.172 or newer) keeps its workspace sandbox, and its network reaches only Core's socket; an older Codex works alone.
+- Helpers keep their own approval prompts: Claude Code may only `hc send` its report without asking, Codex runs in the workspace sandbox with no network (so it cannot reach Core, and the lead reads its screen), and OpenCode runs with the barista's own OpenCode settings.
+- The lead may answer a helper's prompt only for work inside the task folder and hands everything else back in its reply. A helper's prompt cannot be answered from the phone.
+- The brief asks for at most three helpers; the mod does not enforce that number. The cafe stores up to twelve.
+- The cafe keeps each helper's name (chosen by the lead), CLI name, Herdr status word and parent name under the task. Screens, prompts and paths are not sent.
 
 The cafe owner can view the screen of a live PA Cafe agent in its approved workspace. Codex and Claude Code receive plain PA Cafe messages, including line breaks and leading punctuation, when Herdr can verify the running agent and its status. Shortcuts, shell modes, questions and sign-in prompts require the desktop. A terminal kept in the main window takes follow-up text while it reports idle or working. Other supported agents allow viewing and take input on the desktop. PA Cafe relays the current screen in memory while the terminal is open. Message bodies expire in memory, and terminal content stays out of push notifications.
 

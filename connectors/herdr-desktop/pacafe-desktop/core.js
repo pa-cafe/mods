@@ -6,7 +6,7 @@ import { codexSocketArgs, validSocket } from './team.js';
 // These commands are shipped in Herdr's program table. Additional local flags
 // and custom launchers are left to Herdr's normal, local agent menu.
 const generic = {
-  pi: 'pi', pig: 'pig', cursor: 'agent', copilot: 'copilot',
+  pi: 'pi', pig: 'pig', opencode: 'opencode', cursor: 'agent', copilot: 'copilot',
   amp: 'amp', grok: 'grok', 'dsh-tui': 'dsh-tui', goose: 'goose', antigravity: 'agy',
   kimi: 'kimi', kiro: 'kiro-cli', hermes: 'hermes', qoder: 'qodercli', muse: 'muse',
   crush: 'crush', gemini: 'gemini', ollama: 'ollama', omp: 'omp',
@@ -27,7 +27,6 @@ export function adapter(agent) {
   if (agent.shell) return null;
   if (agent.key === 'codex' && agent.run[0] === 'codex' && (agent.run.length === 1 || (agent.run.length === 2 && agent.run[1] === '--no-daemon'))) return 'codex';
   if (agent.key === 'claude' && agent.run.length === 1 && agent.run[0] === 'claude') return 'claude';
-  if (agent.key === 'opencode' && agent.run.length === 1 && agent.run[0] === 'opencode') return 'opencode';
   if (agent.run.length === 1 && Object.hasOwn(generic, agent.key) && generic[agent.key] === agent.run[0]) return 'generic';
   return null;
 }
@@ -53,7 +52,7 @@ export function allowed(profile, catalog) {
     catalog.agents.get(profile.on)?.some(agent => agent.key === profile.key && agent.installed &&
       adapter(agent) === profile.lifecycle && JSON.stringify(agent.run) === JSON.stringify(profile.run));
 }
-async function executable(command, on) {
+export async function executable(command, on) {
   // Resolve the locally approved executable, bypassing hc template names.
   let result = await exec('which', [command], { on, timeout: 4000 }).catch(() => null);
   if (!result || result.code !== 0) result = await exec('where.exe', [command], { on, timeout: 4000 }).catch(() => null);
@@ -81,9 +80,18 @@ export async function coreSocket(profile) {
   if (result?.code !== 0) return null;
   let probe;
   try { probe = JSON.parse(result.stdout); } catch { return null; }
-  if (addressMatches(profile, probe?.address)) await hc(['rm', probe.address]).catch(() => null);
+  if (typeof probe?.address === 'string') await hc(['rm', probe.address]).catch(() => null);
   const socket = typeof probe?.output === 'string' ? probe.output.trim() : null;
   return validSocket(socket) ? socket : null;
+}
+
+// Permission profiles, which keep a Codex lead's network to Core's socket and
+// a Codex helper's off, arrived in Codex 0.172. An older Codex would ignore
+// them and fall back to the barista's own settings.
+export async function codexHasProfiles(command, on) {
+  const result = await exec(command, ['--version'], { on, timeout: 4000 }).catch(() => null);
+  const version = result?.code === 0 && /\bcodex-cli (\d+)\.(\d+)\.\d+/.exec(result.stdout);
+  return Boolean(version) && (Number(version[1]) > 0 || Number(version[2]) >= 172);
 }
 
 // `team` (a lead with a brief) lets the lead reach Core: Claude may run hc,
@@ -94,13 +102,13 @@ export async function launch(profile, command, task, session, prompt, replyArgs 
     '--label', `pacafe.task=${task}`, '--label', `pacafe.session=${session}`, '--label', `pacafe.profile=${profile.id}`];
   for (const value of ownedSpaceLabels(ownedSpace, session)) args.push('--label', value);
   if (profile.on !== null) args.push('--on', profile.on);
-  // Codex runs its commands inside the terminal only with --no-daemon.
-  const daemonless = profile.run.includes('--no-daemon') ? [] : ['--no-daemon'];
+  // Codex runs its commands inside the terminal, where hc and the hooks find
+  // Herdr, only with --no-daemon.
+  const daemonless = (replyArgs.length || team) && !profile.run.includes('--no-daemon') ? ['--no-daemon'] : [];
   const codexSandbox = team && validSocket(team.socket) ? codexSocketArgs(team.socket) : ['--sandbox', 'workspace-write'];
   const argv = profile.lifecycle === 'codex'
     ? [command, ...profile.run.slice(1), ...daemonless, ...codexSandbox, '--ask-for-approval', 'on-request', ...replyArgs, '--', prompt]
     : profile.lifecycle === 'claude' ? [command, '--permission-mode', 'default', ...(team ? ['--allowedTools', 'Bash(hc:*)'] : []), ...replyArgs, '--', prompt]
-    : profile.lifecycle === 'opencode' ? [command, '--prompt', prompt]
     : [command];
   if (profile.lifecycle === 'generic' && /[\s;|&<>$`*?(){}~'"]/.test(command)) {
     throw new Error('The generic agent needs a direct executable path.');
@@ -160,8 +168,7 @@ export function lifecycle(profile, terminal) {
   if (profile.lifecycle === 'generic') return 'manual-start';
   const report = terminal.report ?? terminal.status;
   const app = report?.app;
-  const apps = profile.lifecycle === 'codex' ? ['codex'] : profile.lifecycle === 'opencode' ? ['opencode'] : ['claude', 'claude-code'];
-  if (app && !apps.includes(app)) return 'unreported';
+  if (app && (profile.lifecycle === 'codex' ? app !== 'codex' : !['claude', 'claude-code'].includes(app))) return 'unreported';
   const status = typeof terminal.status === 'string' ? terminal.status : terminal.status?.state;
   if (status === 'done' && terminal.turn > 0) return 'turn-finished';
   if (status === 'error') return 'agent-error';
