@@ -63,7 +63,7 @@ native_path() {
   if "$windows"; then cygpath -am -- "$1"; else printf '%s\n' "$1"; fi
 }
 
-repo=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+here=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 user_home=$HOME
 if "$windows" && [[ -n "${USERPROFILE-}" ]]; then user_home=$(shell_path "$USERPROFILE"); fi
 app_home=$(shell_path "${HERDR_APP_HOME:-${XDG_CONFIG_HOME:-"$user_home/.config"}/herdr-app}")
@@ -122,8 +122,10 @@ if "$show_only"; then
   show_tab || fail 'Could not open the installed PA Cafe tab. Check that the mod, Herdr Desktop and Node.js are installed.'
   exit 0
 fi
-git -C "$repo" rev-parse --is-inside-work-tree >/dev/null 2>&1 ||
+repo=$(git -C "$here" rev-parse --show-toplevel 2>/dev/null) ||
   fail 'Run install.sh from a Git checkout.'
+# Paths in the commit are relative to the repository root, wherever this script sits in it.
+prefix=$(git -C "$here" rev-parse --show-prefix)
 
 check_stopped() {
   # Windows' AF_UNIX socket may not be exposed as -S/-e by Git Bash.
@@ -146,7 +148,7 @@ fi
 revision=$(git -C "$repo" rev-parse --verify --end-of-options "${ref}^{commit}") ||
   fail "Cannot resolve the requested Git revision: $ref"
 
-package=mods/pacafe-desktop
+package="${prefix}pacafe-desktop"
 # Reject links before loading code. The installed copy must be a self-contained bundle.
 objects=$(git -C "$repo" ls-tree -r "$revision" -- "$package")
 [[ -n "$objects" ]] || fail "No $package bundle at $revision."
@@ -158,7 +160,7 @@ check_home=$(mktemp -d /tmp/pacafe-check.XXXXXX)
 lock=''
 staged=''
 backup=''
-target="$app_home/$package"
+target="$app_home/mods/pacafe-desktop"
 cleanup() {
   local rc=$?
   trap - EXIT
@@ -191,7 +193,7 @@ usage_name='pacafe-tokscale-history'
 if "$windows"; then usage_name="$usage_name.exe"; fi
 if "$build_usage"; then
   command -v cargo >/dev/null 2>&1 || fail 'Cargo (with a Rust 2024 toolchain) is required for --with-usage.'
-  source_path=tools/tokscale-history
+  source_path="${prefix}tools/tokscale-history"
   source_objects=$(git -C "$repo" ls-tree -r "$revision" -- "$source_path")
   [[ -n "$source_objects" ]] || fail "No usage scanner source at $revision."
   if printf '%s\n' "$source_objects" | grep -Eq '^(120000|160000) '; then
@@ -236,7 +238,8 @@ lock=$lock_path
 mkdir -p "$app_home/mods"
 staged=$(mktemp -d "$app_home/.pacafe-desktop-install.XXXXXX")
 # Extract from Git again so checker-generated files never enter the installed bundle.
-git -C "$repo" archive "$revision" -- "$package" | tar -xf - --strip-components 1 -C "$staged"
+parents=${package//[^\/]/}
+git -C "$repo" archive "$revision" -- "$package" | tar -xf - --strip-components "${#parents}" -C "$staged"
 if [[ -n "$usage_binary" ]]; then
   mkdir -p "$staged/pacafe-desktop/bin"
   cp -- "$usage_binary" "$staged/pacafe-desktop/bin/$usage_name"

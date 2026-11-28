@@ -19,5 +19,6 @@ The secret is shown once when the source is created, as `whsec_` followed by bas
 ## What is here
 
 - [`herdr/`](herdr/README.md): the bridge for Herdr, a terminal multiplexer for coding agents. It pairs with a cafe by a short code and reports when an agent in a pane changes state. It is the reference for writing your own. People install it from [pa-cafe/herdr-mod](https://github.com/pa-cafe/herdr-mod).
+- [`herdr-desktop/`](herdr-desktop/README.md): the PA Cafe mod for Herdr Desktop. It pairs a computer with a cafe as a resident and starts the work the barista sends in an approved folder. It talks to the cafe through its paired device, not through signed deliveries, and installs with the one-paste command in its README.
 
 Copy-and-paste senders for Zapier, n8n, Apps Script, curl and others are in [`../recipes/`](../recipes/README.md).

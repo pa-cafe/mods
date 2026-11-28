@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { registerHooks } from 'node:module';
 import { setImmediate } from 'node:timers/promises';
 import test from 'node:test';
-import { planPermissions, spaceChoiceKey, spacePermissionKey } from '../pacafe-desktop/dispatch-permissions.js';
+import { planPermissions, spaceChoiceKey } from '../pacafe-desktop/dispatch-permissions.js';
 
 // Stub only the native SDK; exercise the actual receiver and Core binding logic.
 const native = { live: [], core: null, uploads: 0 };

@@ -169,6 +169,7 @@ async function uploadHistory(cache, request) {
     const current = await liveTerminal(value, target);
     if (!ready(current) || current.turn !== candidate.turn || !reading || typeof reading.text !== 'string' ||
         !['history', 'screen', 'stitched'].includes(reading.how)) return null;
+    // eslint-disable-next-line no-control-regex
     const text = reading.text.replaceAll(value.secret, '[redacted]').replace(/[\x00-\x08\x0b-\x1f\x7f-\x9f]/gu, '');
     const lines = text.split('\n').length;
     return { text, truncated: reading.complete !== true || lines >= historyLines + current.rows || reading.how === 'stitched' };

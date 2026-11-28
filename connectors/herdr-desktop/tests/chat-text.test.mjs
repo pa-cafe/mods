@@ -31,7 +31,7 @@ test('rendered prompt is a single physical line and preserves all content on JSO
   assert.ok(line.startsWith(prefix));
   assert.equal(JSON.parse(line.slice(prefix.length)), message);
   assert.doesNotMatch(line, /[\n\r\t\u2028\u2029]/u);
-  assert.doesNotMatch(line.slice(prefix.length + 1, -1), /["'$%!`^&|<>(){}\[\];#*?~]/u);
+  assert.doesNotMatch(line.slice(prefix.length + 1, -1), /["'$%!`^&|<>(){}[\];#*?~]/u);
   for (const shell of ['/bin/sh', '/bin/bash', '/bin/zsh'].filter(existsSync)) {
     const executed = spawnSync(shell, ['-c', line], { encoding: 'utf8', timeout: 3000 });
     assert.equal(executed.status, 0, executed.stderr);

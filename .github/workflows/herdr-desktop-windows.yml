@@ -1,19 +1,16 @@
-name: Tokscale Windows
+name: Herdr Desktop on Windows
 
 on:
   pull_request:
     paths:
-      - '.github/workflows/tokscale-windows.yml'
-      - 'install.sh'
-      - 'mods/pacafe-desktop/**'
-      - 'tests/tokscale*.test.mjs'
-      - 'tools/tokscale-history/**'
+      - '.github/workflows/herdr-desktop-windows.yml'
+      - 'connectors/herdr-desktop/**'
 
 permissions:
   contents: read
 
 concurrency:
-  group: tokscale-windows-${{ github.event.pull_request.number }}
+  group: herdr-desktop-windows-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -44,10 +41,10 @@ jobs:
           export HERDR_APP_HOME="$(cygpath -aw "$profile")"
           mod="$profile/mods/pacafe-desktop"
           exe="$mod/bin/pacafe-tokscale-history.exe"
-          bash ./install.sh
+          bash connectors/herdr-desktop/install.sh
           test -f "$mod/mod.json"
           test ! -e "$exe"
-          bash ./install.sh --with-usage
+          bash connectors/herdr-desktop/install.sh --with-usage
           test -f "$exe"
           export PACAFE_TEST_USAGE_SCANNER="$(cygpath -aw "$exe")"
-          node --test tests/tokscale-native.test.mjs tests/tokscale.test.mjs
+          node --test connectors/herdr-desktop/tests/tokscale-native.test.mjs connectors/herdr-desktop/tests/tokscale.test.mjs

@@ -6,7 +6,6 @@ import { existsSync, mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync,
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { promisify } from 'node:util';
 import test from 'node:test';
 import { codexHookArguments, codexBindingName, replyName } from '../pacafe-desktop/reply-hook.mjs';
 
