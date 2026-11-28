@@ -15,7 +15,7 @@ const claude = { lifecycle: 'claude' };
 const codex = { lifecycle: 'codex' };
 const blocked = (status, extra = {}) => ({ status: { state: 'blocked', kind: 'permission', app: 'claude-code', msg: 'approve Bash: touch x', ...status }, status_ms: 10, turn: 1, ...extra });
 
-test('only a permission request the agent reported in full is answerable', () => {
+test('only a tool request the agent named is answerable, never a bare label or the plan dialog', () => {
   assert.deepEqual(pendingPermission(claude, blocked({ msg: 'approve Bash: cd build &&\r\n\tmake' })),
     { turn: 1, at: 10, app: 'claude-code', kind: 'permission', msg: 'approve Bash: cd build &&\r\n\tmake', text: 'approve Bash: cd build &&\n\tmake' });
   assert.ok(pendingPermission(codex, blocked({ app: 'codex' })));
@@ -24,6 +24,8 @@ test('only a permission request the agent reported in full is answerable', () =>
     [claude, blocked({ app: 'codex' })], [codex, blocked({})], [{ lifecycle: 'generic' }, blocked({})],
     [claude, blocked({ msg: 'x'.repeat(501) })], [claude, blocked({ msg: 'echo ok\rrm -rf /' })], [claude, blocked({ msg: 'line\u001b[2J' })],
     [claude, blocked({ msg: '   ' })],
+    ...['permission prompt', 'approve plan', 'sandbox request', 'goal proposal', 'approve ExitPlanMode: plan', 'approve mcp__x__y', 'approve mcp__x__y: mcp__x__y', 'approve Bash: npm run build…'].map(msg => [claude, blocked({ msg })]),
+    [codex, blocked({ app: 'codex', msg: 'permission prompt' })],
     ...[0x202e, 0x2066, 0x2069, 0x200b, 0x200d, 0xfeff, 0xad].map(hidden => [claude, blocked({ msg: `approve Bash: rm -rf ${String.fromCodePoint(hidden)}/tmp/x` })]), [claude, blocked({}, { status_ms: null })], [claude, { status: 'blocked', turn: 1, status_ms: 10 }], [claude, null],
   ]) assert.equal(pendingPermission(profile, terminal), null, JSON.stringify(terminal));
 });

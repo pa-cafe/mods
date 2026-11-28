@@ -73,9 +73,23 @@ export function pendingPermission(profile, terminal) {
   if (profile.lifecycle === 'codex' ? report.app !== 'codex' : profile.lifecycle !== 'claude' || !['claude', 'claude-code'].includes(report.app)) return null;
   if (!Number.isSafeInteger(terminal.turn) || !Number.isSafeInteger(terminal.status_ms) || typeof report.msg !== 'string') return null;
   const text = report.msg.replaceAll('\r\n', '\n').trim();
-  // Never shorten it: the barista must see the whole request they answer.
-  if (!text || text.length > 500 || promptControls.test(text)) return null;
+  if (!text || text.length > 500 || promptControls.test(text) || !askedTool(profile.lifecycle, text)) return null;
   return { turn: terminal.turn, at: terminal.status_ms, app: report.app, kind: report.kind, msg: report.msg, text };
+}
+
+// The agent's msg is its own one-line summary, not the dialog. Claude Code
+// falls back to a bare label ("permission prompt") when the summary would be
+// cut, and uses the same kind for dialogs whose first option approves more
+// than one request (the plan dialog's "approve plan", plan mode, browser and
+// computer use). Only "approve <Tool>: <what>" names one tool call; a summary
+// that names only the tool says nothing the barista could judge.
+const bareLabels = new Set(['permission prompt', 'sandbox request', 'worker request', 'goal proposal', 'input needed', 'awaiting input', 'approve plan']);
+const planTools = new Set(['ExitPlanMode', 'EnterPlanMode']);
+function askedTool(lifecycle, text) {
+  if (bareLabels.has(text.toLowerCase()) || text.endsWith('…')) return false;
+  if (lifecycle !== 'claude') return true;
+  const asked = /^approve ([A-Za-z][A-Za-z0-9_-]{0,127}): (\S[\s\S]*)$/.exec(text);
+  return Boolean(asked) && !planTools.has(asked[1]) && asked[2].trim() !== asked[1];
 }
 
 // Claude Code: 1 is "Yes" for this request only. Codex: y is "Yes, proceed"
