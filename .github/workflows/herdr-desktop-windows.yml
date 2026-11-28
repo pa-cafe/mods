@@ -16,7 +16,6 @@ concurrency:
 jobs:
   git-bash-native:
     name: Git Bash installer and synthetic native usage
-    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
