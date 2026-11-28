@@ -1,0 +1,53 @@
+name: Tokscale Windows
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/tokscale-windows.yml'
+      - 'install.sh'
+      - 'mods/pacafe-desktop/**'
+      - 'tests/tokscale*.test.mjs'
+      - 'tools/tokscale-history/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tokscale-windows-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  git-bash-native:
+    name: Git Bash installer and synthetic native usage
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install and exercise the locked native helper
+        shell: bash
+        env:
+          CARGO_NET_GIT_FETCH_WITH_CLI: 'true'
+        run: |
+          set -euo pipefail
+          test "$(node -p process.platform)" = win32
+          git --version
+          rustc --version
+          u=$(mktemp -d)
+          trap 'rm -rf -- "$u"' EXIT
+          profile="$u/PA Cafe profile"
+          export HERDR_APP_HOME="$(cygpath -aw "$profile")"
+          mod="$profile/mods/pacafe-desktop"
+          exe="$mod/bin/pacafe-tokscale-history.exe"
+          bash ./install.sh
+          test -f "$mod/mod.json"
+          test ! -e "$exe"
+          bash ./install.sh --with-usage
+          test -f "$exe"
+          export PACAFE_TEST_USAGE_SCANNER="$(cygpath -aw "$exe")"
+          node --test tests/tokscale-native.test.mjs tests/tokscale.test.mjs
